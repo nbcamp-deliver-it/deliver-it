@@ -34,5 +34,8 @@ class DeleteReviewControllerV1Test {
     void whenReviewIdIsNegative_thenFail() throws Exception {
         mockMvc.perform(delete("/v1/reviews/{reviewId}", -1))
                 .andExpect(status().isBadRequest());
+
+        mockMvc.perform(delete("/v1/reviews/{reviewId}", 0))
+                .andExpect(status().isBadRequest());
     }
 }

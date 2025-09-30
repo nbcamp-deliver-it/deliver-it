@@ -1,7 +1,7 @@
 package com.sparta.deliverit.review.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.deliverit.review.presentation.dto.CreateReviewRequest;
+import com.sparta.deliverit.review.presentation.dto.request.CreateReviewRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
