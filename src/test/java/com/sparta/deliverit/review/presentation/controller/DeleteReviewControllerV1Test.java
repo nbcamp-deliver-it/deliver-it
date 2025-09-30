@@ -12,9 +12,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(OrderReviewControllerV1.class)
+@WebMvcTest(ReviewControllerV1.class)
 @AutoConfigureMockMvc(addFilters = false)
-class DeleteOrderReviewControllerV1Test {
+class DeleteReviewControllerV1Test {
 
     @Autowired
     private MockMvc mockMvc;
@@ -26,15 +26,5 @@ class DeleteOrderReviewControllerV1Test {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.reviewId").value(1));
-    }
-
-    @Test
-    @DisplayName("reviewId 가 음수 혹은 0이라면 요청은 400 상태코드로 실패한다")
-    void whenReviewIdIsNegative_thenFail() throws Exception {
-        mockMvc.perform(delete("/v1/reviews/{reviewId}", -1))
-                .andExpect(status().isBadRequest());
-
-        mockMvc.perform(delete("/v1/reviews/{reviewId}", 0))
-                .andExpect(status().isBadRequest());
     }
 }

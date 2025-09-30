@@ -4,7 +4,7 @@ import com.sparta.deliverit.review.presentation.dto.ValidStarField;
 
 import java.math.BigDecimal;
 
-public record UpdateOrderReviewRequest(
+public record UpdateReviewRequest(
         @ValidStarField
         BigDecimal star,
         String description
