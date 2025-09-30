@@ -1,6 +1,5 @@
 package com.sparta.deliverit.review.presentation.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.deliverit.review.presentation.dto.CreateReviewRequest;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +26,7 @@ class ReviewControllerV1Test {
 
     @Test
     @DisplayName("올바른 리뷰 생성 요청을 보내면 200 상태코드로 성공한다")
-    void createReview() throws Exception {
+    void whenRequestIsValid_thenSuccess() throws Exception {
         CreateReviewRequest request = new CreateReviewRequest(
                 "orderId",
                 1L,
@@ -45,7 +44,7 @@ class ReviewControllerV1Test {
 
     @Test
     @DisplayName("orderId 가 없다면 요청은 400 상태코드로 실패한다")
-    void orderIdNull() throws Exception {
+    void whenOrderIdIsNull_thenFail() throws Exception {
         CreateReviewRequest request = new CreateReviewRequest(
                 null,
                 1L,
@@ -62,7 +61,7 @@ class ReviewControllerV1Test {
 
     @Test
     @DisplayName("userId 가 없다면 요청은 400 상태코드로 실패한다")
-    void userIdNull() throws Exception {
+    void whenUserIdIsNull_thenFail() throws Exception {
         CreateReviewRequest request = new CreateReviewRequest(
                 "orderId",
                 null,
@@ -79,7 +78,7 @@ class ReviewControllerV1Test {
 
     @Test
     @DisplayName("star 가 없다면 요청은 400 상태코드로 실패한다")
-    void starNull() throws Exception {
+    void whenStarIsNull_thenFail() throws Exception {
         CreateReviewRequest request = new CreateReviewRequest(
                 "orderId",
                 1L,
@@ -92,5 +91,23 @@ class ReviewControllerV1Test {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("description은 없어도 요청은 200 상태코드로 성공한다")
+    void whenDescriptionIsNull_thenSuccess() throws Exception {
+        CreateReviewRequest request = new CreateReviewRequest(
+                "orderId",
+                1L,
+                BigDecimal.valueOf(4.5),
+                null
+
+        );
+
+        mockMvc.perform(post("/v1/reviews")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reviewId").exists());
     }
 }
