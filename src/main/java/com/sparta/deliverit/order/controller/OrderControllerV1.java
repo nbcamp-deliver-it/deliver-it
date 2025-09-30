@@ -33,7 +33,7 @@ public class OrderControllerV1 implements OrderController{
                 .orderTime(LocalDateTime.of(2025, 9, 30, 17, 45, 12, 345678900).toString())
                 .orderStatus(OrderStatus.CREATED)
                 .deliveryAddress("서울특별시 강남구 테헤란로 1927")
-                .totalPrice(24000)
+                .totalPrice(28000)
                 .menus(List.of(menuInfo1, menuInfo2))
                 .build();
 

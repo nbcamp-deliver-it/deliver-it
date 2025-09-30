@@ -36,7 +36,7 @@ class OrderControllerV1Test {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orders[0].order_time").value("2025-09-30T17:45:12.345678900"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orders[0].order_status").value(OrderStatus.CREATED.getDescription()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orders[0].delivery_address").value("서울특별시 강남구 테헤란로 1927"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orders[0].total_price").value(24000))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orders[0].total_price").value(28000))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orders[0].menus").isArray())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orders[0].menus[0].menu_name").value("후라이드 치킨"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orders[0].menus[0].quantity").value(1))
