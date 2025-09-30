@@ -43,4 +43,28 @@ class OrderControllerV1Test {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orders[0].menus[0].price").value(16000));
     }
 
+    @DisplayName("사용자가 주문 조회 API를 호출하면 주문 정보를 반환한다.")
+    @Test
+    void getOrderTest() throws Exception {
+        // when // then
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .get("/v1/orders/{orderId}", "550e8400-e29b-41d4-a716-446655440000")
+
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문을 조회했습니다."))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.order.order_id").value("550e8400-e29b-41d4-a716-446655440000"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.order.restaurant_name").value("치킨성"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.order.username").value("포이응"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.order.order_time").value("2025-09-30T17:45:12.345678900"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.order.order_status").value(OrderStatus.CREATED.getDescription()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.order.delivery_address").value("서울특별시 강남구 테헤란로 1927"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.order.total_price").value(28000))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.order.menus").isArray())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.order.menus[1].menu_name").value("콜라"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.order.menus[1].quantity").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.order.menus[1].price").value(6000));
+
+    }
 }
