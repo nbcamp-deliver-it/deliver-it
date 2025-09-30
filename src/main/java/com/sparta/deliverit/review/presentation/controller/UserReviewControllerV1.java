@@ -1,23 +1,23 @@
 package com.sparta.deliverit.review.presentation.controller;
 
-import com.sparta.deliverit.review.presentation.dto.request.CreateOrderReviewRequest;
-import com.sparta.deliverit.review.presentation.dto.response.MutateReviewResponse;
 import com.sparta.deliverit.review.presentation.dto.response.ReviewListResponse;
 import com.sparta.deliverit.review.presentation.dto.response.ReviewResponse;
-import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v1/orders")
-public class OrderReviewControllerV1 {
+@RequestMapping("/v1/users")
+public class UserReviewControllerV1 {
 
-    @GetMapping("/{orderId}/reviews")
+    @GetMapping("/{userId}/reviews")
     public ResponseEntity<ReviewListResponse> getOrderReviews(
-            @PathVariable String orderId
+            @PathVariable String userId
     ) {
         return ResponseEntity.ok(new ReviewListResponse(
                 List.of(
@@ -29,16 +29,5 @@ public class OrderReviewControllerV1 {
                         )
                 )
         ));
-    }
-
-    @PostMapping("/{orderId}/reviews")
-    public ResponseEntity<MutateReviewResponse> create(
-            @PathVariable
-            String orderId,
-            @Valid
-            @RequestBody
-            CreateOrderReviewRequest request
-    ) {
-        return ResponseEntity.ok(new MutateReviewResponse(1L));
     }
 }
