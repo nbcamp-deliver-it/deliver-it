@@ -16,7 +16,7 @@ import java.util.List;
 public class UserReviewControllerV1 {
 
     @GetMapping("/{userId}/reviews")
-    public ResponseEntity<ReviewListResponse> getOrderReviews(
+    public ResponseEntity<ReviewListResponse> getUserReviews(
             @PathVariable String userId
     ) {
         return ResponseEntity.ok(new ReviewListResponse(
