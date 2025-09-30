@@ -1,7 +1,7 @@
 package com.sparta.deliverit.review.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.deliverit.review.presentation.dto.request.UpdateReviewRequest;
+import com.sparta.deliverit.review.presentation.dto.request.UpdateOrderReviewRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,9 +17,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(ReviewControllerV1.class)
+@WebMvcTest(OrderReviewControllerV1.class)
 @AutoConfigureMockMvc(addFilters = false)
-class UpdateReviewControllerV1Test {
+class UpdateOrderReviewControllerV1Test {
 
     @Autowired
     private MockMvc mockMvc;
@@ -30,7 +30,7 @@ class UpdateReviewControllerV1Test {
     @Test
     @DisplayName("올바른 리뷰 수정 요청을 보내면 200 상태코드로 성공한다")
     void whenRequestIsValid_thenSuccess() throws Exception {
-         var request = new UpdateReviewRequest(
+         var request = new UpdateOrderReviewRequest(
                 BigDecimal.valueOf(4.5),
                 "정말 맛있어요"
 
@@ -46,7 +46,7 @@ class UpdateReviewControllerV1Test {
     @Test
     @DisplayName("star 가 없다면 요청은 400 상태코드로 실패한다")
     void whenStarIsNull_thenFail() throws Exception {
-        var request = new UpdateReviewRequest(
+        var request = new UpdateOrderReviewRequest(
                 null,
                 "정말 맛있어요"
 
@@ -65,7 +65,7 @@ class UpdateReviewControllerV1Test {
         @Test
         @DisplayName("reviewId 가 음수 혹은 0이라면 요청은 400 상태코드로 실패한다")
         void whenReviewIdIsNegative_thenFail() throws Exception {
-            var request = new UpdateReviewRequest(
+            var request = new UpdateOrderReviewRequest(
                     BigDecimal.valueOf(4.5),
                     "정말 맛있어요"
 
@@ -85,7 +85,7 @@ class UpdateReviewControllerV1Test {
         @Test
         @DisplayName("star 의 값이 1.0 이상이 아니라면 요청은 400 상태코드로 실패한다")
         void whenStarIsLessThenOne_thenFail() throws Exception {
-            var request = new UpdateReviewRequest(
+            var request = new UpdateOrderReviewRequest(
                     BigDecimal.valueOf(0.9),
                     null
             );
@@ -99,7 +99,7 @@ class UpdateReviewControllerV1Test {
         @Test
         @DisplayName("star 의 값이 5.0 이하가 아니라면 요청은 400 상태코드로 실패한다")
         void whenStarIsGreaterThenFive_thenFail() throws Exception {
-            var request = new UpdateReviewRequest(
+            var request = new UpdateOrderReviewRequest(
                     BigDecimal.valueOf(5.1),
                     null
             );

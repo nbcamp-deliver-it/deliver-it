@@ -1,6 +1,5 @@
 package com.sparta.deliverit.review.presentation.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +12,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(ReviewControllerV1.class)
+@WebMvcTest(OrderReviewControllerV1.class)
 @AutoConfigureMockMvc(addFilters = false)
-class DeleteReviewControllerV1Test {
+class DeleteOrderReviewControllerV1Test {
 
     @Autowired
     private MockMvc mockMvc;
