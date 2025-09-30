@@ -3,6 +3,7 @@ package com.sparta.deliverit.review.presentation.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.deliverit.review.presentation.dto.CreateReviewRequest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -109,5 +110,90 @@ class ReviewControllerV1Test {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.reviewId").exists());
+    }
+
+    @Nested
+    @DisplayName("값 형식과 범위 검증")
+    class ValueRoleTest {
+
+        @Test
+        @DisplayName("orderId 가 빈 문자열이라면 요청은 400 상태코드로 실패한다")
+        void whenOrderIdIsEmpty_thenFail() throws Exception {
+            CreateReviewRequest request = new CreateReviewRequest(
+                    "",
+                    1L,
+                    BigDecimal.valueOf(4.5),
+                    null
+            );
+
+            mockMvc.perform(post("/v1/reviews")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("userId 가 0이면 요청은 400 상태코드로 실패한다")
+        void whenUserIdIsZero_thenFail() throws Exception {
+            CreateReviewRequest request = new CreateReviewRequest(
+                    "orderId",
+                    0L,
+                    BigDecimal.valueOf(4.5),
+                    null
+            );
+
+            mockMvc.perform(post("/v1/reviews")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("userId 가 음수면 요청은 400 상태코드로 실패한다")
+        void whenUserIdIsNegative_thenFail() throws Exception {
+            CreateReviewRequest request = new CreateReviewRequest(
+                    "orderId",
+                    -1L,
+                    BigDecimal.valueOf(4.5),
+                    null
+            );
+
+            mockMvc.perform(post("/v1/reviews")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("star 의 값이 1.0 이상이 아니라면 요청은 400 상태코드로 실패한다")
+        void whenStarIsLessThenOne_thenFail() throws Exception {
+            CreateReviewRequest request = new CreateReviewRequest(
+                    "orderId",
+                    1L,
+                    BigDecimal.valueOf(0.9),
+                    null
+            );
+
+            mockMvc.perform(post("/v1/reviews")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("star 의 값이 5.0 이하가 아니라면 요청은 400 상태코드로 실패한다")
+        void whenStarIsGreaterThenFive_thenFail() throws Exception {
+            CreateReviewRequest request = new CreateReviewRequest(
+                    "orderId",
+                    1L,
+                    BigDecimal.valueOf(5.1),
+                    null
+            );
+
+            mockMvc.perform(post("/v1/reviews")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        }
     }
 }
