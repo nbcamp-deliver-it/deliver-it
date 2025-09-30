@@ -1,11 +1,21 @@
 package com.sparta.deliverit.exception;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
+@Builder
 @AllArgsConstructor
 public class ErrorResponse {
-    private String code;
+    private ErrorCode errorCode;
     private String message;
+
+    @Override
+    public String toString() {
+        return "ErrorResponse {" +
+                "errorCode=" + errorCode +
+                ", message='" + message + '\'' +
+                '}';
+    }
 }
