@@ -1,6 +1,7 @@
 package com.sparta.deliverit.order.controller;
 
 import com.sparta.deliverit.common.dto.Result;
+import com.sparta.deliverit.order.dto.request.CreateOrderRequest;
 import com.sparta.deliverit.order.dto.response.*;
 import com.sparta.deliverit.order.entity.OrderStatus;
 import org.springframework.web.bind.annotation.*;
@@ -67,5 +68,16 @@ public class OrderControllerV1 implements OrderController{
                 .build();
 
         return Result.of("주문을 조회했습니다.", "200", OrderResponse.of(orderInfo));
+    }
+
+    @PostMapping("/v1/orders")
+    public Result<CreateOrderResponse> createOrder(CreateOrderRequest request) {
+        CreateOrderInfo orderInfo = CreateOrderInfo.builder()
+                .orderId("7939146e-b329-4f6e-9fa9-673381e78b8a")
+                .orderStatus("PENDING_PAYMENT")
+                .totalPrice(28000)
+                .build();
+
+        return Result.of("주문이 정상적으로 완료되었습니다.", "201", CreateOrderResponse.of(orderInfo));
     }
 }
