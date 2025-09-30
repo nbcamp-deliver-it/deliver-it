@@ -1,6 +1,6 @@
 package com.sparta.deliverit.review.presentation.dto;
 
-public record CreateReviewResponse(
+public record MutateReviewResponse(
         Long reviewId
 ) {
 }
