@@ -2,16 +2,16 @@ package com.sparta.deliverit.order.controller;
 
 import com.sparta.deliverit.common.dto.Result;
 import com.sparta.deliverit.order.dto.request.CreateOrderRequest;
-import com.sparta.deliverit.order.dto.response.CreateOrderResponse;
-import com.sparta.deliverit.order.dto.response.OrderListResponse;
-import com.sparta.deliverit.order.dto.response.OrderResponse;
+import com.sparta.deliverit.order.dto.response.*;
+
+import java.util.List;
 
 public interface OrderController {
 
-    Result<OrderListResponse> getOrderList();
+    Result<List<OrderInfo>> getOrderList();
 
-    Result<OrderResponse> getOrder(String orderId);
+    Result<OrderInfo> getOrder(String orderId);
 
-    Result<CreateOrderResponse> createOrder(CreateOrderRequest request);
+    Result<CreateOrderInfo> createOrder(CreateOrderRequest request);
 
 }

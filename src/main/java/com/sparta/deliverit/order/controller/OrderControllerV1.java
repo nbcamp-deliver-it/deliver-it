@@ -13,7 +13,7 @@ import java.util.List;
 public class OrderControllerV1 implements OrderController{
 
     @GetMapping("/v1/orders")
-    public Result<OrderListResponse> getOrderList() {
+    public Result<List<OrderInfo>> getOrderList() {
 
         MenuInfo menuInfo1 = MenuInfo.builder()
                 .menuName("후라이드 치킨")
@@ -38,12 +38,12 @@ public class OrderControllerV1 implements OrderController{
                 .menus(List.of(menuInfo1, menuInfo2))
                 .build();
 
-        return Result.of("주문 목록을 조회했습니다.", "200", OrderListResponse.of(List.of(orderInfo)));
+        return Result.of("주문 목록을 조회했습니다.", "200", List.of(orderInfo));
     }
 
 
     @GetMapping("/v1/orders/{orderId}")
-    public Result<OrderResponse> getOrder(@PathVariable String orderId) {
+    public Result<OrderInfo> getOrder(@PathVariable String orderId) {
         MenuInfo menuInfo1 = MenuInfo.builder()
                 .menuName("후라이드 치킨")
                 .quantity(1)
@@ -67,17 +67,17 @@ public class OrderControllerV1 implements OrderController{
                 .menus(List.of(menuInfo1, menuInfo2))
                 .build();
 
-        return Result.of("주문을 조회했습니다.", "200", OrderResponse.of(orderInfo));
+        return Result.of("주문을 조회했습니다.", "200", orderInfo);
     }
 
     @PostMapping("/v1/orders")
-    public Result<CreateOrderResponse> createOrder(CreateOrderRequest request) {
+    public Result<CreateOrderInfo> createOrder(CreateOrderRequest request) {
         CreateOrderInfo orderInfo = CreateOrderInfo.builder()
                 .orderId("7939146e-b329-4f6e-9fa9-673381e78b8a")
                 .orderStatus("PENDING_PAYMENT")
                 .totalPrice(28000)
                 .build();
 
-        return Result.of("주문이 정상적으로 완료되었습니다.", "201", CreateOrderResponse.of(orderInfo));
+        return Result.of("주문이 정상적으로 완료되었습니다.", "201", orderInfo);
     }
 }
