@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -17,7 +18,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import java.util.List;
 
 @WebMvcTest(controllers = OrderControllerV1.class)
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc()
 class OrderControllerV1Test {
 
     @Autowired
@@ -34,6 +35,7 @@ class OrderControllerV1Test {
         mockMvc.perform(
                         MockMvcRequestBuilders
                                 .get("/v1/orders")
+                                .with(SecurityMockMvcRequestPostProcessors.user("OOO").roles("OWNER"))
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문 목록을 조회했습니다."))
@@ -50,6 +52,40 @@ class OrderControllerV1Test {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].menus[0].menuName").value("후라이드 치킨"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].menus[0].quantity").value(1))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].menus[0].price").value(16000));
+    }
+
+    @DisplayName("주문 목록을 조회하는 사용자의 권한이 CUSTOMER일 때, 사용자가 주문 리스트를 반환한다.")
+    @Test
+    void getCustomerOrderListTest() throws Exception {
+        // given
+
+        // when // then
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/v1/orders")
+                        .with(SecurityMockMvcRequestPostProcessors.user("홍길동").roles("CUSTOMER")))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].orderId").value("7939146e-b329-4f6e-9fa9-673381e78b8a"));
+    }
+
+    @DisplayName("주문 목록을 조회하는 사용자의 권한이 OWNER일 때, 가게의 주문 리스트를 반환한다.")
+    @Test
+    void getRestaurantOrderListTest() throws Exception {
+        // when // then
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/v1/orders")
+                        .with(SecurityMockMvcRequestPostProcessors.user("김철수").roles("OWNER")))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].orderId").value("550e8400-e29b-41d4-a716-446655440000"));
+    }
+
+    @DisplayName("주문 목록을 조회하는 사용자의 권한이 MASTER일 때, 403 Forbidden 발생")
+    @Test
+    void getOrderListByMasterTest() throws Exception {
+        // when // then
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/v1/orders")
+                        .with(SecurityMockMvcRequestPostProcessors.user("김철수").roles("MASTER")))
+                .andExpect(MockMvcResultMatchers.status().isForbidden());
     }
 
     @DisplayName("사용자가 주문 조회 API를 호출하면 주문 정보를 반환한다.")
