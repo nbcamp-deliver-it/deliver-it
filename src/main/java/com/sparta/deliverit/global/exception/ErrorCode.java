@@ -1,6 +1,14 @@
-package com.sparta.deliverit.exception;
+package com.sparta.deliverit.global.exception;
 
 public enum ErrorCode {
+    // Common
+    BAD_REQUEST,
+    MISSING_PARAMETER,
+    INVALID_PATH,
+    INVALID_TYPE,
+    VALIDATION_FAILED,
+    UNREADABLE_MESSAGE,
+    BINDING_FAILED,
 
     // Order
     ORDER_FAILED,
@@ -19,9 +27,6 @@ public enum ErrorCode {
     // User
     REGISTER_FAILED,
     LOGIN_FAILED,
-
-    // Client
-    BAD_REQUEST,
 
     // Server
     SERVER_ERROR
