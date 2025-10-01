@@ -1,6 +1,7 @@
 package com.sparta.deliverit.restaurant.domain.entity;
 
 import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
+import com.sparta.deliverit.restaurant.infrastructure.api.map.Coordinates;
 import com.sparta.deliverit.restaurant.presentation.dto.RestaurantInfoRequestDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -38,7 +39,7 @@ public class Restaurant {
     @Column(nullable = false)
     private Double latitude;
 
-    public void updateCoordinate(Double longitude, Double latitude) {
+    public void updateCoordinates(Double longitude, Double latitude) {
         this.longitude = longitude;
         this.latitude = latitude;
     }
@@ -68,6 +69,10 @@ public class Restaurant {
     )
     private Set<Category> categories = new HashSet<>();
 
+    public void assignCategories(Set<Category> categories) {
+        this.categories.addAll(categories);
+    }
+
     // 리뷰 및 별점 반영 -> 스케쥴러 사용 예정
     @Column(nullable = false)
     @Builder.Default
@@ -83,10 +88,12 @@ public class Restaurant {
     }
 
     // 음식점 수정 메서드
-    public void update(RestaurantInfoRequestDto requestDto, Set<Category> categories) {
+    public void update(RestaurantInfoRequestDto requestDto, Set<Category> categories, Coordinates coordinates) {
         name = requestDto.getName();
         phone = requestDto.getPhone();
         address = requestDto.getAddress();
+        longitude = coordinates.getLongitude();
+        latitude = coordinates.getLatitude();
         description = requestDto.getDescription();
         status = requestDto.getStatus();
         this.categories.clear();

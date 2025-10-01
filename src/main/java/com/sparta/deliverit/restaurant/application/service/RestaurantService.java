@@ -4,6 +4,8 @@ import com.sparta.deliverit.restaurant.domain.entity.Category;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import com.sparta.deliverit.restaurant.domain.repository.CategoryRepository;
 import com.sparta.deliverit.restaurant.domain.repository.RestaurantRepository;
+import com.sparta.deliverit.restaurant.infrastructure.api.map.Coordinates;
+import com.sparta.deliverit.restaurant.infrastructure.api.map.MapService;
 import com.sparta.deliverit.restaurant.presentation.dto.RestaurantInfoRequestDto;
 import com.sparta.deliverit.restaurant.presentation.dto.RestaurantInfoResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -19,25 +21,26 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RestaurantService {
 
+    private final MapService mapService;
     private final RestaurantRepository restaurantRepository;
     private final CategoryRepository categoryRepository;
 
     // 음식점 등록
     @Transactional
     public RestaurantInfoResponseDto createRestaurant(RestaurantInfoRequestDto requestDto) {
-        // 고유 식별자 생성
-        String restaurantId = generateRestaurantId();
+        // 1. 고유 식별자 생성 및 엔티티 변환
+        Restaurant restaurant = Restaurant.from(requestDto, generateRestaurantId());
 
-        // 음식점 정보 저장
-        Restaurant restaurant = Restaurant.from(requestDto, restaurantId);
-
-        // 카테고리
+        // 2. 카테고리 매핑
         Set<Category> categories = categoryRepository.findAllByNameIn(requestDto.getCategories());
-        restaurant.getCategories().addAll(categories);
+        restaurant.assignCategories(categories);
 
+        // 3. 주소 -> 좌표 변환 후 엔티티 업데이트
+        Coordinates geocode = mapService.geocode(requestDto.getAddress());
+        restaurant.updateCoordinates(geocode.getLongitude(), geocode.getLatitude());
+
+        // 4. 저장 후 DTO 반환
         restaurantRepository.save(restaurant);
-
-        // 저장 결과 Entity -> DTO 변환 후 반환
         return RestaurantInfoResponseDto.from(restaurant);
     }
 
