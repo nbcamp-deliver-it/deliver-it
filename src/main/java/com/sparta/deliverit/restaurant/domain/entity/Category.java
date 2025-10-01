@@ -2,14 +2,12 @@ package com.sparta.deliverit.restaurant.domain.entity;
 
 import com.sparta.deliverit.restaurant.domain.model.RestaurantCategory;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @Builder
 @Entity
 @Table(name = "p_category")

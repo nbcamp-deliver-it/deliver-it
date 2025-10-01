@@ -4,10 +4,7 @@ import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
 import com.sparta.deliverit.restaurant.infrastructure.api.map.Coordinates;
 import com.sparta.deliverit.restaurant.presentation.dto.RestaurantInfoRequestDto;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -16,6 +13,7 @@ import java.util.Set;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @Builder
 @Entity
 @Table(name = "p_restaurant")
