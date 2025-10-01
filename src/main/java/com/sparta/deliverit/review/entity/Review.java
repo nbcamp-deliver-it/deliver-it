@@ -11,7 +11,7 @@ import java.math.RoundingMode;
 
 // FIXME: User 엔티티와의 ManyToOne 참조 필요
 @Entity
-@Table(name = "reviews")
+@Table(name = "p_review")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class Review {
