@@ -55,7 +55,7 @@ class OrderReviewControllerV1Test {
                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.list").isArray())
-                    .andExpect(jsonPath("$.list[0].reviewId").isNumber())
+                    .andExpect(jsonPath("$.list[0].orderReviewId").isNumber())
                     .andExpect(jsonPath("$.list[0].userId").isNumber())
                     .andExpect(jsonPath("$.list[0].userName").isString())
                     .andExpect(jsonPath("$.list[0].star").isNumber())

@@ -56,13 +56,22 @@ class ReviewTest {
     }
 
     @Test
-    @DisplayName("리뷰 별점 변경시 1.0 미만 혹은 5.0 초과인 경우 별점을 변경할 수 없다")
-    void failWhenChangingStarOutOfRange() {
-        Review review = new Review(BigDecimal.valueOf(4.5));
+    @DisplayName("리뷰의 별점과 설명이 같으면 같은 리뷰이다")
+    void whenStarAndDescriptionAreSameThenEquals() {
+        var review1 = new Review(BigDecimal.valueOf(4.5), "리뷰 생성");
+        var review2 = new Review(BigDecimal.valueOf(4.5), "리뷰 생성");
 
-        assertThrows(IllegalArgumentException.class, () ->
-                review.changeStar(BigDecimal.valueOf(0.9)));
-        assertThrows(IllegalArgumentException.class, () ->
-                review.changeStar(BigDecimal.valueOf(5.1)));
+        assertEquals(review1, review2);
+    }
+
+    @Test
+    @DisplayName("리뷰의 별점과 설명이 다르면 다른 리뷰이다")
+    void whenStarAndDescriptionAreDifferentThenNotEquals() {
+        var review1 = new Review(BigDecimal.valueOf(4.5), "리뷰 생성");
+        var review2 = new Review(BigDecimal.valueOf(1.0), "리뷰 생성");
+        var review3 = new Review(BigDecimal.valueOf(4.5), "리뷰");
+
+        assertNotEquals(review1, review2);
+        assertNotEquals(review1, review3);
     }
 }

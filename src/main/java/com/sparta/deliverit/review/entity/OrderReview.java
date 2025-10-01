@@ -5,7 +5,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 // FIXME: Order 엔티티와의 ManyToOne 참조 필요
+// FIXME: User 엔티티와의 ManyToOne 참조 필요
 @Entity
 @Table(name = "p_order_review")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -16,13 +19,25 @@ public class OrderReview {
     @Column(name = "order_review_id")
     private Long orderReviewId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "review_id", nullable = false)
+    @Embedded
     private Review review;
 
     public OrderReview(Review review) {
         validateReview(review);
         this.review = review;
+    }
+
+    public void changeReview(Review newReview) {
+        validateReview(newReview);
+        this.review = newReview;
+    }
+
+    public BigDecimal getStar() {
+        return review.getStar();
+    }
+
+    public String getDescription() {
+        return review.getDescription();
     }
 
     private void validateReview(Review review) {

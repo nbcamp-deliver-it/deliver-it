@@ -1,7 +1,7 @@
 package com.sparta.deliverit.review.presentation.controller;
 
-import com.sparta.deliverit.review.presentation.dto.response.ReviewListResponse;
-import com.sparta.deliverit.review.presentation.dto.response.ReviewResponse;
+import com.sparta.deliverit.review.presentation.dto.response.UserReviewListResponse;
+import com.sparta.deliverit.review.presentation.dto.response.UserReviewResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,16 +16,12 @@ import java.util.List;
 public class UserReviewControllerV1 {
 
     @GetMapping("/{userId}/reviews")
-    public ResponseEntity<ReviewListResponse> getUserReviews(
+    public ResponseEntity<UserReviewListResponse> getUserReviews(
             @PathVariable String userId
     ) {
-        // FIXME: userName, userId 는 필요없음
-        return ResponseEntity.ok(new ReviewListResponse(
+        return ResponseEntity.ok(new UserReviewListResponse(
                 List.of(
-                        new ReviewResponse(
-                                1L,
-                                1L,
-                                "userName",
+                        new UserReviewResponse(
                                 BigDecimal.valueOf(4.5),
                                 "리뷰 설명"
                         )

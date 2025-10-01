@@ -23,4 +23,18 @@ class OrderReviewTest {
     void failWhenReviewIsNull() {
         assertThrows(IllegalArgumentException.class, () -> new OrderReview(null));
     }
+
+    @Test
+    @DisplayName("주문의 리뷰는 변경할 수 있다")
+    void changeReview() {
+        var oldReview = new Review(BigDecimal.valueOf(4.5), "예전 리뷰");
+        OrderReview orderReview = new OrderReview(oldReview);
+
+        var newReview = new Review(BigDecimal.valueOf(1.0), "새로운 리뷰");
+        orderReview.changeReview(newReview);
+
+        assertEquals(newReview, orderReview.getReview());
+        assertEquals(newReview.getStar(), orderReview.getStar());
+        assertEquals(newReview.getDescription(), orderReview.getDescription());
+    }
 }

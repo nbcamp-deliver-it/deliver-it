@@ -3,7 +3,7 @@ package com.sparta.deliverit.review.presentation.controller;
 import com.sparta.deliverit.review.application.service.OrderReviewService;
 import com.sparta.deliverit.review.presentation.dto.request.CreateOrderReviewRequest;
 import com.sparta.deliverit.review.presentation.dto.response.MutateReviewResponse;
-import com.sparta.deliverit.review.presentation.dto.response.ReviewListResponse;
+import com.sparta.deliverit.review.presentation.dto.response.OrderReviewListResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +16,11 @@ public class OrderReviewControllerV1 {
     private final OrderReviewService orderReviewService;
 
     @GetMapping("/{orderId}/reviews")
-    public ResponseEntity<ReviewListResponse> getOrderReviews(
+    public ResponseEntity<OrderReviewListResponse> getOrderReviews(
             @PathVariable String orderId
     ) {
-        var reviews = orderReviewService.getOrderReviews(orderId);
-        return ResponseEntity.ok(ReviewListResponse.from(reviews));
+        var orderReviews = orderReviewService.getOrderReviews(orderId);
+        return ResponseEntity.ok(OrderReviewListResponse.from(orderReviews));
     }
 
     @PostMapping("/{orderId}/reviews")

@@ -8,18 +8,12 @@ import org.hibernate.annotations.Comment;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Objects;
 
-// FIXME: User 엔티티와의 ManyToOne 참조 필요
-@Entity
-@Table(name = "p_review")
+@Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class Review {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "review_id")
-    private Long reviewId;
-
     @Column(name = "star", precision = 2, scale = 1, nullable = false)
     @Comment("별점")
     private BigDecimal star;
@@ -41,8 +35,16 @@ public class Review {
         this.description = description;
     }
 
-    public void changeStar(BigDecimal newStar) {
-        this.star = validateStar(newStar);
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof Review review)) return false;
+        return Objects.equals(star, review.star) && Objects.equals(description, review.description);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(star, description);
     }
 
     private BigDecimal validateStar(BigDecimal star) {

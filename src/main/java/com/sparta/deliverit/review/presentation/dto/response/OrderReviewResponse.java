@@ -4,16 +4,16 @@ import com.sparta.deliverit.review.application.service.dto.OrderReviewInfo;
 
 import java.math.BigDecimal;
 
-public record ReviewResponse(
-        Long reviewId,
+public record OrderReviewResponse(
+        Long orderReviewId,
         Long userId,
         String userName,
         BigDecimal star,
         String description
 ) {
-    public static ReviewResponse from(OrderReviewInfo review) {
-        return new ReviewResponse(
-                review.reviewId(),
+    public static OrderReviewResponse from(OrderReviewInfo review) {
+        return new OrderReviewResponse(
+                review.orderReviewId(),
                 review.userId(),
                 review.userName(),
                 review.star(),
