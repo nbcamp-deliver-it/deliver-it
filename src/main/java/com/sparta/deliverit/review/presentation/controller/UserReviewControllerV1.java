@@ -19,11 +19,13 @@ public class UserReviewControllerV1 {
     public ResponseEntity<ReviewListResponse> getUserReviews(
             @PathVariable String userId
     ) {
+        // FIXME: userName, userId 는 필요없음
         return ResponseEntity.ok(new ReviewListResponse(
                 List.of(
                         new ReviewResponse(
                                 1L,
-                                "userId",
+                                1L,
+                                "userName",
                                 BigDecimal.valueOf(4.5),
                                 "리뷰 설명"
                         )

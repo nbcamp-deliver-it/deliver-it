@@ -2,6 +2,7 @@ package com.sparta.deliverit.review.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.deliverit.review.application.service.OrderReviewService;
+import com.sparta.deliverit.review.application.service.dto.OrderReviewInfo;
 import com.sparta.deliverit.review.presentation.dto.request.CreateOrderReviewRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -14,6 +15,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.util.List;
+
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -36,12 +40,24 @@ class OrderReviewControllerV1Test {
         @Test
         @DisplayName("주문 리뷰 조회 요청이 유효하면 200 상태코드로 주문 리스트를 반환한다")
         void whenRequestIsValid_thenSuccess() throws Exception {
+            when(orderReviewService.getOrderReviews("orderId"))
+                    .thenReturn(List.of(
+                            new OrderReviewInfo(
+                                    1L,
+                                    1L,
+                                    "userName",
+                                    BigDecimal.valueOf(4.5),
+                                    "리뷰 설명"
+                            )
+                    ));
+
             mockMvc.perform(get("/v1/orders/orderId/reviews")
                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.list").isArray())
                     .andExpect(jsonPath("$.list[0].reviewId").isNumber())
-                    .andExpect(jsonPath("$.list[0].userId").isString())
+                    .andExpect(jsonPath("$.list[0].userId").isNumber())
+                    .andExpect(jsonPath("$.list[0].userName").isString())
                     .andExpect(jsonPath("$.list[0].star").isNumber())
                     .andExpect(jsonPath("$.list[0].description").isString());
         }
