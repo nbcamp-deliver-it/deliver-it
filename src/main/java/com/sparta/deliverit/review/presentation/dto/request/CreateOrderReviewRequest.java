@@ -14,8 +14,8 @@ public record CreateOrderReviewRequest(
         BigDecimal star,
         String description
 ) {
-    public OrderReviewCommand toCommand(String orderId) {
-        return new OrderReviewCommand(
+    public OrderReviewCommand.Create toCommand(String orderId) {
+        return new OrderReviewCommand.Create(
                 orderId,
                 userId,
                 star,

@@ -42,7 +42,9 @@ public class OrderReviewControllerV1 {
             @PathVariable Long reviewId,
             @RequestBody @Valid UpdateReviewRequest request
     ) {
-        return ResponseEntity.ok(new MutateReviewResponse(1L));
+        var command = request.toCommand(reviewId);
+        Long orderReviewId = orderReviewService.updateReview(command);
+        return ResponseEntity.ok(new MutateReviewResponse(orderReviewId));
     }
 
     @DeleteMapping("order-reviews/{reviewId}")

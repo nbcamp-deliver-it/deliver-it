@@ -27,7 +27,7 @@ class OrderReviewServiceTest {
     @Test
     @DisplayName("주문 리뷰를 생성할 수 있다")
     void createOrderReview() {
-        var payload = new OrderReviewCommand(
+        var payload = new OrderReviewCommand.Create(
                 "orderId",
                 1L,
                 BigDecimal.valueOf(4.5),
