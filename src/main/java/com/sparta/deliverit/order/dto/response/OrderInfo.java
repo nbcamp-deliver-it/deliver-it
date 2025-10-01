@@ -9,28 +9,28 @@ import java.util.List;
 
 @Getter
 public class OrderInfo {
-    @JsonProperty("order_id")
+    @JsonProperty("orderId")
     private final String orderId;
 
-    @JsonProperty("restaurant_name")
+    @JsonProperty("restaurantName")
     private final String restaurantName;
 
     @JsonProperty("username")
     private final String username;
 
-    @JsonProperty("order_time")
+    @JsonProperty("orderTime")
     private final String orderTime;
 
-    @JsonProperty("order_status")
+    @JsonProperty("orderStatus")
     private final String orderStatus;
 
-    @JsonProperty("delivery_address")
+    @JsonProperty("deliveryAddress")
     private final String deliveryAddress;
 
     @JsonProperty("menus")
     private final List<MenuInfo> menus;
 
-    @JsonProperty("total_price")
+    @JsonProperty("totalPrice")
     private final int totalPrice;
 
     @Builder

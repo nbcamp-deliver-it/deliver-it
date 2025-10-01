@@ -6,17 +6,17 @@ import lombok.Getter;
 public class Result<T> {
 
     private final String message;
-    private final String code;
+    private final String responseCode;
     private final T data;
 
-    private Result(String message, String code, T data) {
+    private Result(String message, String responseCode, T data) {
         this.message = message;
-        this.code = code;
+        this.responseCode = responseCode;
         this.data = data;
     }
 
-    public static <T> Result<T> of(String message, String code, T data) {
-        return new Result(message, code, data);
+    public static <T> Result<T> of(String message, String responseCode, T data) {
+        return new Result(message, responseCode, data);
     }
 }
 

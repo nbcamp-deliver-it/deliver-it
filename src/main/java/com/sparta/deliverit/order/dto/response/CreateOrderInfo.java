@@ -4,13 +4,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 
 public class CreateOrderInfo {
-    @JsonProperty("order_id")
+    @JsonProperty("orderId")
     private final String orderId;
 
-    @JsonProperty("order_status")
+    @JsonProperty("orderStatus")
     private final String orderStatus;
 
-    @JsonProperty("total_price")
+    @JsonProperty("totalPrice")
     private final int totalPrice;
 
     @Builder

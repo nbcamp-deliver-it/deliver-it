@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 public class MenuInfo {
-    @JsonProperty("menu_name")
+    @JsonProperty("menuName")
     private final String menuName;
 
     @JsonProperty("quantity")

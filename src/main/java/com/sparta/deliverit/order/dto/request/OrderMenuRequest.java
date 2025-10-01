@@ -10,7 +10,7 @@ public class OrderMenuRequest {
 
     @NotBlank(message = "메뉴의 UUID는 필수값 입니다.")
     @Size(min=36, max=36, message = "식당의 UUID는 36글자로 구성되어야 합니다.")
-    @JsonProperty("menu_id")
+    @JsonProperty("menuId")
     private final String menuId;
 
     @Positive(message = "메뉴 수량은 자연수여야 합니다.") @Min(value = 1, message = "메뉴 수량은 1 이상이어야 합니다.")
