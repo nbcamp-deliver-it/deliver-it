@@ -113,4 +113,23 @@ class OrderControllerV1Test {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value("PENDING_PAYMENT"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.totalPrice").value(28000));
     }
+
+    @DisplayName("점주가 주문 확정 API를 호출하면 주문의 상태가 주문 확인으로 변경된다.")
+    @Test
+    void confirmOrderTest() throws Exception{
+        // given
+
+        // when // then
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/orders/{orderId}/confirm", "550e8400-e29b-41d4-a716-446655440000")
+
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문 확인이 완료되었습니다."))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("200"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderId").value("550e8400-e29b-41d4-a716-446655440000"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value("주문 확인"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.confirmedAt").value("2025-09-29T20:15:42+09:00"));
+    }
 }

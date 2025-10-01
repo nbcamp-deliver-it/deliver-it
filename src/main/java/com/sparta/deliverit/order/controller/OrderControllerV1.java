@@ -80,4 +80,12 @@ public class OrderControllerV1 implements OrderController{
 
         return Result.of("주문이 정상적으로 완료되었습니다.", "201", orderInfo);
     }
+
+    @PostMapping("/v1/orders/{orderId}/confirm")
+    public Result<ConfirmOrderInfo> confirmOrder(@PathVariable String orderId) {
+
+        ConfirmOrderInfo confirmOrderInfo = ConfirmOrderInfo.of("550e8400-e29b-41d4-a716-446655440000", OrderStatus.CONFIRMED.getDescription(), "2025-09-29T20:15:42+09:00");
+
+        return Result.of("주문 확인이 완료되었습니다.", "200", confirmOrderInfo);
+    }
 }

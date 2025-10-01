@@ -14,4 +14,5 @@ public interface OrderController {
 
     Result<CreateOrderInfo> createOrder(CreateOrderRequest request);
 
+    Result<ConfirmOrderInfo> confirmOrder(String orderId);
 }
