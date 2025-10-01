@@ -1,5 +1,6 @@
 package com.sparta.deliverit.review.presentation.dto.request;
 
+import com.sparta.deliverit.review.application.service.dto.OrderReviewPayload;
 import com.sparta.deliverit.review.presentation.dto.ValidStarField;
 import jakarta.validation.constraints.*;
 
@@ -13,4 +14,12 @@ public record CreateOrderReviewRequest(
         BigDecimal star,
         String description
 ) {
+    public OrderReviewPayload toPayload(String orderId) {
+        return new OrderReviewPayload(
+                orderId,
+                userId,
+                star,
+                description
+        );
+    }
 }

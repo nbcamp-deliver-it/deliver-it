@@ -1,10 +1,12 @@
 package com.sparta.deliverit.review.presentation.controller;
 
+import com.sparta.deliverit.review.application.service.OrderReviewService;
 import com.sparta.deliverit.review.presentation.dto.request.CreateOrderReviewRequest;
 import com.sparta.deliverit.review.presentation.dto.response.MutateReviewResponse;
 import com.sparta.deliverit.review.presentation.dto.response.ReviewListResponse;
 import com.sparta.deliverit.review.presentation.dto.response.ReviewResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +15,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/v1/orders")
+@RequiredArgsConstructor
 public class OrderReviewControllerV1 {
+    private final OrderReviewService orderReviewService;
 
     @GetMapping("/{orderId}/reviews")
     public ResponseEntity<ReviewListResponse> getOrderReviews(
@@ -39,6 +43,8 @@ public class OrderReviewControllerV1 {
             @RequestBody
             CreateOrderReviewRequest request
     ) {
-        return ResponseEntity.ok(new MutateReviewResponse(1L));
+        var payload = request.toPayload(orderId);
+        Long savedReviewId = orderReviewService.createReview(payload);
+        return ResponseEntity.ok(new MutateReviewResponse(savedReviewId));
     }
 }

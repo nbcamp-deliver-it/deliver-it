@@ -1,6 +1,7 @@
 package com.sparta.deliverit.review.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sparta.deliverit.review.application.service.OrderReviewService;
 import com.sparta.deliverit.review.presentation.dto.request.CreateOrderReviewRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -24,6 +26,9 @@ class OrderReviewControllerV1Test {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private OrderReviewService orderReviewService;
 
     @Nested
     @DisplayName("주문 리뷰 조회")
