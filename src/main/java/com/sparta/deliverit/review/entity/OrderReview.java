@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-// FIXME: Order 엔티티와의 ManyToOne 참조 필요
+// FIXME: Order 엔티티와의 OneToOne 참조 필요
 // FIXME: User 엔티티와의 ManyToOne 참조 필요
 @Entity
 @Table(name = "p_order_review")
