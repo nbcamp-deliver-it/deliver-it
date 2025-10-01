@@ -1,6 +1,7 @@
 package com.sparta.deliverit.order.controller;
 
 import com.sparta.deliverit.common.dto.Result;
+import com.sparta.deliverit.order.dto.CancelOrderInfo;
 import com.sparta.deliverit.order.dto.request.CreateOrderRequest;
 import com.sparta.deliverit.order.dto.response.*;
 
@@ -15,4 +16,6 @@ public interface OrderController {
     Result<CreateOrderInfo> createOrder(CreateOrderRequest request);
 
     Result<ConfirmOrderInfo> confirmOrder(String orderId);
+
+    Result<CancelOrderInfo> cancelOrder(String orderId);
 }

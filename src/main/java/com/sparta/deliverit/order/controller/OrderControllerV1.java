@@ -1,6 +1,7 @@
 package com.sparta.deliverit.order.controller;
 
 import com.sparta.deliverit.common.dto.Result;
+import com.sparta.deliverit.order.dto.CancelOrderInfo;
 import com.sparta.deliverit.order.dto.request.CreateOrderRequest;
 import com.sparta.deliverit.order.dto.response.*;
 import com.sparta.deliverit.order.entity.OrderStatus;
@@ -87,5 +88,11 @@ public class OrderControllerV1 implements OrderController{
         ConfirmOrderInfo confirmOrderInfo = ConfirmOrderInfo.of("550e8400-e29b-41d4-a716-446655440000", OrderStatus.CONFIRMED.getDescription(), "2025-09-29T20:15:42+09:00");
 
         return Result.of("주문 확인이 완료되었습니다.", "200", confirmOrderInfo);
+    }
+
+    @PatchMapping("/v1/orders/{orderId}")
+    public Result<CancelOrderInfo> cancelOrder(String orderId) {
+        CancelOrderInfo cancelOrderInfo = CancelOrderInfo.of("550e8400-e29b-41d4-a716-446655440000", OrderStatus.CONFIRMED.getDescription(), OrderStatus.CANCELED.getDescription(), "2025-09-29T20:25:05+09:00");
+        return Result.of("주문 취소가 완료되었습니다.", "200", cancelOrderInfo);
     }
 }
