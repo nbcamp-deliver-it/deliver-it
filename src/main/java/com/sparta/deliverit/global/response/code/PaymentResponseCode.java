@@ -1,4 +1,4 @@
-package com.sparta.deliverit.response.code;
+package com.sparta.deliverit.global.response.code;
 
 public enum PaymentResponseCode implements ResponseCodeType{
     PAYMENT_SUCCESS, // 결제 성공

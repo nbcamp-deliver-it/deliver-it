@@ -1,12 +1,12 @@
 package com.sparta.deliverit.global.exception;
 
-import com.sparta.deliverit.global.response.APIResponse;
+import com.sparta.deliverit.global.response.ApiResponse;
+import com.sparta.deliverit.global.response.code.ClientResponseCode;
+import com.sparta.deliverit.global.response.code.ServerResponseCode;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,108 +19,89 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception e) {
-        ErrorResponse error = new ErrorResponse(
-                ErrorCode.SERVER_ERROR,
-                "서버 오류가 발생했습니다."
+    public ResponseEntity<ApiResponse<?>> handleException(Exception e) {
+
+        log.error(e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                ApiResponse.create(
+                        ServerResponseCode.SERVER_ERROR,
+                        "서버 오류가 발생했습니다.",
+                        null
+                )
         );
-
-        log.error(error.toString());
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-    }
-
-    @ExceptionHandler(DomainException.class)
-    public ResponseEntity<APIResponse> handleDomainException(DomainException e) {
-        log.error("DomainException message: {}", e.getErrorMessage(), e);
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(
-                        APIResponse.createError(
-                                e.getErrorCode().name(),
-                                e.getErrorMessage(),
-                                HttpStatus.BAD_REQUEST.value()
-                        )
-                );
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<APIResponse> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
-        log.error("MissingServletRequestParameterException message: {}", e.getMessage(), e);
+    public ResponseEntity<ApiResponse<?>> handleMissingServletRequestParameterException(
+            MissingServletRequestParameterException e
+    ) {
+        log.error(e.getMessage());
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(
-                        APIResponse.createError(
-                                ErrorCode.MISSING_PARAMETER.name(),
-                                e.getMessage(),
-                                HttpStatus.BAD_REQUEST.value()
-                        )
-                );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                ApiResponse.create(
+                        ClientResponseCode.MISSING_PARAMETER,
+                        "요청 파라미터 누락입니다.",
+                        null
+                )
+        );
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<APIResponse> handleNoResourceFoundException(NoResourceFoundException e) {
-        log.error("NoResourceFoundException message: {}", e.getMessage(), e);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(
-                        APIResponse.createError(
-                                ErrorCode.INVALID_PATH.name(),
-                                "요청한 리소스를 찾을 수 없습니다.",
-                                HttpStatus.NOT_FOUND.value()
-                        )
-                );
-    }
+    public ResponseEntity<ApiResponse<?>> handleNoResourceFoundException(NoResourceFoundException e) {
+        log.error(e.getMessage());
 
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<APIResponse> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
-        log.error("MethodArgumentTypeMismatchException message: {}", e.getMessage(), e);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(
-                        APIResponse.createError(
-                                ErrorCode.INVALID_TYPE.name(),
-                                e.getMessage(),
-                                HttpStatus.BAD_REQUEST.value()
-                        )
-                );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                ApiResponse.create(
+                        ClientResponseCode.NOT_FOUND,
+                        "요청한 리소스를 찾을 수 없습니다.",
+                        null
+                )
+        );
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<APIResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        log.error("MethodArgumentNotValidException message: {}", e.getMessage(), e);
-        val message = e.getBindingResult().getFieldError().getDefaultMessage();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(
-                        APIResponse.createError(
-                                ErrorCode.VALIDATION_FAILED.name(),
-                                message,
-                                HttpStatus.BAD_REQUEST.value()
+    public ResponseEntity<ApiResponse<?>> handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException e
+    ) {
+        log.error(e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                ApiResponse.create(
+                        ClientResponseCode.VALIDATION_FAILED,
+                        "유효성 검증 실패입니다.",
+                        null
                 )
-            );
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<?>> handleMethodArgumentTypeMismatchException(
+            MethodArgumentTypeMismatchException e
+    ) {
+        log.error(e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                ApiResponse.create(
+                        ClientResponseCode.INVALID_TYPE,
+                        "잘못된 요청 파라미터 타입입니다.",
+                        null
+                )
+        );
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<APIResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
-        log.error("HttpMessageNotReadableException message: {}", e.getMessage(), e);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(
-                        APIResponse.createError(
-                                ErrorCode.UNREADABLE_MESSAGE.name(),
-                                "요청 본문을 읽을 수 없습니다.",
-                                HttpStatus.BAD_REQUEST.value()
-                        )
-                );
-    }
+    public ResponseEntity<ApiResponse<?>> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException e
+    ) {
+        log.error(e.getMessage());
 
-    @ExceptionHandler(BindException.class)
-    public ResponseEntity<APIResponse> handleBindException(BindException e) {
-        log.error("BindException message: {}", e.getMessage(), e);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(
-                        APIResponse.createError(
-                                ErrorCode.BINDING_FAILED.name(),
-                                e.getMessage(),
-                                HttpStatus.BAD_REQUEST.value()
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                ApiResponse.create(
+                        ClientResponseCode.UNREADABLE_MESSAGE,
+                        "요청 본문을 읽을 수 없습니다.",
+                        null
                 )
-            );
+        );
     }
 }

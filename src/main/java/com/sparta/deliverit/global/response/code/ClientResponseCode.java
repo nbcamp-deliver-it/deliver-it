@@ -1,4 +1,4 @@
-package com.sparta.deliverit.response.code;
+package com.sparta.deliverit.global.response.code;
 
 public enum ClientResponseCode implements ResponseCodeType {
     NOT_FOUND,
@@ -6,7 +6,7 @@ public enum ClientResponseCode implements ResponseCodeType {
     MISSING_PARAMETER,
     INVALID_PATH,
     INVALID_TYPE,
-    VALIDATION_ERROR,
-    UNREADABLE_PARAMETER,
+    VALIDATION_FAILED,
+    UNREADABLE_MESSAGE,
     BINDING_FAILED
 }

@@ -1,4 +1,4 @@
-package com.sparta.deliverit.response.code;
+package com.sparta.deliverit.global.response.code;
 
 public interface ResponseCodeType {
     default String code() {

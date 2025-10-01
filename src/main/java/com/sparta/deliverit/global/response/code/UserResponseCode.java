@@ -1,4 +1,4 @@
-package com.sparta.deliverit.response.code;
+package com.sparta.deliverit.global.response.code;
 
 public class UserResponseCode implements ResponseCodeType {
 }
