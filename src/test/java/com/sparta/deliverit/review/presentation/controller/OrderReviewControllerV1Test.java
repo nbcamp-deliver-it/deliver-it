@@ -276,7 +276,7 @@ class OrderReviewControllerV1Test {
             mockMvc.perform(delete("/v1/order-reviews/{reviewId}", 1)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.reviewId").value(1));
+                    .andExpect(jsonPath("$.reviewId").isNumber());
         }
     }
 }

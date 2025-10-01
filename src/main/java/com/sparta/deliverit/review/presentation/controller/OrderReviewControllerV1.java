@@ -51,6 +51,7 @@ public class OrderReviewControllerV1 {
     public ResponseEntity<MutateReviewResponse> delete(
             @PathVariable Long reviewId
     ) {
-        return ResponseEntity.ok(new MutateReviewResponse(1L));
+        Long orderReviewId = orderReviewService.deleteReview(reviewId);
+        return ResponseEntity.ok(new MutateReviewResponse(orderReviewId));
     }
 }

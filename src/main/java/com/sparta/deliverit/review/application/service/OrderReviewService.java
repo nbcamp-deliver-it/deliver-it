@@ -33,13 +33,25 @@ public class OrderReviewService {
 
     @Transactional
     public Long updateReview(OrderReviewCommand.Update command) {
-        OrderReview orderReview = orderReviewRepository.findById(command.reviewId()).orElseThrow(() -> {
-            log.error("존재하지 않는 리뷰입니다. id : {}", command.reviewId());
-            // FIXME: 도메인 예외로 변경 필요
-            throw new IllegalArgumentException("");
-        });
+        OrderReview orderReview = getOrderReview(command.reviewId());
         Review newReview = new Review(command.star(), command.description());
         orderReview.changeReview(newReview);
         return orderReview.getOrderReviewId();
+    }
+
+    @Transactional
+    public Long deleteReview(Long reviewId) {
+        OrderReview orderReview = getOrderReview(reviewId);
+        orderReviewRepository.delete(orderReview);
+        return orderReview.getOrderReviewId();
+    }
+
+    private OrderReview getOrderReview(Long reviewId) {
+        OrderReview orderReview = orderReviewRepository.findById(reviewId).orElseThrow(() -> {
+            log.error("존재하지 않는 리뷰입니다. id : {}", reviewId);
+            // FIXME: 도메인 예외로 변경 필요
+            throw new IllegalArgumentException("");
+        });
+        return orderReview;
     }
 }
