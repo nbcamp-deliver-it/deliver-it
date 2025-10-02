@@ -24,7 +24,17 @@ public interface OrderController {
 
     Result<CreateOrderInfo> createOrder(CreateOrderRequest request);
 
-    Result<ConfirmOrderInfo> confirmOrder(String orderId);
+    Result<ConfirmOrderInfo> confirmOrder(
+            @NotBlank
+            @Pattern(regexp="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                    message="UUID 형식이 올바르지 않습니다.")
+            @PathVariable
+            String orderId);
 
-    Result<CancelOrderInfo> cancelOrder(String orderId);
+    Result<CancelOrderInfo> cancelOrder(
+            @NotBlank
+            @Pattern(regexp="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                    message="UUID 형식이 올바르지 않습니다.")
+            @PathVariable
+            String orderId);
 }

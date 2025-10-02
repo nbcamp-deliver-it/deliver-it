@@ -158,7 +158,7 @@ public class OrderControllerV1 implements OrderController{
     }
 
     @PatchMapping("/v1/orders/{orderId}")
-    public Result<CancelOrderInfo> cancelOrder(String orderId) {
+    public Result<CancelOrderInfo> cancelOrder(@PathVariable String orderId) {
 
         CancelOrderInfo cancelOrderInfo = CancelOrderInfo.of("550e8400-e29b-41d4-a716-446655440000", OrderStatus.CONFIRMED.getDescription(), OrderStatus.CANCELED.getDescription(), "2025-09-29T20:25:05+09:00");
 
