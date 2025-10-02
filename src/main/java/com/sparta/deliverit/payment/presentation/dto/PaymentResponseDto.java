@@ -19,7 +19,6 @@ public class PaymentResponseDto {
 
     private String paidAt;
 
-
     public static PaymentResponseDto of(Payment payment) {
         return new PaymentResponseDto(
                 payment.getPaymentId(),

@@ -1,12 +1,12 @@
 package com.sparta.deliverit.payment.presentation.dto;
 
-import com.sparta.deliverit.payment.domain.entity.Payment;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
@@ -26,12 +26,4 @@ public class PaymentRequestDto {
 
     @PositiveOrZero
     private Integer totalPrice;
-
-    public Payment toEntity() {
-        return Payment.builder()
-                .paymentId(UUID.randomUUID().toString().substring(0,12))
-                .cardNum(this.getCardNum())
-                .cardCompany(this.getCompany())
-                .build();
-    }
 }

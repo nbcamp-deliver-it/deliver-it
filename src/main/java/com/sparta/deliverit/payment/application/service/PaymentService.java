@@ -1,9 +1,8 @@
 package com.sparta.deliverit.payment.application.service;
 
-import com.sparta.deliverit.order.Order;
-import com.sparta.deliverit.order.OrderRepository;
 import com.sparta.deliverit.payment.domain.entity.Payment;
 import com.sparta.deliverit.payment.domain.repository.PaymentRepository;
+import com.sparta.deliverit.payment.enums.Company;
 import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
 import com.sparta.deliverit.payment.presentation.dto.PaymentResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -13,25 +12,32 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
+    private final List<PaymentProcessor> processorList;
 
-    public PaymentResponseDto save(String orderId, PaymentRequestDto requestDto) {
+    @Transactional
+    public PaymentResponseDto delegateRequest(String orderId, PaymentRequestDto requestDto) {
         verifyPaymentRequest(orderId, requestDto);
-        Payment payment = paymentRepository.save(requestDto.toEntity());
+
+        PaymentProcessor processor = getProcessor(Company.valueOf(requestDto.getCompany()));
+        Payment entity = processor.paymentRequest(requestDto);
+        Payment payment = paymentRepository.save(entity);
+
         return PaymentResponseDto.of(payment);
     }
 
+    @Transactional(readOnly = true)
     public PaymentResponseDto getPayment(String orderId, String paymentId) {
         verifyOrder(orderId, paymentId);
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(IllegalArgumentException::new);
         return PaymentResponseDto.of(payment);
     }
 
+    @Transactional
     public PaymentResponseDto deletePayment(String orderId, String paymentId) {
         return null;
     }
@@ -51,5 +57,12 @@ public class PaymentService {
             throw new IllegalArgumentException();
 
         return true;
+    }
+
+    private PaymentProcessor getProcessor(Company company) {
+        return processorList.stream()
+                .filter(processor -> processor.findByCompany(company))
+                .findFirst()
+                .orElseThrow(IllegalArgumentException::new);
     }
 }

@@ -21,7 +21,7 @@ public class PaymentControllerV1 {
     @ResponseStatus(value = HttpStatus.CREATED)
     public PaymentResponseDto payment(@PathVariable String orderId,
                                       @Valid @RequestBody PaymentRequestDto requestDto) {
-        return service.save(orderId, requestDto);
+        return service.delegateRequest(orderId, requestDto);
     }
 
     @GetMapping("/payment/{orderId}/{paymentId}")
