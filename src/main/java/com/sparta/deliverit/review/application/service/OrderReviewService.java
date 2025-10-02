@@ -21,6 +21,7 @@ public class OrderReviewService {
     public Long createReview(OrderReviewCommand.Create command) {
         Review review = new Review(command.star(), command.description());
         OrderReview savedOrderReview = orderReviewRepository.save(new OrderReview(review));
+        // FIXME: 음식점 리뷰 계산
         return savedOrderReview.getOrderReviewId();
     }
 
@@ -36,6 +37,7 @@ public class OrderReviewService {
         OrderReview orderReview = getOrderReview(command.reviewId());
         Review newReview = new Review(command.star(), command.description());
         orderReview.changeReview(newReview);
+        // FIXME: 음식점 리뷰 계산
         return orderReview.getOrderReviewId();
     }
 
@@ -43,6 +45,7 @@ public class OrderReviewService {
     public Long deleteReview(Long reviewId) {
         OrderReview orderReview = getOrderReview(reviewId);
         orderReviewRepository.delete(orderReview);
+        // FIXME: 음식점 리뷰 계산
         return orderReview.getOrderReviewId();
     }
 
