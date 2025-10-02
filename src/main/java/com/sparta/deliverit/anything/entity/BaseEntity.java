@@ -17,8 +17,13 @@ import java.time.LocalDateTime;
 @Getter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-@FilterDef(name = "softDeleteFilter")
-@Filter(name = "softDeleteFilter", condition = "deleted_at IS NULL")
+@FilterDef(
+        name = "softDeleteFilter",
+        defaultCondition = "deleted_at IS NULL",
+        autoEnabled = true,
+        applyToLoadByKey = true
+)
+@Filter(name = "softDeleteFilter")
 public abstract class BaseEntity {
     @CreatedDate
     @Column(name = "created_at", updatable = false, nullable = false)

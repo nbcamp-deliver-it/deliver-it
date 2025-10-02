@@ -1,6 +1,5 @@
 package com.sparta.deliverit.anything.softedete;
 
-import com.sparta.deliverit.anything.advice.SoftDeleteFilterTxAdvice;
 import com.sparta.deliverit.anything.config.AuditingConfig;
 import com.sparta.deliverit.anything.softedete.example.TestEntity;
 import com.sparta.deliverit.anything.softedete.example.TestEntityRepository;
@@ -13,11 +12,8 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
         "spring.jpa.hibernate.ddl-auto=create-drop"
 })
 @EntityScan(basePackageClasses = { TestEntity.class })
-@Import({AuditingConfig.class, SoftDeleteTest.TestConfig.class, SoftDeleteTest.TestBoot.class, SoftDeleteFilterTxAdvice.class})
+@Import({AuditingConfig.class, SoftDeleteTest.TestBoot.class})
 public class SoftDeleteTest {
 
     @Autowired
@@ -36,65 +32,42 @@ public class SoftDeleteTest {
     @Autowired
     private EntityManager em;
 
-    @Autowired
-    private TxService txSvc;
-
     @Test
     @DisplayName("소프트 삭제하면 조회되지 않는다")
     void saveDeleteAndCountAlive() {
-        int size = txSvc.saveDeleteAndCountAlive();
+        repository.saveAll(List.of(new TestEntity(), new TestEntity()));
+        em.flush();
+        em.clear();
+
+        TestEntity entity = repository.findAll().get(0);
+        repository.delete(entity);
+        em.flush();
+        em.clear();
+
+        int size = repository.findAll().size();
         assertEquals(1, size);
     }
 
     @Test
     @DisplayName("소프트 삭제 필터를 비활성화하면 삭제된 엔티티도 조회된다")
     void saveDeleteAndCountAllWithFilterOff() {
-        int size = txSvc.saveDeleteAndCountAllWithFilterOff();
-        assertEquals(2, size);
-    }
+        repository.saveAll(List.of(new TestEntity(), new TestEntity()));
+        em.flush();
+        em.clear();
 
-    @Configuration
-    @EnableAspectJAutoProxy // AOP 활성화
-    static class TestConfig {
-        @Bean TxService txSvc(TestEntityRepository repo, EntityManager em) { return new TxService(repo, em); }
+        TestEntity entity = repository.findAll().get(0);
+        repository.delete(entity);
+        em.flush();
+        em.clear();
+
+        em.unwrap(Session.class).disableFilter("softDeleteFilter");
+
+        int size = repository.findAll().size();
+        assertEquals(2, size);
     }
 
     @SpringBootConfiguration
     @EnableAutoConfiguration
     @EnableAspectJAutoProxy
     static class TestBoot { }
-
-    static class TxService {
-        private final TestEntityRepository repo;
-        private final EntityManager em;
-        TxService(TestEntityRepository repo, EntityManager em) { this.repo = repo; this.em = em; }
-
-        @Transactional
-        public int saveDeleteAndCountAlive() {
-            repo.saveAll(List.of(new TestEntity(), new TestEntity()));
-            em.flush(); em.clear();
-
-            Long id = repo.findAll().get(0).getId();
-            repo.deleteById(id); // @SQLDelete → UPDATE deleted_at
-            em.flush(); em.clear();
-
-            return repo.findAll().size(); // 필터 ON → 1
-        }
-
-        @Transactional
-        public int saveDeleteAndCountAllWithFilterOff() {
-            repo.saveAll(List.of(new TestEntity(), new TestEntity()));
-            em.flush(); em.clear();
-
-            Long id = repo.findAll().get(0).getId();
-            repo.deleteById(id);
-            em.flush(); em.clear();
-
-            Session s = em.unwrap(Session.class);
-            boolean was = s.getEnabledFilter("softDeleteFilter") != null;
-            if (was) s.disableFilter("softDeleteFilter");
-            try { return repo.findAll().size(); } // 필터 OFF → 2
-            finally { if (was) s.enableFilter("softDeleteFilter"); }
-        }
-    }
 }
