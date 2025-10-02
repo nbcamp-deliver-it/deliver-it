@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -32,6 +35,10 @@ public class User {
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     private UserRoleEnum role;
+
+    @CreationTimestamp
+    @Column(name = "createdAt", updatable = false, nullable = false)
+    private LocalDateTime createdAt;
 
     public User(String username, String password, String name, String phone, UserRoleEnum role) {
         this.username = username;

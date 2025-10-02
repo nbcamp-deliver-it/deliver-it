@@ -15,6 +15,6 @@ public class SignupRequestDto {
     private String name;
     @NotBlank
     private String phone;
-    private boolean admin = false;
+    private String role = "";
     private String adminToken = "";
 }

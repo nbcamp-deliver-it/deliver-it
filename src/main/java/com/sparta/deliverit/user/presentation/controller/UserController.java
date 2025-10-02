@@ -27,7 +27,6 @@ public class UserController {
         return "login";
     }
 
-
     @PostMapping("/user/signup")
     public ResponseEntity<String> signup(@Valid SignupRequestDto requestDto, BindingResult bindingResult) {
         // Validation 예외처리
