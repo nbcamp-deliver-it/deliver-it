@@ -104,16 +104,16 @@ class OrderControllerV1Test {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문을 조회했습니다."))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderId").value("7939146e-b329-4f6e-9fa9-673381e78b8a"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.restaurantName").value("치킨성"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.username").value("포이응"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderTime").value("2025-09-30T17:45:12.345678900"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.restaurantName").value("짜왕"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.username").value("두둥탁"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderTime").value("2025-03-03T11:45:11.345128900"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value(OrderStatus.CREATED.getDescription()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.deliveryAddress").value("서울특별시 강남구 테헤란로 1927"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.totalPrice").value(28000))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.deliveryAddress").value("경기도 수원시 영통구 영통로"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.totalPrice").value(29000))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.menus").isArray())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.menus[1].menuName").value("콜라"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.menus[1].quantity").value(2))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.menus[1].price").value(6000));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.menus[1].menuName").value("탕수육"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.menus[1].quantity").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.menus[1].price").value(15000));
 
     }
 
