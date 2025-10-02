@@ -36,12 +36,12 @@ public class UserController {
             for (FieldError fieldError : bindingResult.getFieldErrors()) {
                 log.error(fieldError.getField() + " 필드 : " + fieldError.getDefaultMessage());
             }
-            return "redirect:/api/user/signup";
+            return "가입에러";
         }
 
         userService.signup(requestDto);
 
-        return "redirect:/api/user/login-page";
+        return "가입을 환영합니다.";
     }
 
 

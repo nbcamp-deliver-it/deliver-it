@@ -47,9 +47,9 @@ public class UserService {
             role = UserRoleEnum.ADMIN;
         }
 
+        //중복 체크 필요 없음
         String name = requestDto.getName();
 
-        // 사용자 등록
         User user = new User(username, password, name , phone, role);
         userRepository.save(user);
     }
