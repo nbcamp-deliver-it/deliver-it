@@ -10,9 +10,9 @@ public record UpdateReviewRequest(
         BigDecimal star,
         String description
 ) {
-    public OrderReviewCommand.Update toCommand(Long reviewId) {
+    public OrderReviewCommand.Update toCommand(Long orderReviewId) {
         return new OrderReviewCommand.Update(
-                reviewId,
+                orderReviewId,
                 star,
                 description
         );

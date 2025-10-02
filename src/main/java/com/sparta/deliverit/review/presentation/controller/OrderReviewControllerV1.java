@@ -43,25 +43,25 @@ public class OrderReviewControllerV1 {
         return ResponseEntity.ok(new MutateReviewResponse(savedReviewId));
     }
 
-    @PutMapping("order-reviews/{reviewId}")
+    @PutMapping("order-reviews/{orderReviewId}")
     public ResponseEntity<MutateReviewResponse> update(
-            @PathVariable Long reviewId,
+            @PathVariable Long orderReviewId,
             @RequestBody @Valid UpdateReviewRequest request
     ) {
-        log.info("=== 주문 리뷰 수정 order-reviewId : {} ===", reviewId);
-        var command = request.toCommand(reviewId);
-        Long orderReviewId = orderReviewService.updateReview(command);
+        log.info("=== 주문 리뷰 수정 order-reviewId : {} ===", orderReviewId);
+        var command = request.toCommand(orderReviewId);
+        Long id = orderReviewService.updateReview(command);
         log.info("=== 주문 리뷰 수정 성공 ===");
-        return ResponseEntity.ok(new MutateReviewResponse(orderReviewId));
+        return ResponseEntity.ok(new MutateReviewResponse(id));
     }
 
-    @DeleteMapping("order-reviews/{reviewId}")
+    @DeleteMapping("order-reviews/{orderReviewId}")
     public ResponseEntity<MutateReviewResponse> delete(
-            @PathVariable Long reviewId
+            @PathVariable Long orderReviewId
     ) {
-        log.info("=== 주문 리뷰 삭제 order-reviewId : {} ===", reviewId);
-        Long orderReviewId = orderReviewService.deleteReview(reviewId);
+        log.info("=== 주문 리뷰 삭제 order-reviewId : {} ===", orderReviewId);
+        Long id = orderReviewService.deleteReview(orderReviewId);
         log.info("=== 주문 리뷰 삭제 성공 ===");
-        return ResponseEntity.ok(new MutateReviewResponse(orderReviewId));
+        return ResponseEntity.ok(new MutateReviewResponse(id));
     }
 }
