@@ -33,7 +33,7 @@ public class MenuController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @DeleteMapping("/v1/restaurants/{restaurantId}")
+    @DeleteMapping("/v1/restaurants/{restaurantId}/menu")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteMenuItem(
             @PathVariable String restaurantId,
