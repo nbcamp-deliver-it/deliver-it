@@ -1,4 +1,4 @@
-package com.sparta.deliverit.nothingname.entity;
+package com.sparta.deliverit.anything.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
@@ -24,21 +24,10 @@ public abstract class BaseEntity {
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
-    @CreatedBy
-    @Column(name = "created_by", updatable = false)
-    private Long createdBy;
-
     @LastModifiedDate
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
-    @LastModifiedBy
-    @Column(name = "updated_by")
-    private Long updatedBy;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
-
-    @Column(name = "deleted_by")
-    private Long deletedBy;
 }
