@@ -17,7 +17,6 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
-    private final List<CardCompany> cardCompanies;
 
     public PaymentResponseDto save(String orderId, PaymentRequestDto requestDto) {
         verifyPaymentRequest(orderId, requestDto);

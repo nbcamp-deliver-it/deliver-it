@@ -1,9 +1,10 @@
 package com.sparta.deliverit.payment.presentation.dto;
 
 import com.sparta.deliverit.payment.domain.entity.Payment;
-import lombok.*;
-
-import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
