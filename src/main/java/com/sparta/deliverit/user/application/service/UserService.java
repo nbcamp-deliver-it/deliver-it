@@ -23,31 +23,10 @@ public class UserService {
 
     // ADMIN_TOKEN
     private final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
-
     private static final Map<String, UserRoleEnum> ROLE_ALIASES = buildRoleAliases();
 
-    private static Map<String, UserRoleEnum> buildRoleAliases() {
-        Map<String, UserRoleEnum> m = new HashMap<>();
-        for (UserRoleEnum r : UserRoleEnum.values()) {
-            m.put(r.name(), r);
-            m.put(r.getAuthority(), r);
-        }
-        return m;
-    }
 
-    private static String normalize(String s) {
-        return s == null ? null : s.trim().toUpperCase(Locale.ROOT);
-    }
 
-    private static UserRoleEnum resolveRole(String input) {
-        String key = normalize(input);
-        if (key == null || key.isEmpty()) return UserRoleEnum.CUSTOMER; // 기본값
-        UserRoleEnum r = ROLE_ALIASES.get(key);
-        if (r == null) {
-            throw new IllegalArgumentException("지원하지 않는 권한입니다: " + input);
-        }
-        return r;
-    }
 
     public void signup(SignupRequestDto requestDto) {
         String username = requestDto.getUsername();
@@ -67,7 +46,8 @@ public class UserService {
 
         UserRoleEnum requestedRole = resolveRole(requestDto.getRole());
 
-        // 2) 역할별 검증/분기
+        // 역할별 검증/분기
+        // 권한별 추가 로직이 생기면 추가예정
         switch (requestedRole) {
             case MASTER, MANAGER -> {
                 if (!ADMIN_TOKEN.equals(requestDto.getAdminToken())) {
@@ -82,10 +62,33 @@ public class UserService {
             }
         }
 
-        //중복 체크 필요 없음
         String name = requestDto.getName();
 
         User user = new User(username, password, name , phone, requestedRole);
         userRepository.save(user);
+    }
+
+
+    private static Map<String, UserRoleEnum> buildRoleAliases() {
+        Map<String, UserRoleEnum> roleMap = new HashMap<>();
+        for (UserRoleEnum r : UserRoleEnum.values()) {
+            roleMap.put(r.name(), r);
+            roleMap.put(r.getAuthority(), r);
+        }
+        return roleMap;
+    }
+
+    private static String normalize(String s) {
+        return s == null ? null : s.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private static UserRoleEnum resolveRole(String input) {
+        String key = normalize(input);
+        if (key == null || key.isEmpty()) return UserRoleEnum.CUSTOMER; // 기본값
+        UserRoleEnum r = ROLE_ALIASES.get(key);
+        if (r == null) {
+            throw new IllegalArgumentException("지원하지 않는 권한입니다: " + input);
+        }
+        return r;
     }
 }

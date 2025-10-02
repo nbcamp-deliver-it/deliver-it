@@ -30,28 +30,47 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain filterChain) throws ServletException, IOException {
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String p = request.getServletPath();
+        //인가 제외 요청 url
+        return p.equals("/v1/user/login")
+                || p.equals("/v1/user/signup")
+                || p.startsWith("/css/")
+                || p.startsWith("/js/")
+                || p.startsWith("/images/")
+                || p.equals("/");
+    }
 
-        String tokenValue = jwtUtil.getJwtFromHeader(req);
 
-        if (StringUtils.hasText(tokenValue)) {
+    @Override
+    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
+            throws ServletException, IOException {
 
-            if (!jwtUtil.validateToken(tokenValue)) {
-                log.error("Token Error");
-                return;
-            }
+        String token = jwtUtil.getJwtFromHeader(req);
 
-            Claims info = jwtUtil.getUserInfoFromToken(tokenValue);
-
-            try {
-                setAuthentication(info.getSubject());
-            } catch (Exception e) {
-                log.error(e.getMessage());
-                return;
-            }
+        if (!StringUtils.hasText(token)) {
+            chain.doFilter(req, res);
+            return;
         }
 
-        filterChain.doFilter(req, res);
+        if (!jwtUtil.validateToken(token)) {
+            log.error("Invalid or expired token");
+            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            res.setContentType("text/plain;charset=UTF-8");
+            res.getWriter().write("invalid or expired token");
+            SecurityContextHolder.clearContext();
+            return;
+        }
+
+        Claims claims = jwtUtil.getUserInfoFromToken(token);
+        String username = claims.getSubject();
+
+        UserDetails user = userDetailsService.loadUserByUsername(username);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        chain.doFilter(req, res);
     }
 
     // 인증 처리

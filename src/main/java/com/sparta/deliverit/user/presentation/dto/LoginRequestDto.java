@@ -1,11 +1,11 @@
 package com.sparta.deliverit.user.presentation.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter
-@Getter
+@Getter @Setter
 public class LoginRequestDto {
-    private String username;
-    private String password;
+    @NotBlank private String username;
+    @NotBlank private String password;
 }

@@ -21,14 +21,11 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("/user/login")
-    public String loginPage() {
-
-        return "login";
-    }
-
-    @PostMapping("/user/signup")
-    public ResponseEntity<String> signup(@Valid SignupRequestDto requestDto, BindingResult bindingResult) {
+    @PostMapping(value = "/user/signup",
+            consumes = "application/json",
+            produces = "text/plain; charset=UTF-8")
+    @ResponseBody
+    public ResponseEntity<String> signup(@Valid @RequestBody SignupRequestDto requestDto, BindingResult bindingResult) {
         // Validation 예외처리
         List<FieldError> fieldErrors = bindingResult.getFieldErrors();
         if(fieldErrors.size() > 0) {
