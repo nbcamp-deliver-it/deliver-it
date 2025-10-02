@@ -5,9 +5,6 @@ import com.sparta.deliverit.order.presentation.controller.OrderControllerV1;
 import com.sparta.deliverit.order.presentation.dto.request.CreateOrderRequest;
 import com.sparta.deliverit.order.presentation.dto.request.OrderMenuRequest;
 import com.sparta.deliverit.order.domain.entity.OrderStatus;
-import jakarta.servlet.ServletException;
-import jakarta.validation.ConstraintViolationException;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -622,46 +619,44 @@ class OrderControllerV1Test {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.confirmedAt").value("2025-09-29T20:15:42+09:00"));
     }
 
-    @DisplayName("주문 확인 API 호출 시 , 주문의 UUID가 @Pattern에 맞게 들어오는지 테스트")
+    @DisplayName("주문 확인 시 orderId가 UUID 형식이 아니면(글자 수 불일치) responseCode 400을 반환한다.")
     @Test
-    void confirmOrderAndCheckOrderId() throws Exception {
-        // when // then
-        // when // then
+    void confirmOrderWithInvalidOrderId1() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders
+                        .post("/v1/orders/{orderId}/confirm", "not-a-uuid")
+                        .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+    }
+
+    @DisplayName("주문 확인 시 orderId가 UUID 형식이 아니면(특수문자 포함) responseCode 400을 반환한다.")
+    @Test
+    void confirmOrderWithInvalidOrderId2() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders
+                        .post("/v1/orders/{orderId}/confirm", "550e8400-e29b-41d4-a716-446655440**0")
+                        .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+    }
+
+    @DisplayName("주문 확인 시 orderId가 UUID 형식에 맞으면 정상 응답을 반환한다.")
+    @Test
+    void confirmOrderWithValidOrderId() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
                         .post("/v1/orders/{orderId}/confirm", "550e8400-e29b-41d4-a716-446655440000")
-                        .with(SecurityMockMvcRequestPostProcessors.user("배달의신").roles("OWNER"))
-                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                .andExpect(MockMvcResultMatchers.status().isOk());
-    }
-
-    @DisplayName("주문 확인: UUID 형식 위반 시 ConstraintViolationException 발생")
-    @Test
-    void confirmOrderWithInvalidUUID1() {
-        Assertions.assertThatThrownBy(() ->
-                        mockMvc.perform(MockMvcRequestBuilders
-                                        .post("/v1/orders/{orderId}/confirm", "not-a-uuid")
-                                        .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
-                                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                                .andReturn()
+                        .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
                 )
-                .isInstanceOf(ServletException.class) // 바깥 예외
-                .hasCauseInstanceOf(ConstraintViolationException.class) // 내부 원인
-                .hasMessageContaining("UUID 형식이 올바르지 않습니다."); // 메시지 검증
-    }
-
-    @DisplayName("주문 확인: UUID 형식 위반 시 ConstraintViolationException 발생")
-    @Test
-    void confirmOrderWithInvalidUUID2() {
-        Assertions.assertThatThrownBy(() ->
-                        mockMvc.perform(MockMvcRequestBuilders
-                                        .post("/v1/orders/{orderId}/confirm", "550e8400-e29b-41d4-a716-446655440**0")
-                                        .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
-                                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                                .andReturn()
-                )
-                .isInstanceOf(ServletException.class) // 바깥 예외
-                .hasCauseInstanceOf(ConstraintViolationException.class) // 내부 원인
-                .hasMessageContaining("UUID 형식이 올바르지 않습니다."); // 메시지 검증
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("200"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문 확인이 완료되었습니다."))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value("주문 확인"));
     }
 
     @DisplayName("고객 혹은 점주가 주문 취소 API를 호출하면 주문이 취소된다.")
@@ -683,44 +678,42 @@ class OrderControllerV1Test {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.cancelAt").value("2025-09-29T20:25:05+09:00"));
     }
 
-    @DisplayName("주문 취소 API 호출 시 , 주문의 UUID가 @Pattern에 맞게 들어오면 테스트는 통과한다.")
+    @DisplayName("주문 취소 시 orderId가 UUID 형식이 아니면(글자 수 불일치) responseCode 400을 반환한다.")
     @Test
-    void cancelOrderAndCheckOrderId() throws Exception {
-        // when // then
+    void cancelOrderWithInvalidOrderId1() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders
+                        .patch("/v1/orders/{orderId}", "not-a-uuid")
+                        .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+    }
+
+    @DisplayName("주문 취소 시 orderId가 UUID 형식이 아니면(특수문자 포함) responseCode 400을 반환한다.")
+    @Test
+    void cancelOrderWithInvalidOrderId2() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders
+                        .patch("/v1/orders/{orderId}", "550e8400-e29b-41d4-a716-446655440**0")
+                        .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+    }
+
+    @DisplayName("주문 취소 시 orderId가 UUID 형식에 맞으면 정상 응답을 반환한다.")
+    @Test
+    void cancelOrderWithValidOrderId() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
                         .patch("/v1/orders/{orderId}", "550e8400-e29b-41d4-a716-446655440000")
-                        .with(SecurityMockMvcRequestPostProcessors.user("배달의신").roles("OWNER"))
-                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                .andExpect(MockMvcResultMatchers.status().isOk());
-    }
-
-    @DisplayName("주문 확인: UUID 형식 위반 시 ConstraintViolationException 발생")
-    @Test
-    void cancelOrderWithInvalidUUID() {
-        Assertions.assertThatThrownBy(() ->
-                        mockMvc.perform(MockMvcRequestBuilders
-                                        .post("/v1/orders/{orderId}/confirm", "not-a-uuid")
-                                        .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
-                                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                                .andReturn()
+                        .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
                 )
-                .isInstanceOf(ServletException.class) // 바깥 예외
-                .hasCauseInstanceOf(ConstraintViolationException.class) // 내부 원인
-                .hasMessageContaining("UUID 형식이 올바르지 않습니다."); // 메시지 검증
-    }
-
-    @DisplayName("주문 확인: UUID 형식 위반 시 ConstraintViolationException 발생")
-    @Test
-    void cancelOrderWithInvalidUUID2() {
-        Assertions.assertThatThrownBy(() ->
-                        mockMvc.perform(MockMvcRequestBuilders
-                                        .post("/v1/orders/{orderId}/confirm", "550e8400-e29b-41d4-a716-446655440**0")
-                                        .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
-                                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
-                                .andReturn()
-                )
-                .isInstanceOf(ServletException.class) // 바깥 예외
-                .hasCauseInstanceOf(ConstraintViolationException.class) // 내부 원인
-                .hasMessageContaining("UUID 형식이 올바르지 않습니다."); // 메시지 검증
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("200"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문 취소가 완료되었습니다."));
     }
 }
