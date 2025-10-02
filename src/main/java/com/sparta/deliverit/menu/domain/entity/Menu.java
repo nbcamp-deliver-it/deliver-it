@@ -1,5 +1,6 @@
 package com.sparta.deliverit.menu.domain.entity;
 
+import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
