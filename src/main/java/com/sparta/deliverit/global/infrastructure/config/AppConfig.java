@@ -2,7 +2,7 @@ package com.sparta.deliverit.global.infrastructure.config;
 
 import com.sparta.deliverit.restaurant.domain.entity.Category;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantCategory;
-import com.sparta.deliverit.restaurant.domain.repository.CategoryRepository;
+import com.sparta.deliverit.restaurant.infrastructure.repository.CategoryRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
