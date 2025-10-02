@@ -1,9 +1,9 @@
 package com.sparta.deliverit.global.exception;
 
-import com.sparta.deliverit.global.response.code.ResponseCode;
+import com.sparta.deliverit.global.response.code.OrderResponseCode;
 
 public class OrderException extends DomainException {
-    public OrderException(ResponseCode responseCode) {
+    public OrderException(OrderResponseCode responseCode) {
         super(responseCode);
     }
 }

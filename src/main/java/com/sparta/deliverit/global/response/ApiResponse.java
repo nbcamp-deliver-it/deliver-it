@@ -1,7 +1,7 @@
 package com.sparta.deliverit.global.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.sparta.deliverit.global.response.code.ResponseCodeType;
+import com.sparta.deliverit.global.response.code.ResponseCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -10,7 +10,7 @@ import lombok.Getter;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
 
-    private ResponseCodeType responseCode;
+    private ResponseCode responseCode;
 
     private String message;
 
@@ -24,7 +24,7 @@ public class ApiResponse<T> {
                 '}';
     }
 
-    public static <T> ApiResponse<T> create(ResponseCodeType code, String message, T data) {
+    public static <T> ApiResponse<T> create(ResponseCode code, String message, T data) {
         return new ApiResponse<>(code, message, data);
     }
 }

@@ -18,6 +18,32 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(OrderException.class)
+    public ResponseEntity<ApiResponse<?>> handleOrderException(OrderException e) {
+        log.error(e.getMessage());
+
+        return ResponseEntity.status(e.getResponseCode().getHttpStatus()).body(
+                ApiResponse.create(
+                        e.getResponseCode(),
+                        e.getResponseCode().getMessage(),
+                        null
+                )
+        );
+    }
+
+    @ExceptionHandler(PaymentException.class)
+    public ResponseEntity<ApiResponse<?>> handlePaymentException(PaymentException e) {
+        log.error(e.getMessage());
+
+        return ResponseEntity.status(e.getResponseCode().getHttpStatus()).body(
+                ApiResponse.create(
+                        e.getResponseCode(),
+                        e.getResponseCode().getMessage(),
+                        null
+                )
+        );
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> handleException(Exception e) {
 
