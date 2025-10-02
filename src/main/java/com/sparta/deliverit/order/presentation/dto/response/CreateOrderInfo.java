@@ -1,4 +1,4 @@
-package com.sparta.deliverit.order.dto.response;
+package com.sparta.deliverit.order.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;

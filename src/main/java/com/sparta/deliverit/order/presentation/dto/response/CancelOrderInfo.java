@@ -1,4 +1,4 @@
-package com.sparta.deliverit.order.dto;
+package com.sparta.deliverit.order.presentation.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package com.sparta.deliverit.common.dto;
+package com.sparta.deliverit.global.presentation.dto;
 
 import lombok.Getter;
 

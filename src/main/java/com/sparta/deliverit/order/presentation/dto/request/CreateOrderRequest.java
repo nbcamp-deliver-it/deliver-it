@@ -1,4 +1,4 @@
-package com.sparta.deliverit.order.dto.request;
+package com.sparta.deliverit.order.presentation.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;

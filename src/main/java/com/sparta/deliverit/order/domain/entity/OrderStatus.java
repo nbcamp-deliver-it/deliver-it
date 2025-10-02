@@ -1,4 +1,4 @@
-package com.sparta.deliverit.order.entity;
+package com.sparta.deliverit.order.domain.entity;
 
 public enum OrderStatus {
     CREATED("주문 생성"),
