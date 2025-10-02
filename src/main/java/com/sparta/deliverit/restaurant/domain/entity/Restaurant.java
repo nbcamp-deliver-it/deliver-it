@@ -6,7 +6,6 @@ import com.sparta.deliverit.restaurant.presentation.dto.RestaurantInfoRequestDto
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -52,7 +51,7 @@ public class Restaurant {
     @Column(nullable = false)
     private boolean deleted;
 
-//    // 사용자 - 음식점 1:N 관계
+    // 사용자 - 음식점 1:N 관계
 //    @ManyToOne(fetch = FetchType.LAZY, optional = false)
 //    @JoinColumn(name = "user_id", nullable = false)
 //    private User user;
@@ -71,19 +70,50 @@ public class Restaurant {
         this.categories.addAll(categories);
     }
 
-    // 리뷰 및 별점 반영 -> 스케쥴러 사용 예정
-    @Column(nullable = false)
-    @Builder.Default
-    private Long reviewsCount = 0L;
-
-    @Column(nullable = false, precision = 2, scale = 1)
-    @Builder.Default
-    private BigDecimal starAvg = BigDecimal.ZERO;
-
-    public void updateStar(Long reviewsCount, BigDecimal starAvg) {
-        this.reviewsCount = reviewsCount;
-        this.starAvg = starAvg;
-    }
+    // 음식점 - 리뷰 1:N 관계
+//    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Review> reviews = new ArrayList<>();
+//
+//    @Column(nullable = false)
+//    @Builder.Default
+//    private Long reviewsCount = 0L;
+//
+//    @Column(nullable = false, precision = 2, scale = 1)
+//    @Builder.Default
+//    private BigDecimal starAvg = BigDecimal.ZERO;
+//
+//    // 리뷰 등록 시 호출
+//    public void applyNewReview(int rating) {
+//        reviewsCount++;
+//
+//        BigDecimal newSum = starAvg.multiply(BigDecimal.valueOf(reviewsCount))
+//                .add(BigDecimal.valueOf(rating));
+//        starAvg = newSum.divide(BigDecimal.valueOf(reviewsCount), 1, HALF_UP);
+//    }
+//
+//    // 리뷰 수정 시 호출
+//    public void applyUpdatedReview(int oldRating, int newRating) {
+//        if (reviewsCount == 0) return;
+//
+//        BigDecimal newSum = starAvg.multiply(BigDecimal.valueOf(reviewsCount))
+//                .add(BigDecimal.valueOf(newRating - oldRating));
+//        starAvg = newSum.divide(BigDecimal.valueOf(reviewsCount), 1, HALF_UP);
+//    }
+//
+//    // 리뷰 삭제 시 호출
+//    public void applyDeletedReview(int rating) {
+//        if (reviewsCount <= 1) {
+//            reviewsCount = 0L;
+//            starAvg = BigDecimal.ZERO;
+//            return;
+//        }
+//
+//        reviewsCount--;
+//
+//        BigDecimal newSum = starAvg.multiply(BigDecimal.valueOf(this.reviewsCount))
+//                .subtract(BigDecimal.valueOf(rating));
+//        starAvg = newSum.divide(BigDecimal.valueOf(reviewsCount), 1, HALF_UP);
+//    }
 
     // 음식점 수정 메서드
     public void update(RestaurantInfoRequestDto requestDto, Set<Category> categories, Coordinates coordinates) {
