@@ -7,9 +7,11 @@ import com.sparta.deliverit.review.presentation.dto.response.MutateReviewRespons
 import com.sparta.deliverit.review.presentation.dto.response.OrderReviewListResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/v1")
 @RequiredArgsConstructor
@@ -20,7 +22,9 @@ public class OrderReviewControllerV1 {
     public ResponseEntity<OrderReviewListResponse> getOrderReviews(
             @PathVariable String orderId
     ) {
+        log.info("=== 주문 리뷰 조회 orderId : {} ===", orderId);
         var orderReviews = orderReviewService.getOrderReviews(orderId);
+        log.info("=== 주문 리뷰 조회 성공 ===");
         return ResponseEntity.ok(OrderReviewListResponse.from(orderReviews));
     }
 
@@ -32,8 +36,10 @@ public class OrderReviewControllerV1 {
             @RequestBody
             CreateOrderReviewRequest request
     ) {
+        log.info("=== 주문 리뷰 생성 orderId : {} ===", orderId);
         var command = request.toCommand(orderId);
         Long savedReviewId = orderReviewService.createReview(command);
+        log.info("=== 주문 리뷰 생성 성공 ===");
         return ResponseEntity.ok(new MutateReviewResponse(savedReviewId));
     }
 
@@ -42,8 +48,10 @@ public class OrderReviewControllerV1 {
             @PathVariable Long reviewId,
             @RequestBody @Valid UpdateReviewRequest request
     ) {
+        log.info("=== 주문 리뷰 수정 order-reviewId : {} ===", reviewId);
         var command = request.toCommand(reviewId);
         Long orderReviewId = orderReviewService.updateReview(command);
+        log.info("=== 주문 리뷰 수정 성공 ===");
         return ResponseEntity.ok(new MutateReviewResponse(orderReviewId));
     }
 
@@ -51,7 +59,9 @@ public class OrderReviewControllerV1 {
     public ResponseEntity<MutateReviewResponse> delete(
             @PathVariable Long reviewId
     ) {
+        log.info("=== 주문 리뷰 삭제 order-reviewId : {} ===", reviewId);
         Long orderReviewId = orderReviewService.deleteReview(reviewId);
+        log.info("=== 주문 리뷰 삭제 성공 ===");
         return ResponseEntity.ok(new MutateReviewResponse(orderReviewId));
     }
 }
