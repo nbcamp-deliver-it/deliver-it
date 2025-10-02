@@ -18,9 +18,9 @@ public class Menu {
 //    @GeneratedValue(strategy = GenerationType.UUID)
     private String id; // UUID, String 중 타입 정하기
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "restaurant_id")
-    private Restaurant restaurant;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "restaurant_id")
+//    private Restaurant restaurant;
 
     @Column(nullable = false)
     private String name;
