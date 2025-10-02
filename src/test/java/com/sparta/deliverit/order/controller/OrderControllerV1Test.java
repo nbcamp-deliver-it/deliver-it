@@ -95,6 +95,7 @@ class OrderControllerV1Test {
         mockMvc.perform(
                         MockMvcRequestBuilders
                                 .get("/v1/orders/{orderId}", "550e8400-e29b-41d4-a716-446655440000")
+                                .with(SecurityMockMvcRequestPostProcessors.user("OOO").roles("CUSTOMER"))
 
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -111,6 +112,48 @@ class OrderControllerV1Test {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.menus[1].quantity").value(2))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.menus[1].price").value(6000));
 
+    }
+
+    @DisplayName("주문을 조회하는 사용자의 권한이 CUSTOMER일 때, 본인의 주문인 경우만 조회 가능하다.")
+    @Test
+    void getCustomerOrderTest() throws Exception {
+        // when // then
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/v1/orders/{orderId}", "7939146e-b329-4f6e-9fa9-673381e78b8a")
+                        .with(SecurityMockMvcRequestPostProcessors.user("두둥탁").roles("CUSTOMER")))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderId").value("7939146e-b329-4f6e-9fa9-673381e78b8a"));
+    }
+
+    @DisplayName("주문을 조회하는 사용자의 권한이 OWNER일 때, 레스토랑의 주문만 조회 가능하다.")
+    @Test
+    void getRestaurantOrderTest() throws Exception {
+        // when // then
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/v1/orders/{orderId}", "550e8400-e29b-41d4-a716-446655440000")
+                        .with(SecurityMockMvcRequestPostProcessors.user("포이응").roles("OWNER")))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderId").value("550e8400-e29b-41d4-a716-446655440000"));
+    }
+
+    @DisplayName("주문을 조회하는 사용자의 권한이 MASTER일 때, 조회가 불가능하므로 403 Forbidden 응답")
+    @Test
+    void getOrderByMasterTest() throws Exception {
+        // when // then
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/v1/orders/{orderId}", "550e8400-e29b-41d4-a716-446655440000")
+                        .with(SecurityMockMvcRequestPostProcessors.user("배달의신").roles("MASTER")))
+                .andExpect(MockMvcResultMatchers.status().isForbidden());
+    }
+
+    @DisplayName("주문의 UUID가 형식에 맞으면 정상적으로 진행된다.")
+    @Test
+    void getOrderWithOrderId() throws Exception {
+        // when // then
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/v1/orders/{orderId}", "550e8400-e29b-41d4-a716-446655440000")
+                        .with(SecurityMockMvcRequestPostProcessors.user("배달의신").roles("OWNER")))
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @DisplayName("사용자가 주문 생성 API를 호출하면 주문이 생성되고 결과를 반환합니다.")

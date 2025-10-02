@@ -6,17 +6,17 @@ import com.sparta.deliverit.order.dto.request.CreateOrderRequest;
 import com.sparta.deliverit.order.dto.response.*;
 import com.sparta.deliverit.order.entity.OrderStatus;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Validated
 @RestController
 public class OrderControllerV1 implements OrderController{
 
-    @PreAuthorize("hasAnyRole('CUSTOMER', 'OWNER')")
     @GetMapping("/v1/orders")
     public Result<List<OrderInfo>> getOrderList(Authentication userAuthInfo) {
 
@@ -78,33 +78,64 @@ public class OrderControllerV1 implements OrderController{
         throw new AccessDeniedException("권한이 없습니다.");
     }
 
-
     @GetMapping("/v1/orders/{orderId}")
-    public Result<OrderInfo> getOrder(@PathVariable String orderId) {
-        MenuInfo menuInfo1 = MenuInfo.builder()
-                .menuName("후라이드 치킨")
-                .quantity(1)
-                .price(16000)
-                .build();
+    public Result<OrderInfo> getOrder(@PathVariable String orderId, Authentication userAuthInfo) {
 
-        MenuInfo menuInfo2 = MenuInfo.builder()
-                .menuName("콜라")
-                .quantity(2)
-                .price(6000)
-                .build();
+        if (isCustomer(userAuthInfo)) {
+            MenuInfo menuInfo1 = MenuInfo.builder()
+                    .menuName("간짜장")
+                    .quantity(2)
+                    .price(7000)
+                    .build();
 
-        OrderInfo orderInfo = OrderInfo.builder()
-                .orderId("550e8400-e29b-41d4-a716-446655440000")
-                .restaurantName("치킨성")
-                .username("포이응")
-                .orderTime(LocalDateTime.of(2025, 9, 30, 17, 45, 12, 345678900).toString())
-                .orderStatus(OrderStatus.CREATED)
-                .deliveryAddress("서울특별시 강남구 테헤란로 1927")
-                .totalPrice(28000)
-                .menus(List.of(menuInfo1, menuInfo2))
-                .build();
+            MenuInfo menuInfo2 = MenuInfo.builder()
+                    .menuName("탕수육")
+                    .quantity(1)
+                    .price(15000)
+                    .build();
 
-        return Result.of("주문을 조회했습니다.", "200", orderInfo);
+            OrderInfo orderInfo = OrderInfo.builder()
+                    .orderId("7939146e-b329-4f6e-9fa9-673381e78b8a")
+                    .restaurantName("짜왕")
+                    .username("두둥탁")
+                    .orderTime(LocalDateTime.of(2025, 3, 3, 11, 45, 11, 345128900).toString())
+                    .orderStatus(OrderStatus.CREATED)
+                    .deliveryAddress("경기도 수원시 영통구 영통로")
+                    .totalPrice(29000)
+                    .menus(List.of(menuInfo1, menuInfo2))
+                    .build();
+
+            return Result.of("주문을 조회했습니다.", "200", orderInfo);
+
+        } else if (isOwner(userAuthInfo)) {
+            MenuInfo menuInfo1 = MenuInfo.builder()
+                    .menuName("후라이드 치킨")
+                    .quantity(1)
+                    .price(16000)
+                    .build();
+
+            MenuInfo menuInfo2 = MenuInfo.builder()
+                    .menuName("콜라")
+                    .quantity(2)
+                    .price(6000)
+                    .build();
+
+            OrderInfo orderInfo = OrderInfo.builder()
+                    .orderId("550e8400-e29b-41d4-a716-446655440000")
+                    .restaurantName("치킨성")
+                    .username("포이응")
+                    .orderTime(LocalDateTime.of(2025, 9, 30, 17, 45, 12, 345678900).toString())
+                    .orderStatus(OrderStatus.CREATED)
+                    .deliveryAddress("서울특별시 강남구 테헤란로 1927")
+                    .totalPrice(28000)
+                    .menus(List.of(menuInfo1, menuInfo2))
+                    .build();
+
+            return Result.of("주문을 조회했습니다.", "200", orderInfo);
+
+        }
+
+        throw new AccessDeniedException("권한이 없습니다.");
     }
 
     @PostMapping("/v1/orders")

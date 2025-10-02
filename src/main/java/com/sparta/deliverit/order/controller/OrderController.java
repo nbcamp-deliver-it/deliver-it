@@ -4,7 +4,10 @@ import com.sparta.deliverit.common.dto.Result;
 import com.sparta.deliverit.order.dto.CancelOrderInfo;
 import com.sparta.deliverit.order.dto.request.CreateOrderRequest;
 import com.sparta.deliverit.order.dto.response.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -12,7 +15,12 @@ public interface OrderController {
 
     Result<List<OrderInfo>> getOrderList(Authentication userAuthInfo);
 
-    Result<OrderInfo> getOrder(String orderId);
+    Result<OrderInfo> getOrder(
+            @NotBlank
+            @Pattern(regexp="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                    message="UUID 형식이 올바르지 않습니다.")
+            @PathVariable String orderId,
+            Authentication userAuthInfo);
 
     Result<CreateOrderInfo> createOrder(CreateOrderRequest request);
 
