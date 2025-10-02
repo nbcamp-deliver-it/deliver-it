@@ -1,4 +1,4 @@
-package com.sparta.deliverit.restaurant.domain.repository;
+package com.sparta.deliverit.restaurant.infrastructure.repository;
 
 import com.sparta.deliverit.restaurant.domain.entity.Category;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantCategory;
