@@ -5,6 +5,7 @@ import com.sparta.deliverit.user.presentation.dto.SignupRequestDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -23,25 +24,24 @@ public class UserController {
     @GetMapping("/user/login")
     public String loginPage() {
 
-
         return "login";
     }
 
 
     @PostMapping("/user/signup")
-    public String signup(@Valid SignupRequestDto requestDto, BindingResult bindingResult) {
+    public ResponseEntity<String> signup(@Valid SignupRequestDto requestDto, BindingResult bindingResult) {
         // Validation 예외처리
         List<FieldError> fieldErrors = bindingResult.getFieldErrors();
         if(fieldErrors.size() > 0) {
             for (FieldError fieldError : bindingResult.getFieldErrors()) {
                 log.error(fieldError.getField() + " 필드 : " + fieldError.getDefaultMessage());
             }
-            return "가입에러";
+            return  ResponseEntity.badRequest().body("가입에러");
         }
 
         userService.signup(requestDto);
 
-        return "가입을 환영합니다.";
+        return ResponseEntity.ok(requestDto.getName() + "님 가입을 환영합니다.");
     }
 
 
