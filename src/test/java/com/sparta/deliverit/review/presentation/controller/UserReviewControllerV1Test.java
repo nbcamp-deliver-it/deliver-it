@@ -30,8 +30,6 @@ class UserReviewControllerV1Test {
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.list").isArray())
-                    .andExpect(jsonPath("$.list[0].reviewId").isNumber())
-                    .andExpect(jsonPath("$.list[0].userId").isString())
                     .andExpect(jsonPath("$.list[0].star").isNumber())
                     .andExpect(jsonPath("$.list[0].description").isString());
         }

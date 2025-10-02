@@ -2,9 +2,7 @@ package com.sparta.deliverit.review.presentation.dto.response;
 
 import java.math.BigDecimal;
 
-public record ReviewResponse(
-        Long reviewId,
-        String userId,
+public record UserReviewResponse(
         BigDecimal star,
         String description
 ) {
