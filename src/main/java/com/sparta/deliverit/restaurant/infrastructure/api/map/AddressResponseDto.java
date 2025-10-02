@@ -12,9 +12,9 @@ public class AddressResponseDto {
     @Data
     public static class Document {
         @JsonProperty("x")
-        private String x; // longitude (경도)
+        private Double longitude;
 
         @JsonProperty("y")
-        private String y; // latitude (위도)
+        private Double latitude;
     }
 }

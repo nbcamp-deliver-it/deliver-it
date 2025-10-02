@@ -10,7 +10,7 @@ public class KakaoMapClient {
 
     private final RestTemplate kakaoRestTemplate;
 
-    // 주소 -> 좌표 (JSON 형식의 데이터를 DTO(String)로 받아옴)
+    // 주소 -> 좌표 (반환 타입: AddressResponseDto)
     public AddressResponseDto geocode(String address) {
         return kakaoRestTemplate.getForObject(
                 "/v2/local/search/address.json?query={query}",

@@ -9,7 +9,7 @@ public class MapService {
 
     private final KakaoMapClient kakaoMapClient;
 
-    // String -> Double
+    // 주소 -> 좌표 (반환 타입: Coordinates)
     public Coordinates geocode(String address) {
         AddressResponseDto response = kakaoMapClient.geocode(address);
 
@@ -18,9 +18,6 @@ public class MapService {
         }
 
         AddressResponseDto.Document doc = response.getDocuments().get(0);
-        return new Coordinates(
-                Double.parseDouble(doc.getX()),
-                Double.parseDouble(doc.getY())
-        );
+        return new Coordinates(doc.getLongitude(), doc.getLatitude());
     }
 }
