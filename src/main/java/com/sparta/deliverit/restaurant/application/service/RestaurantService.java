@@ -2,10 +2,10 @@ package com.sparta.deliverit.restaurant.application.service;
 
 import com.sparta.deliverit.restaurant.domain.entity.Category;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
-import com.sparta.deliverit.restaurant.domain.repository.CategoryRepository;
-import com.sparta.deliverit.restaurant.domain.repository.RestaurantRepository;
 import com.sparta.deliverit.restaurant.infrastructure.api.map.Coordinates;
 import com.sparta.deliverit.restaurant.infrastructure.api.map.MapService;
+import com.sparta.deliverit.restaurant.infrastructure.repository.CategoryRepository;
+import com.sparta.deliverit.restaurant.infrastructure.repository.RestaurantRepository;
 import com.sparta.deliverit.restaurant.presentation.dto.RestaurantInfoRequestDto;
 import com.sparta.deliverit.restaurant.presentation.dto.RestaurantInfoResponseDto;
 import lombok.RequiredArgsConstructor;
