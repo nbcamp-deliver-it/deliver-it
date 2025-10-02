@@ -16,7 +16,7 @@ public class MenuController {
 
     private final MenuService menuService;
 
-    @GetMapping("/v1/restaurants/{restaurantId}")
+    @GetMapping("/v1/restaurants/{restaurantId}/menu")
     public ResponseEntity<List<Menu>> getMenuByRestaurantId(@PathVariable String restaurantId) {
         List<Menu> menu = menuService.getMenuByRestaurantId(restaurantId);
 
