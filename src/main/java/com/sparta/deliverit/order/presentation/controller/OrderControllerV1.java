@@ -1,6 +1,7 @@
 package com.sparta.deliverit.order.presentation.controller;
 
-import com.sparta.deliverit.global.presentation.dto.Result;
+import com.sparta.deliverit.global.response.ApiResponse;
+import com.sparta.deliverit.global.response.code.OrderResponseCode;
 import com.sparta.deliverit.order.presentation.dto.response.CancelOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.request.CreateOrderRequest;
 import com.sparta.deliverit.order.domain.entity.OrderStatus;
@@ -23,7 +24,7 @@ import java.util.List;
 public class OrderControllerV1 implements OrderController {
 
     @GetMapping("/v1/orders")
-    public Result<List<OrderInfo>> getOrderList(Authentication userAuthInfo) {
+    public ApiResponse<List<OrderInfo>> getOrderList(Authentication userAuthInfo) {
 
         if (isCustomer(userAuthInfo)) {
             // TODO: 고객 정보를 이용해서 주문 목록을 가져오도록 구현해야 함
@@ -50,7 +51,7 @@ public class OrderControllerV1 implements OrderController {
                     .menus(List.of(menuInfo1, menuInfo2))
                     .build();
 
-            return Result.of("주문 목록을 조회했습니다.", "200", List.of(orderInfo));
+            return ApiResponse.create(OrderResponseCode.ORDER_LIST_SUCCESS, "고객의 주문 목록을 조회했습니다.", List.of(orderInfo));
         } else if (isOwner(userAuthInfo)) {
             // TODO: 가능하면 API를 분리해주는 것이 좋을 것 같음
             // TODO: 레스토랑 정보를 바탕으로 주문 목록을 가져오도록 구현해야함
@@ -77,14 +78,13 @@ public class OrderControllerV1 implements OrderController {
                     .menus(List.of(menuInfo1, menuInfo2))
                     .build();
 
-            return Result.of("주문 목록을 조회했습니다.", "200", List.of(orderInfo));
+            return ApiResponse.create(OrderResponseCode.ORDER_LIST_SUCCESS, "음식점의 주문 목록을 조회했습니다.", List.of(orderInfo));
         }
-
         throw new AccessDeniedException("권한이 없습니다.");
     }
 
     @GetMapping("/v1/orders/{orderId}")
-    public Result<OrderInfo> getOrder(@PathVariable String orderId, Authentication userAuthInfo) {
+    public ApiResponse<OrderInfo> getOrder(@PathVariable String orderId, Authentication userAuthInfo) {
 
         if (isCustomer(userAuthInfo)) {
             MenuInfo menuInfo1 = MenuInfo.builder()
@@ -110,7 +110,7 @@ public class OrderControllerV1 implements OrderController {
                     .menus(List.of(menuInfo1, menuInfo2))
                     .build();
 
-            return Result.of("주문을 조회했습니다.", "200", orderInfo);
+            return ApiResponse.create(OrderResponseCode.ORDER_DETAIL_SUCCESS,"고객의 주문을 조회했습니다.", orderInfo);
 
         } else if (isOwner(userAuthInfo)) {
             MenuInfo menuInfo1 = MenuInfo.builder()
@@ -136,7 +136,7 @@ public class OrderControllerV1 implements OrderController {
                     .menus(List.of(menuInfo1, menuInfo2))
                     .build();
 
-            return Result.of("주문을 조회했습니다.", "200", orderInfo);
+            return ApiResponse.create(OrderResponseCode.ORDER_DETAIL_SUCCESS,"음식점의 주문을 조회했습니다.", orderInfo);
 
         }
 
@@ -144,30 +144,30 @@ public class OrderControllerV1 implements OrderController {
     }
 
     @PostMapping("/v1/orders")
-    public Result<CreateOrderInfo> createOrder(CreateOrderRequest request) {
+    public ApiResponse<CreateOrderInfo> createOrder(CreateOrderRequest request) {
         CreateOrderInfo orderInfo = CreateOrderInfo.builder()
                 .orderId("7939146e-b329-4f6e-9fa9-673381e78b8a")
                 .orderStatus("PENDING_PAYMENT")
                 .totalPrice(28000)
                 .build();
 
-        return Result.of("주문이 정상적으로 완료되었습니다.", "201", orderInfo);
+        return ApiResponse.create(OrderResponseCode.ORDER_SUCCESS ,"주문이 정상적으로 완료되었습니다.", orderInfo);
     }
 
     @PostMapping("/v1/orders/{orderId}/confirm")
-    public Result<ConfirmOrderInfo> confirmOrder(@PathVariable String orderId) {
+    public ApiResponse<ConfirmOrderInfo> confirmOrder(@PathVariable String orderId) {
 
         ConfirmOrderInfo confirmOrderInfo = ConfirmOrderInfo.of("550e8400-e29b-41d4-a716-446655440000", OrderStatus.CONFIRMED.getDescription(), "2025-09-29T20:15:42+09:00");
 
-        return Result.of("주문 확인이 완료되었습니다.", "200", confirmOrderInfo);
+        return ApiResponse.create(OrderResponseCode.ORDER_CONFIRM_SUCCESS,"주문 확인이 완료되었습니다.", confirmOrderInfo);
     }
 
     @PatchMapping("/v1/orders/{orderId}")
-    public Result<CancelOrderInfo> cancelOrder(@PathVariable String orderId) {
+    public ApiResponse<CancelOrderInfo> cancelOrder(@PathVariable String orderId) {
 
         CancelOrderInfo cancelOrderInfo = CancelOrderInfo.of("550e8400-e29b-41d4-a716-446655440000", OrderStatus.CONFIRMED.getDescription(), OrderStatus.CANCELED.getDescription(), "2025-09-29T20:25:05+09:00");
 
-        return Result.of("주문 취소가 완료되었습니다.", "200", cancelOrderInfo);
+        return ApiResponse.create(OrderResponseCode.ORDER_CANCEL_SUCCESS,"주문 취소가 완료되었습니다.", cancelOrderInfo);
     }
 
     private static boolean isOwner(Authentication authentication) {

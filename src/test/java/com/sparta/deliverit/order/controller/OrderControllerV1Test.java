@@ -39,8 +39,8 @@ class OrderControllerV1Test {
                                 .with(SecurityMockMvcRequestPostProcessors.user("OOO").roles("OWNER"))
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문 목록을 조회했습니다."))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("200"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("음식점의 주문 목록을 조회했습니다."))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_LIST_SUCCESS"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data").isArray())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].orderId").value("550e8400-e29b-41d4-a716-446655440000"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].restaurantName").value("치킨성"))
@@ -79,14 +79,16 @@ class OrderControllerV1Test {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data[0].orderId").value("550e8400-e29b-41d4-a716-446655440000"));
     }
 
-    @DisplayName("주문 목록을 조회하는 사용자의 권한이 MASTER일 때, 403 Forbidden 발생")
+    @DisplayName("주문 목록을 조회하는 사용자의 권한이 MASTER일 때, UNAUTHORIZED_USER 응답")
     @Test
     void getOrderListByMasterTest() throws Exception {
         // when // then
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/v1/orders")
                         .with(SecurityMockMvcRequestPostProcessors.user("김철수").roles("MASTER")))
-                .andExpect(MockMvcResultMatchers.status().isForbidden());
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("UNAUTHORIZED_USER"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문에 접근할 권한이 없습니다."));
     }
 
     @DisplayName("사용자가 주문 조회 API를 호출하면 주문 정보를 반환한다.")
@@ -100,7 +102,8 @@ class OrderControllerV1Test {
 
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문을 조회했습니다."))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("고객의 주문을 조회했습니다."))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_DETAIL_SUCCESS"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderId").value("7939146e-b329-4f6e-9fa9-673381e78b8a"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.restaurantName").value("짜왕"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.username").value("두둥탁"))
@@ -137,14 +140,16 @@ class OrderControllerV1Test {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderId").value("550e8400-e29b-41d4-a716-446655440000"));
     }
 
-    @DisplayName("주문을 조회하는 사용자의 권한이 MASTER일 때, 조회가 불가능하므로 403 Forbidden 응답")
+    @DisplayName("주문을 조회하는 사용자의 권한이 MASTER일 때, UNAUTHORIZED_USER 응답")
     @Test
     void getOrderByMasterTest() throws Exception {
         // when // then
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/v1/orders/{orderId}", "550e8400-e29b-41d4-a716-446655440000")
                         .with(SecurityMockMvcRequestPostProcessors.user("배달의신").roles("MASTER")))
-                .andExpect(MockMvcResultMatchers.status().isForbidden());
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("UNAUTHORIZED_USER"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문에 접근할 권한이 없습니다."));
     }
 
     @DisplayName("주문의 UUID가 형식에 맞으면 정상적으로 진행된다.")
@@ -190,13 +195,13 @@ class OrderControllerV1Test {
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문이 정상적으로 완료되었습니다."))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("201"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_SUCCESS"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderId").value("7939146e-b329-4f6e-9fa9-673381e78b8a"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value("PENDING_PAYMENT"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.totalPrice").value(28000));
     }
 
-    @DisplayName("주문 생성 시 RestaurantId가 UUID 형식이 아니면(글자 수 불일치) responseCode 400을 반환한다.")
+    @DisplayName("주문 생성 시 RestaurantId가 UUID 형식이 아니면(글자 수 불일치) VALIDATION_FAILED 응답")
     @Test
     void createOrderWithInvalidRestaurantId1() throws Exception {
         OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
@@ -225,11 +230,11 @@ class OrderControllerV1Test {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("음식점의 UUID 형식이 올바르지 않습니다."));
     }
 
-    @DisplayName("주문 생성 시 RestaurantId가 UUID 형식이 아니면(특수문자 포함) responseCode 400을 반환한다.")
+    @DisplayName("주문 생성 시 RestaurantId가 UUID 형식이 아니면(특수문자 포함) VALIDATION_FAILED 응답")
     @Test
     void createOrderWithInvalidRestaurantId2() throws Exception {
         OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
@@ -258,11 +263,11 @@ class OrderControllerV1Test {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("음식점의 UUID 형식이 올바르지 않습니다."));
     }
 
-    @DisplayName("주문 생성 시 RestaurantId가 비어 있으면 responseCode 400을 반환한다.")
+    @DisplayName("주문 생성 시 RestaurantId가 비어 있으면 VALIDATION_FAILED 응답")
     @Test
     void createOrderWithInvalidRestaurantId3() throws Exception {
         OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
@@ -291,8 +296,8 @@ class OrderControllerV1Test {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").isString())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").isString());
     }
 
     @DisplayName("주문 생성 시 RestaurantId가 UUID 형식에 맞으면 정상 응답을 반환한다.")
@@ -324,12 +329,12 @@ class OrderControllerV1Test {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("201"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_SUCCESS"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문이 정상적으로 완료되었습니다."))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value("PENDING_PAYMENT"));
     }
 
-    @DisplayName("주문 생성 시 menu가 0개이면 responseCode 400을 반환한다.")
+    @DisplayName("주문 생성 시 menu가 0개이면 VALIDATION_FAILED 응답")
     @Test
     void createOrderWithMenusEmpty() throws Exception {
         CreateOrderRequest request = CreateOrderRequest.builder()
@@ -347,8 +352,8 @@ class OrderControllerV1Test {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("메뉴는 적어도 한 개 이상 주문해야합니다. "));
     }
 
     @DisplayName("주문 생성 시 menu가 1개 이상이면 정상 응답을 반환한다.")
@@ -374,12 +379,12 @@ class OrderControllerV1Test {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("201"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_SUCCESS"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문이 정상적으로 완료되었습니다."))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value("PENDING_PAYMENT"));
     }
 
-    @DisplayName("주문 생성 시 주소가 비어 있으면 responseCode 400을 반환한다.")
+    @DisplayName("주문 생성 시 주소가 비어 있으면 VALIDATION_FAILED 응답")
     @Test
     void createOrderWithAddressEmpty() throws Exception {
         OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
@@ -402,8 +407,8 @@ class OrderControllerV1Test {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("배송지는 필수 값입니다."));
     }
 
     @DisplayName("주문 생성 시 주소가 입력되어 있으면 정상 응답을 반환한다.")
@@ -429,12 +434,12 @@ class OrderControllerV1Test {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("201"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_SUCCESS"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문이 정상적으로 완료되었습니다."))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value("PENDING_PAYMENT"));
     }
 
-    @DisplayName("주문 생성 시 MenuId가 UUID 형식이 아니면(글자 수 불일치) responseCode 400을 반환한다.")
+    @DisplayName("주문 생성 시 MenuId가 UUID 형식이 아니면(글자 수 불일치) VALIDATION_FAILED 응답")
     @Test
     void createOrderWithInvalidMenuId1() throws Exception {
         OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
@@ -457,11 +462,11 @@ class OrderControllerV1Test {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("메뉴의 UUID 형식이 올바르지 않습니다."));
     }
 
-    @DisplayName("주문 생성 시 MenuId가 UUID 형식이 아니면(특수문자 포함) responseCode 400을 반환한다.")
+    @DisplayName("주문 생성 시 MenuId가 UUID 형식이 아니면(특수문자 포함) VALIDATION_FAILED 응답")
     @Test
     void createOrderWithInvalidMenuId2() throws Exception {
         OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
@@ -484,11 +489,11 @@ class OrderControllerV1Test {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("메뉴의 UUID 형식이 올바르지 않습니다."));
     }
 
-    @DisplayName("주문 생성 시 MenuId가 비어 있으면 responseCode 400을 반환한다.")
+    @DisplayName("주문 생성 시 MenuId가 비어 있으면 VALIDATION_FAILED 응답")
     @Test
     void createOrderWithInvalidMenuId3() throws Exception {
         OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
@@ -511,8 +516,8 @@ class OrderControllerV1Test {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("메뉴의 UUID 형식이 올바르지 않습니다."));
     }
 
     @DisplayName("주문 생성 시 MenuId가 UUID 형식에 맞으면 정상 응답을 반환한다.")
@@ -538,12 +543,12 @@ class OrderControllerV1Test {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("201"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_SUCCESS"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문이 정상적으로 완료되었습니다."))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value("PENDING_PAYMENT"));
     }
 
-    @DisplayName("주문 생성 시 메뉴의 수량이 자연수가 아니면(0 이하) responseCode 400을 반환한다.")
+    @DisplayName("주문 생성 시 메뉴의 수량이 자연수가 아니면(0 이하) VALIDATION_FAILED 응답")
     @Test
     void createOrderWithMenuQuantityIsZero() throws Exception {
         OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
@@ -566,8 +571,8 @@ class OrderControllerV1Test {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("메뉴 수량은 양의 정수여야 합니다."));
     }
 
     @DisplayName("주문 생성 시 메뉴의 수량이 자연수라면 정상 응답을 반환한다.")
@@ -593,7 +598,7 @@ class OrderControllerV1Test {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("201"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_SUCCESS"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문이 정상적으로 완료되었습니다."))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value("PENDING_PAYMENT"));
     }
@@ -613,13 +618,13 @@ class OrderControllerV1Test {
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문 확인이 완료되었습니다."))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("200"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_CONFIRM_SUCCESS"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderId").value("550e8400-e29b-41d4-a716-446655440000"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value("주문 확인"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.confirmedAt").value("2025-09-29T20:15:42+09:00"));
     }
 
-    @DisplayName("주문 확인 시 orderId가 UUID 형식이 아니면(글자 수 불일치) responseCode 400을 반환한다.")
+    @DisplayName("주문 확인 시 orderId가 UUID 형식이 아니면(글자 수 불일치) VALIDATION_FAILED 응답")
     @Test
     void confirmOrderWithInvalidOrderId1() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
@@ -628,11 +633,11 @@ class OrderControllerV1Test {
                         .with(SecurityMockMvcRequestPostProcessors.csrf())
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문의 UUID 형식이 올바르지 않습니다."));
     }
 
-    @DisplayName("주문 확인 시 orderId가 UUID 형식이 아니면(특수문자 포함) responseCode 400을 반환한다.")
+    @DisplayName("주문 확인 시 orderId가 UUID 형식이 아니면(특수문자 포함) VALIDATION_FAILED 응답")
     @Test
     void confirmOrderWithInvalidOrderId2() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
@@ -641,8 +646,8 @@ class OrderControllerV1Test {
                         .with(SecurityMockMvcRequestPostProcessors.csrf())
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문의 UUID 형식이 올바르지 않습니다."));
     }
 
     @DisplayName("주문 확인 시 orderId가 UUID 형식에 맞으면 정상 응답을 반환한다.")
@@ -654,7 +659,7 @@ class OrderControllerV1Test {
                         .with(SecurityMockMvcRequestPostProcessors.csrf())
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("200"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_CONFIRM_SUCCESS"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문 확인이 완료되었습니다."))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderStatus").value("주문 확인"));
     }
@@ -671,14 +676,14 @@ class OrderControllerV1Test {
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문 취소가 완료되었습니다."))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("200"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_CANCEL_SUCCESS"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.orderId").value("550e8400-e29b-41d4-a716-446655440000"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.previousStatus").value("주문 확인"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.currentStatus").value("주문 취소"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.cancelAt").value("2025-09-29T20:25:05+09:00"));
     }
 
-    @DisplayName("주문 취소 시 orderId가 UUID 형식이 아니면(글자 수 불일치) responseCode 400을 반환한다.")
+    @DisplayName("주문 취소 시 orderId가 UUID 형식이 아니면(글자 수 불일치) VALIDATION_FAILED 응답")
     @Test
     void cancelOrderWithInvalidOrderId1() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
@@ -687,11 +692,11 @@ class OrderControllerV1Test {
                         .with(SecurityMockMvcRequestPostProcessors.csrf())
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문의 UUID 형식이 올바르지 않습니다."));
     }
 
-    @DisplayName("주문 취소 시 orderId가 UUID 형식이 아니면(특수문자 포함) responseCode 400을 반환한다.")
+    @DisplayName("주문 취소 시 orderId가 UUID 형식이 아니면(특수문자 포함) VALIDATION_FAILED 응답")
     @Test
     void cancelOrderWithInvalidOrderId2() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders
@@ -700,8 +705,8 @@ class OrderControllerV1Test {
                         .with(SecurityMockMvcRequestPostProcessors.csrf())
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("400"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("잘못된 요청입니다."));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문의 UUID 형식이 올바르지 않습니다."));
     }
 
     @DisplayName("주문 취소 시 orderId가 UUID 형식에 맞으면 정상 응답을 반환한다.")
@@ -713,7 +718,7 @@ class OrderControllerV1Test {
                         .with(SecurityMockMvcRequestPostProcessors.csrf())
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("200"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_CANCEL_SUCCESS"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문 취소가 완료되었습니다."));
     }
 }

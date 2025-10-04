@@ -1,6 +1,6 @@
 package com.sparta.deliverit.order.presentation.controller;
 
-import com.sparta.deliverit.global.presentation.dto.Result;
+import com.sparta.deliverit.global.response.ApiResponse;
 import com.sparta.deliverit.order.presentation.dto.response.CancelOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.request.CreateOrderRequest;
 import com.sparta.deliverit.order.presentation.dto.response.ConfirmOrderInfo;
@@ -16,25 +16,25 @@ import java.util.List;
 
 public interface OrderController {
 
-    Result<List<OrderInfo>> getOrderList(Authentication userAuthInfo);
+    ApiResponse<List<OrderInfo>> getOrderList(Authentication userAuthInfo);
 
-    Result<OrderInfo> getOrder(
+    ApiResponse<OrderInfo> getOrder(
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-                    message = "UUID 형식이 올바르지 않습니다.")
+                    message = "주문의 UUID 형식이 올바르지 않습니다.")
             @PathVariable String orderId,
             Authentication userAuthInfo);
 
-    Result<CreateOrderInfo> createOrder(@RequestBody @Valid CreateOrderRequest request);
+    ApiResponse<CreateOrderInfo> createOrder(@RequestBody @Valid CreateOrderRequest request);
 
-    Result<ConfirmOrderInfo> confirmOrder(
+    ApiResponse<ConfirmOrderInfo> confirmOrder(
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-                    message = "UUID 형식이 올바르지 않습니다.")
+                    message = "주문의 UUID 형식이 올바르지 않습니다.")
             @PathVariable
             String orderId);
 
-    Result<CancelOrderInfo> cancelOrder(
+    ApiResponse<CancelOrderInfo> cancelOrder(
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-                    message = "UUID 형식이 올바르지 않습니다.")
+                    message = "주문의 UUID 형식이 올바르지 않습니다.")
             @PathVariable
             String orderId);
 }
