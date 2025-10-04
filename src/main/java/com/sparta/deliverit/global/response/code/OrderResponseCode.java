@@ -6,6 +6,11 @@ import static org.springframework.http.HttpStatus.*;
 
 public enum OrderResponseCode implements ResponseCode {
 
+    ORDER_LIST_SUCCESS(OK, "주문 목록 조회에 성공했습니다."),
+    ORDER_DETAIL_SUCCESS(OK, "주문 조회에 성공했습니다."),
+    ORDER_CANCEL_SUCCESS(OK, "주문이 취소되었습니다."),
+    ORDER_CONFIRM_SUCCESS(OK, "주문이 확인되었습니다."),
+
     ORDER_SUCCESS(OK, "주문에 성공했습니다."),
 
     ORDER_FAILED(BAD_REQUEST, "주문에 실패했습니다."), // 세분화 필요
