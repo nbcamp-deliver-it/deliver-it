@@ -6,6 +6,7 @@ import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import com.sparta.deliverit.user.domain.entity.User;
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +42,7 @@ public class Order extends BaseEntity {
     private String address;
 
     @Column(name = "total_price", nullable = false, updatable = false)
-    private int totalPrice;
+    private BigDecimal totalPrice;
 
     @OneToMany(mappedBy = "order")
     private List<OrderItem> orderItemList = new ArrayList<>();
