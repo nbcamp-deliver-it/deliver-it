@@ -8,8 +8,6 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "p_order")
@@ -43,9 +41,6 @@ public class Order extends BaseEntity {
 
     @Column(name = "total_price", nullable = false, updatable = false)
     private BigDecimal totalPrice;
-
-    @OneToMany(mappedBy = "order")
-    private List<OrderItem> orderItemList = new ArrayList<>();
 
     protected Order() {
 
