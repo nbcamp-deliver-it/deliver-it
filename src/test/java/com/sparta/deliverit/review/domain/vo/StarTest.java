@@ -47,4 +47,13 @@ class StarTest {
 
         assertEquals(star1, star2);
     }
+
+    @Test
+    @DisplayName("별점은 값이 다르다면 다른 별점이다")
+    void differentValue() {
+        Star star1 = new Star(BigDecimal.valueOf(4.4));
+        Star star2 = new Star(BigDecimal.valueOf(4.5));
+
+        assertNotEquals(star1, star2);
+    }
 }

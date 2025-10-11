@@ -12,10 +12,11 @@ class ReviewTest {
     @Test
     @DisplayName("리뷰를 생성할 수 있다")
     void createReview() {
-        var review = new Review(BigDecimal.valueOf(4.5), "리뷰 내용");
+        Star star = new Star(BigDecimal.valueOf(4.5));
+        var review = new Review(star, "리뷰 내용");
 
         assertNotNull(review);
-        assertEquals(BigDecimal.valueOf(4.5), review.getStar());
+        assertEquals(star.getValue(), review.getStar());
     }
 
     @Test
@@ -27,39 +28,19 @@ class ReviewTest {
     @Test
     @DisplayName("리뷰 내용이 없더라도 생성할 수 있다")
     void createReviewWithoutDescription() {
-        Review review = new Review(BigDecimal.valueOf(4.5));
+        Star star = new Star(BigDecimal.valueOf(4.5));
+        Review review = new Review(star);
 
         assertNotNull(review);
         assertNull(review.getDescription());
     }
 
     @Test
-    @DisplayName("리뷰 별점은 소수점 1자리까지만 보장한다")
-    void starIsTruncatedToOneDecimalPlace() {
-        Review review = new Review(BigDecimal.valueOf(4.5555555555));
-
-        assertEquals(BigDecimal.valueOf(4.5), review.getStar());
-    }
-
-    @Test
-    @DisplayName("리뷰 별점은 1.0 이상이어야 한다")
-    void failWhenStarIsLessThanOne() {
-        assertThrows(IllegalArgumentException.class, () ->
-                new Review(BigDecimal.valueOf(0.9)));
-    }
-
-    @Test
-    @DisplayName("리뷰 별점은 5.0 이하이어야 한다")
-    void failWhenStarIsGreaterThanFive() {
-        assertThrows(IllegalArgumentException.class, () ->
-                new Review(BigDecimal.valueOf(5.1)));
-    }
-
-    @Test
     @DisplayName("리뷰의 별점과 설명이 같으면 같은 리뷰이다")
     void whenStarAndDescriptionAreSameThenEquals() {
-        var review1 = new Review(BigDecimal.valueOf(4.5), "리뷰 생성");
-        var review2 = new Review(BigDecimal.valueOf(4.5), "리뷰 생성");
+        Star star = new Star(BigDecimal.valueOf(4.5));
+        var review1 = new Review(star, "리뷰 생성");
+        var review2 = new Review(star, "리뷰 생성");
 
         assertEquals(review1, review2);
     }
@@ -67,9 +48,12 @@ class ReviewTest {
     @Test
     @DisplayName("리뷰의 별점과 설명이 다르면 다른 리뷰이다")
     void whenStarAndDescriptionAreDifferentThenNotEquals() {
-        var review1 = new Review(BigDecimal.valueOf(4.5), "리뷰 생성");
-        var review2 = new Review(BigDecimal.valueOf(1.0), "리뷰 생성");
-        var review3 = new Review(BigDecimal.valueOf(4.5), "리뷰");
+        Star star1 = new Star(BigDecimal.valueOf(4.5));
+        Star star2 = new Star(BigDecimal.valueOf(1.0));
+
+        var review1 = new Review(star1, "리뷰1");
+        var review2 = new Review(star2, "리뷰1");
+        var review3 = new Review(star1, "리뷰2");
 
         assertNotEquals(review1, review2);
         assertNotEquals(review1, review3);

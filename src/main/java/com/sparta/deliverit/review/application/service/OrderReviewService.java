@@ -4,6 +4,7 @@ import com.sparta.deliverit.review.application.service.dto.OrderReviewCommand;
 import com.sparta.deliverit.review.application.service.dto.OrderReviewInfo;
 import com.sparta.deliverit.review.domain.entity.OrderReview;
 import com.sparta.deliverit.review.domain.vo.Review;
+import com.sparta.deliverit.review.domain.vo.Star;
 import com.sparta.deliverit.review.infrastructure.repository.OrderReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,8 @@ public class OrderReviewService {
     private final OrderReviewRepository orderReviewRepository;
 
     public Long createReview(OrderReviewCommand.Create command) {
-        Review review = new Review(command.star(), command.description());
+        Star star = new Star(command.star());
+        Review review = new Review(star, command.description());
         OrderReview savedOrderReview = orderReviewRepository.save(new OrderReview(review));
         // FIXME: 음식점 리뷰 계산
         return savedOrderReview.getOrderReviewId();
@@ -35,7 +37,8 @@ public class OrderReviewService {
     @Transactional
     public Long updateReview(OrderReviewCommand.Update command) {
         OrderReview orderReview = getOrderReview(command.reviewId());
-        Review newReview = new Review(command.star(), command.description());
+        Star star = new Star(command.star());
+        Review newReview = new Review(star, command.description());
         orderReview.changeReview(newReview);
         // FIXME: 음식점 리뷰 계산
         return orderReview.getOrderReviewId();
