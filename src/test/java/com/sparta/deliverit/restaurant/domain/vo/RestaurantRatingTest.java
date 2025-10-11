@@ -69,6 +69,17 @@ class RestaurantRatingTest {
             assertEquals(2L, rating2.getReviewsCount());
             assertEquals(BigDecimal.valueOf(3.8), rating2.getStarAvg());
         }
+
+        @Test
+        @DisplayName("리뷰 4.9를 3번 추가하면 평균 4.9가 된다")
+        void addThird() {
+            var rating = new RestaurantRating()
+                    .addReview(review(4.9))
+                    .addReview(review(4.9))
+                    .addReview(review(4.9));
+
+            assertEquals(BigDecimal.valueOf(4.9), rating.getStarAvg());
+        }
     }
 
     @Nested
