@@ -15,7 +15,7 @@ import java.util.Objects;
 public class Star {
     private final BigDecimal MIN_VALUE = BigDecimal.valueOf(1.0);
     private final BigDecimal MAX_VALUE = BigDecimal.valueOf(5.0);
-    private final int SCALE = 1;
+    public static final int SCALE = 1;
 
     @Column(name = "star", precision = 2, scale = 1, nullable = false)
     @Comment("별점")

@@ -1,0 +1,53 @@
+package com.sparta.deliverit.restaurant.domain.vo;
+
+import com.sparta.deliverit.review.domain.vo.Review;
+import com.sparta.deliverit.review.domain.vo.Star;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Comment;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+@Embeddable
+@NoArgsConstructor
+@Getter
+public class RestaurantRating {
+    private final int CALCULATION_PRECISION_SCALE = Star.SCALE + 2;
+
+    @Column(name = "star_avg", precision = 2, scale = 1, nullable = false)
+    @Comment("평균 별점")
+    private BigDecimal starAvg = BigDecimal.ZERO.setScale(Star.SCALE, RoundingMode.DOWN);
+
+    @Column(name = "reviews_count", nullable = false)
+    @Comment("리뷰 개수")
+    private Long reviewsCount = 0L;
+
+    public RestaurantRating(BigDecimal starAvg, Long reviewsCount) {
+        this.starAvg = starAvg;
+        this.reviewsCount = reviewsCount;
+    }
+
+    public RestaurantRating addReview(Review newReview) {
+        BigDecimal totalRating = getTotalRating();
+        long newCount = this.reviewsCount + 1;
+
+        BigDecimal newTotalRating = totalRating.add(newReview.getStar());
+        BigDecimal newRating = calculateRatingAverage(newTotalRating, newCount);
+
+        return new RestaurantRating(newRating, newCount);
+    }
+
+    private BigDecimal getTotalRating() {
+        return starAvg.multiply(BigDecimal.valueOf(reviewsCount));
+    }
+
+    private BigDecimal calculateRatingAverage(BigDecimal total, long count) {
+        BigDecimal bigDecimalOfCount = BigDecimal.valueOf(count);
+        return total
+                .divide(bigDecimalOfCount, CALCULATION_PRECISION_SCALE, RoundingMode.DOWN)
+                .setScale(Star.SCALE, RoundingMode.DOWN);
+    }
+}
