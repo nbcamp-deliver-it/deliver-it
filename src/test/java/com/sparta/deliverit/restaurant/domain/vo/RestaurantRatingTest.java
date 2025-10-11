@@ -110,6 +110,49 @@ class RestaurantRatingTest {
         }
     }
 
+    @Nested
+    class Delete {
+
+        @Test
+        @DisplayName("기존 리뷰 [4.5, 3.2, 5.0] 에서 리뷰 3.2 를 삭제하면 평균 4.7, 리뷰 개수 2가 된다")
+        void delete() {
+            var restaurantRating = new RestaurantRating();
+            var review1 = review(4.5);
+            var review2 = review(3.2);
+            var review3 = review(5.0);
+
+            restaurantRating = restaurantRating.addReview(review1);
+            restaurantRating = restaurantRating.addReview(review2);
+            restaurantRating = restaurantRating.addReview(review3);
+
+            restaurantRating = restaurantRating.removeReview(review2);
+
+            assertEquals(2L, restaurantRating.getReviewsCount());
+            assertEquals(BigDecimal.valueOf(4.7), restaurantRating.getStarAvg());
+        }
+
+        @Test
+        @DisplayName("한개 남은 리뷰가 삭제될 경우 평균 별점은 0.0, 리뷰 개수 0 이 된다")
+        void removeToEmpty() {
+            var restaurantRating = new RestaurantRating();
+            var review = review(4.9);
+            restaurantRating = restaurantRating.addReview(review);
+
+            restaurantRating = restaurantRating.removeReview(review);
+
+            assertEquals(0L, restaurantRating.getReviewsCount());
+            assertEquals(BigDecimal.valueOf(0.0), restaurantRating.getStarAvg());
+        }
+
+        @Test
+        @DisplayName("리뷰 개수가 0개에서 삭제시 예외가 발생한다")
+        void emptyReviewsCount() {
+            var restaurantRating = new RestaurantRating();
+            assertThrows(IllegalStateException.class, () ->
+                    restaurantRating.removeReview(review(4.9)));
+        }
+    }
+
     private Review review(double value) {
         Star star = new Star(BigDecimal.valueOf(value));
         return new Review(star);

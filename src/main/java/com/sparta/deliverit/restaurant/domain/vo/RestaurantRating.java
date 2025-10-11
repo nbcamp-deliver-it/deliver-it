@@ -54,6 +54,21 @@ public class RestaurantRating {
         return new RestaurantRating(newRating, reviewsCount);
     }
 
+    public RestaurantRating removeReview(Review review) {
+        if (reviewsCount <= 0) {
+            throw new IllegalStateException("현재 리뷰가 없으므로 삭제할 수 없습니다.");
+        }
+        if (reviewsCount == 1) return new RestaurantRating();
+
+        BigDecimal totalRating = getTotalRating();
+        long newCount = this.reviewsCount - 1;
+
+        BigDecimal newTotalRating = totalRating.subtract(review.getStar());
+        BigDecimal newRating = calculateRatingAverage(newTotalRating, newCount);
+
+        return new RestaurantRating(newRating, newCount);
+    }
+
     private BigDecimal getTotalRating() {
         return starAvg.multiply(BigDecimal.valueOf(reviewsCount));
     }
