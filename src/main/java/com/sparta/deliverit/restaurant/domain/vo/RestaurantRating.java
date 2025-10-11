@@ -40,6 +40,20 @@ public class RestaurantRating {
         return new RestaurantRating(newRating, newCount);
     }
 
+    public RestaurantRating updateReview(Review oldReview, Review newReview) {
+        if (reviewsCount <= 0) {
+            throw new IllegalStateException("리뷰 개수가 0 입니다. 수정이 불가능합니다");
+        }
+
+        BigDecimal totalRating = getTotalRating();
+        BigDecimal newTotalRating = totalRating
+                .subtract(oldReview.getStar())
+                .add(newReview.getStar());
+        BigDecimal newRating = calculateRatingAverage(newTotalRating, reviewsCount);
+
+        return new RestaurantRating(newRating, reviewsCount);
+    }
+
     private BigDecimal getTotalRating() {
         return starAvg.multiply(BigDecimal.valueOf(reviewsCount));
     }

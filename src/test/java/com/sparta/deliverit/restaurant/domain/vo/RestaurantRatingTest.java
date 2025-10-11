@@ -71,6 +71,45 @@ class RestaurantRatingTest {
         }
     }
 
+    @Nested
+    class Update {
+
+        @Test
+        @DisplayName("기존 리뷰 1.0 을 4.9로 교체하면 평균 별점은 4.9이다")
+        void update() {
+            Review oldReview = review(1.0);
+            var restaurantRating = new RestaurantRating()
+                    .addReview(oldReview);
+            Review newReview = review(4.9);
+
+            restaurantRating = restaurantRating.updateReview(oldReview, newReview);
+
+            assertEquals(1L, restaurantRating.getReviewsCount());
+            assertEquals(BigDecimal.valueOf(4.9), restaurantRating.getStarAvg());
+        }
+
+        @Test
+        @DisplayName("동일한 별점으로 수정하면 기존값 그대로이다")
+        void sameValue() {
+            Review oldReview = review(4.9);
+            var restaurantRating = new RestaurantRating()
+                    .addReview(oldReview);
+
+            restaurantRating = restaurantRating.updateReview(oldReview, review(4.9));
+
+            assertEquals(1L, restaurantRating.getReviewsCount());
+            assertEquals(BigDecimal.valueOf(4.9), restaurantRating.getStarAvg());
+        }
+
+        @Test
+        @DisplayName("리뷰 개수가 0인 상태에서 수정할 경우 예외가 발생한다")
+        void emptyReviewsCount() {
+            var restaurantRating = new RestaurantRating();
+            assertThrows(IllegalStateException.class, () ->
+                    restaurantRating.updateReview(review(1.0), review(4.9)));
+        }
+    }
+
     private Review review(double value) {
         Star star = new Star(BigDecimal.valueOf(value));
         return new Review(star);
