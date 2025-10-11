@@ -2,8 +2,8 @@ package com.sparta.deliverit.review.application.service;
 
 import com.sparta.deliverit.review.application.service.dto.OrderReviewCommand;
 import com.sparta.deliverit.review.application.service.dto.OrderReviewInfo;
-import com.sparta.deliverit.review.entity.OrderReview;
-import com.sparta.deliverit.review.entity.Review;
+import com.sparta.deliverit.review.domain.entity.OrderReview;
+import com.sparta.deliverit.review.domain.vo.Review;
 import com.sparta.deliverit.review.infrastructure.repository.OrderReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

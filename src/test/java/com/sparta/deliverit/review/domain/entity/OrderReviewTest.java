@@ -1,5 +1,6 @@
-package com.sparta.deliverit.review.entity;
+package com.sparta.deliverit.review.domain.entity;
 
+import com.sparta.deliverit.review.domain.vo.Review;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

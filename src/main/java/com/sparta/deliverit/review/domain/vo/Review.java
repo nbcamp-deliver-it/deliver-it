@@ -1,4 +1,4 @@
-package com.sparta.deliverit.review.entity;
+package com.sparta.deliverit.review.domain.vo;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

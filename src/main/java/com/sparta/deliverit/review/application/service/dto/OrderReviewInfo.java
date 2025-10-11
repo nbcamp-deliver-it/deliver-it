@@ -1,6 +1,6 @@
 package com.sparta.deliverit.review.application.service.dto;
 
-import com.sparta.deliverit.review.entity.OrderReview;
+import com.sparta.deliverit.review.domain.entity.OrderReview;
 
 import java.math.BigDecimal;
 import java.util.List;
