@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, String> {
@@ -127,4 +128,33 @@ public interface OrderRepository extends JpaRepository<Order, String> {
                     AND o.orderedAt > :nowMinusMinute
             """)
     int updateOrderStatusToConfirm(@Param("orderId") String orderId, @Param("restaurantId") String restaurantId, @Param("accessUserId") Long accessUserId, @Param("currStatus") OrderStatus currStatus, @Param("nextStatus") OrderStatus nextStatus, @Param("version") Long version, @Param("nowMinusMinute") LocalDateTime nowMinusMinute);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(
+    """
+        UPDATE Order o
+        SET o.orderStatus = :nextStatus,
+            o.version = o.version + 1
+        WHERE o.orderId = :orderId
+            AND o.user.id = :accessUserId
+            AND o.orderStatus = :currStatus
+            AND o.version = :version
+            AND o.orderedAt > :nowMinusMinute
+    """)
+    int updateOrderStatusToCancelForUser(@Param("orderId") String orderId, @Param("accessUserId") Long accessUserId, @Param("currStatus") OrderStatus currStatus, @Param("nextStatus") OrderStatus nextStatus, @Param("version") Long version, @Param("nowMinusMinute") LocalDateTime nowMinusMinute);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(
+    """
+        UPDATE Order o
+        SET o.orderStatus = :nextStatus,
+            o.version = o.version + 1
+        WHERE o.orderId = :orderId
+            AND o.restaurant.restaurantId = :restaurantId
+            AND o.restaurant.user.id = :accessUserId
+            AND o.orderStatus IN :currStatusList
+            AND o.orderStatus <> :nextStatus
+            AND o.version = :version
+    """)
+    int updateOrderStatusToCancelForOwner(@Param("orderId") String orderId, @Param("restaurantId") String restaurantId, @Param("accessUserId") Long accessUserId, @Param("currStatusList") List<OrderStatus> currStatusList, @Param("nextStatus") OrderStatus nextStatus, @Param("version") Long version);
 }
