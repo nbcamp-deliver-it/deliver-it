@@ -75,7 +75,7 @@ public interface OrderRepository extends JpaRepository<Order, String> {
             and o.orderedAt < :to    
         ORDER BY o.orderedAt DESC, o.orderId desc
     """)
-    Page<OrderDetailForUser> findOrdersByUserId(
+    Page<OrderDetailForUser> findOrdersByUserIdForUser(
             @Param("userId") String userId,
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to,
