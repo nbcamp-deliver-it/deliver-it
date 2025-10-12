@@ -1,5 +1,7 @@
 package com.sparta.deliverit.order.presentation.dto.response;
 
+import com.sparta.deliverit.order.domain.entity.Order;
+import com.sparta.deliverit.order.domain.entity.OrderStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -24,6 +26,24 @@ public class CancelOrderInfo {
                 .previousStatus(previousStatus)
                 .currentStatus(currentStatus)
                 .cancelAt(cancelAt)
+                .build();
+    }
+
+    public static CancelOrderInfo create(Order nextOrder) {
+        return CancelOrderInfo.builder()
+                .orderId(nextOrder.getOrderId())
+                .previousStatus(OrderStatus.PAYMENT_COMPLETED.toString())
+                .currentStatus(nextOrder.getOrderStatus().toString())
+                .cancelAt(nextOrder.getUpdatedAt().toString())
+                .build();
+    }
+
+    public static CancelOrderInfo create(Order nextOrder, OrderStatus beforeStatus) {
+        return CancelOrderInfo.builder()
+                .orderId(nextOrder.getOrderId())
+                .previousStatus(beforeStatus.toString())
+                .currentStatus(nextOrder.getOrderStatus().toString())
+                .cancelAt(nextOrder.getUpdatedAt().toString())
                 .build();
     }
 }

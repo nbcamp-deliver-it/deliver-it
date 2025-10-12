@@ -9,6 +9,7 @@ import com.sparta.deliverit.order.infrastructure.OrderItemRepository;
 import com.sparta.deliverit.order.infrastructure.OrderRepository;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForOwner;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForUser;
+import com.sparta.deliverit.order.presentation.dto.response.CancelOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.ConfirmOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.MenuInfo;
 import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +32,11 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
 
     private static final int TIMEOUT_MINUTES = 5;
+    private static final Set<OrderStatus> CANCELABLE_STATUS_SET =
+            EnumSet.of(OrderStatus.PAYMENT_COMPLETED, OrderStatus.CONFIRMED);
+
+    private static final List<OrderStatus> CANCELABLE_STATUS_LIST =
+            List.copyOf(CANCELABLE_STATUS_SET);
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
@@ -199,5 +206,83 @@ public class OrderServiceImpl implements OrderService {
 
         Order nextOrder = orderRepository.getReferenceById(orderId);
         return ConfirmOrderInfo.create(nextOrder);
+    }
+
+    @Override
+    public CancelOrderInfo cancelOrderForUser(String orderId, String accessUserId) {
+
+        OrderDetailForUser currOrder = orderRepository.getByOrderIdForUser(orderId).orElseThrow(
+                () -> new NotFoundOrderException(OrderResponseCode.NOT_FOUND_ORDER)
+        );
+
+        if (!accessUserId.equals(currOrder.getUserId())) {
+            throw new AccessDeniedException("주문에 접근할 수 없는 사용자입니다.");
+        }
+
+        LocalDateTime now = LocalDateTime.now(clock);
+        LocalDateTime cutOffTime = currOrder.getOrderedAt().plusMinutes(TIMEOUT_MINUTES);
+        if (!now.isBefore(cutOffTime) ) {
+            throw new OrderCancelTimeOutException(OrderResponseCode.ORDER_CANCEL_FAIL);
+        }
+
+        if (currOrder.getOrderStatus() != OrderStatus.PAYMENT_COMPLETED) {
+            throw new InvalidOrderStatusException(OrderResponseCode.INVALID_ORDER_STATUS);
+        }
+
+        LocalDateTime nowMinusMinute = now.minusMinutes(TIMEOUT_MINUTES);
+        int queryResult = orderRepository.updateOrderStatusToCancelForUser(
+                orderId,
+                Long.valueOf(accessUserId),
+                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.CANCELED,
+                currOrder.getVersion(),
+                nowMinusMinute
+        );
+
+        if (queryResult == 0) {
+            throw new OrderCancelFailException(OrderResponseCode.ORDER_CANCEL_SUCCESS);
+        }
+
+        Order nextOrder = orderRepository.findById(orderId).orElseThrow(
+                () -> new NotFoundOrderException(OrderResponseCode.NOT_FOUND_ORDER)
+        );
+
+        return CancelOrderInfo.create(nextOrder);
+    }
+
+    @Override
+    public CancelOrderInfo cancelOrderForOwner(String restaurantId, String orderId, String accessUserId) {
+
+        OrderDetailForOwner currOrder = orderRepository.getByOrderIdForOwner(orderId).orElseThrow(
+                () -> new NotFoundOrderException(OrderResponseCode.NOT_FOUND_ORDER)
+        );
+
+        if (!accessUserId.equals(currOrder.getRestaurantUserId()) || !restaurantId.equals(currOrder.getRestaurantId())) {
+            throw new AccessDeniedException("주문에 접근할 수 없는 사용자입니다.");
+        }
+
+        OrderStatus currentStatus = currOrder.getOrderStatus();
+        if (!CANCELABLE_STATUS_SET.contains(currentStatus)) {
+            throw new InvalidOrderStatusException(OrderResponseCode.INVALID_ORDER_STATUS);
+        }
+
+        int queryResult = orderRepository.updateOrderStatusToCancelForOwner(
+                orderId,
+                restaurantId,
+                Long.valueOf(accessUserId),
+                CANCELABLE_STATUS_LIST,
+                OrderStatus.CANCELED,
+                currOrder.getVersion()
+        );
+
+        if (queryResult == 0) {
+            throw new OrderCancelFailException(OrderResponseCode.ORDER_CANCEL_FAIL);
+        }
+
+        Order nextOrder = orderRepository.findById(orderId).orElseThrow(
+                () -> new NotFoundOrderException(OrderResponseCode.NOT_FOUND_ORDER)
+        );
+
+        return CancelOrderInfo.create(nextOrder, currentStatus);
     }
 }
