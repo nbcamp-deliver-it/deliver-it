@@ -1,6 +1,7 @@
 package com.sparta.deliverit.order.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sparta.deliverit.order.domain.entity.OrderItem;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -29,6 +30,14 @@ public class MenuInfo {
                 .menuName(menuName)
                 .quantity(quantity)
                 .price(price)
+                .build();
+    }
+
+    public static MenuInfo of(OrderItem orderItem) {
+        return MenuInfo.builder()
+                .menuName(orderItem.getMenuNameSnapshot())
+                .quantity(orderItem.getQuantity())
+                .price(orderItem.getMenuPriceSnapshop())
                 .build();
     }
 }

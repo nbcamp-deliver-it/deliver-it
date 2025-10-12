@@ -15,7 +15,10 @@ public enum OrderResponseCode implements ResponseCode {
 
     ORDER_FAILED(BAD_REQUEST, "주문에 실패했습니다."), // 세분화 필요
     DUPLICATE_ORDER(BAD_REQUEST, "중복 주문입니다."),
-    OUT_OF_STOCK(CONFLICT, "재고 부족으로 주문에 실패했습니다.");
+    OUT_OF_STOCK(CONFLICT, "재고 부족으로 주문에 실패했습니다."),
+
+    NOT_FOUND_ORDER(NOT_FOUND, "주문을 찾을 수 없습니다."),
+    NOT_FOUND_ORDER_ITEM(NOT_FOUND, "주문 아이템을 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
