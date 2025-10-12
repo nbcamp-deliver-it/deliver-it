@@ -8,6 +8,7 @@ import com.sparta.deliverit.order.infrastructure.OrderItemRepository;
 import com.sparta.deliverit.order.infrastructure.OrderRepository;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForOwner;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForUser;
+import com.sparta.deliverit.order.presentation.dto.response.CancelOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.ConfirmOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
 import com.sparta.deliverit.payment.application.service.PaymentService;
@@ -1087,6 +1088,394 @@ class OrderServiceImplTest {
         Assertions.assertThat(confirmOrderInfo.getOrderId()).isEqualTo("00000000-0000-0000-0000-000000000003");
         Assertions.assertThat(confirmOrderInfo.getOrderStatus()).isEqualTo("CONFIRMED");
         Assertions.assertThat(confirmOrderInfo.getConfirmedAt()).isEqualTo(LocalDateTime.of(2025, 10, 10, 12, 3, 0).toString());
+    }
+
+    @DisplayName("고객이 주문을 취소 상태로 변경하고자 할 때, 주문을 찾을 수 없는 경우 NotFoundOrderException 응답")
+    @Test
+    void cancelOrderWithNotFoundException() {
+        // given
+        Mockito.when(orderRepository.getByOrderIdForUser("00000000-0000-0000-0000-000000000004"))
+                .thenReturn(Optional.empty());
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.cancelOrderForUser("00000000-0000-0000-0000-000000000004", "2"))
+                .isInstanceOf(NotFoundOrderException.class);
+
+    }
+
+    @DisplayName("고객이 주문을 취소 상태로 변경하고자 할 때, 요청한 고객이 주문에 접근할 권한이 없는 경우 AccessDeniedException 응답")
+    @Test
+    void cancelOrderWithAccessDeniedException() {
+        // given
+        OrderDetailForUser stubDetail = getStubDetail(
+                "2",
+                "tester1",
+                "11111111-1111-1111-1111-111111111111",
+                "맛있는집",
+                "00000000-0000-0000-0000-000000000002",
+                LocalDateTime.of(2025, 10, 8, 11, 0, 0),
+                OrderStatus.CREATED,
+                "서울시 중구 어딘가 1-1",
+                new BigDecimal(35000),
+                0L
+        );
+
+        Mockito.when(orderRepository.getByOrderIdForUser("00000000-0000-0000-0000-000000000004"))
+                .thenReturn(Optional.of(stubDetail));
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.cancelOrderForUser("00000000-0000-0000-0000-000000000004", "1"))
+                .isInstanceOf(AccessDeniedException.class);
+
+    }
+
+    @DisplayName("고객이 주문을 취소 상태로 변경하고자 할 때, 5분이 지난 후 시도하는 경우, OrderCancelTimeOutException 응답")
+    @Test
+    void cancelOrderWithOrderCancelTimeOutException() {
+        // given
+        Clock fixedClock = Clock.fixed(
+                LocalDateTime.of(2025, 10, 10, 12, 6, 0)
+                        .toInstant(ZoneOffset.UTC),
+                ZoneOffset.UTC
+        );
+
+        Mockito.when(clock.instant()).thenReturn(fixedClock.instant());
+        Mockito.when(clock.getZone()).thenReturn(fixedClock.getZone());
+
+        OrderDetailForUser stubDetail = getStubDetail(
+                "2",
+                "tester1",
+                "11111111-1111-1111-1111-111111111111",
+                "맛있는집",
+                "00000000-0000-0000-0000-000000000004",
+                LocalDateTime.of(2025, 10, 10, 12, 0, 0),
+                OrderStatus.PAYMENT_COMPLETED,
+                "서울시 중구 어딘가 1-1",
+                new BigDecimal(35000),
+                0L
+        );
+
+        Mockito.when(orderRepository.getByOrderIdForUser("00000000-0000-0000-0000-000000000004"))
+                .thenReturn(Optional.of(stubDetail));
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.cancelOrderForUser("00000000-0000-0000-0000-000000000004", "2"))
+                .isInstanceOf(OrderCancelTimeOutException.class);
+
+    }
+
+    @DisplayName("고객이 주문을 취소 상태로 변경하고자 할 때, 주문 상태가 결제 완료가 아닌 경우, InvalidOrderStatusException 응답")
+    @Test
+    void cancelOrderWithInvalidOrderStatusException() {
+        // given
+        Clock fixedClock = Clock.fixed(
+                LocalDateTime.of(2025, 10, 10, 12, 3, 0)
+                        .toInstant(ZoneOffset.UTC),
+                ZoneOffset.UTC
+        );
+
+        Mockito.when(clock.instant()).thenReturn(fixedClock.instant());
+        Mockito.when(clock.getZone()).thenReturn(fixedClock.getZone());
+
+        OrderDetailForUser stubDetail = getStubDetail(
+                "2",
+                "tester1",
+                "11111111-1111-1111-1111-111111111111",
+                "맛있는집",
+                "00000000-0000-0000-0000-000000000004",
+                LocalDateTime.of(2025, 10, 10, 12, 0, 0),
+                OrderStatus.CONFIRMED,
+                "서울시 중구 어딘가 1-1",
+                new BigDecimal(35000),
+                0L
+        );
+
+        Mockito.when(orderRepository.getByOrderIdForUser("00000000-0000-0000-0000-000000000004"))
+                .thenReturn(Optional.of(stubDetail));
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.cancelOrderForUser("00000000-0000-0000-0000-000000000004", "2"))
+                .isInstanceOf(InvalidOrderStatusException.class);
+    }
+
+    @DisplayName("고객이 주문을 취소 상태로 변경하고자 할 때, 데이터베이스에서 상태를 변경하지 못한 경우 OrderCancelFailException 응답")
+    @Test
+    void cancelOrderWithOrderCancelFailException() {
+        // given
+        Clock fixedClock = Clock.fixed(
+                LocalDateTime.of(2025, 10, 10, 12, 3, 0)
+                        .toInstant(ZoneOffset.UTC),
+                ZoneOffset.UTC
+        );
+
+        Mockito.when(clock.instant()).thenReturn(fixedClock.instant());
+        Mockito.when(clock.getZone()).thenReturn(fixedClock.getZone());
+
+        OrderDetailForUser stubDetail = getStubDetail(
+                "2",
+                "tester1",
+                "11111111-1111-1111-1111-111111111111",
+                "맛있는집",
+                "00000000-0000-0000-0000-000000000004",
+                LocalDateTime.of(2025, 10, 10, 12, 0, 0),
+                OrderStatus.PAYMENT_COMPLETED,
+                "서울시 중구 어딘가 1-1",
+                new BigDecimal(35000),
+                0L
+        );
+
+        Mockito.when(orderRepository.getByOrderIdForUser("00000000-0000-0000-0000-000000000004"))
+                .thenReturn(Optional.of(stubDetail));
+
+        Mockito.when(orderRepository.updateOrderStatusToCancelForUser(
+                        Mockito.any(),
+                        Mockito.any(),
+                        Mockito.any(),
+                        Mockito.any(),
+                        Mockito.any(),
+                        Mockito.any()
+                ))
+                .thenReturn(0);
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.cancelOrderForUser("00000000-0000-0000-0000-000000000004", "2"))
+                .isInstanceOf(OrderCancelFailException.class);
+    }
+
+    @DisplayName("고객이 주문 취소 요청 API를 호출하면 CancelOrderInfo를 반환한다.")
+    @Test
+    void cancelOrderTest() {
+        // given
+        Clock fixedClock = Clock.fixed(
+                LocalDateTime.of(2025, 10, 10, 12, 3, 0)
+                        .toInstant(ZoneOffset.UTC),
+                ZoneOffset.UTC
+        );
+
+        Mockito.when(clock.instant()).thenReturn(fixedClock.instant());
+        Mockito.when(clock.getZone()).thenReturn(fixedClock.getZone());
+
+        OrderDetailForUser stubDetail = getStubDetail(
+                "2",
+                "tester1",
+                "11111111-1111-1111-1111-111111111111",
+                "맛있는집",
+                "00000000-0000-0000-0000-000000000004",
+                LocalDateTime.of(2025, 10, 10, 12, 0, 0),
+                OrderStatus.PAYMENT_COMPLETED,
+                "서울시 중구 어딘가 1-1",
+                new BigDecimal(35000),
+                0L
+        );
+
+        Order order = Order.builder()
+                .orderId("00000000-0000-0000-0000-000000000003")
+                .orderStatus(OrderStatus.CANCELED)
+                .build();
+
+        ReflectionTestUtils.setField(order, "updatedAt", LocalDateTime.of(2025, 10, 10, 12, 3, 0));
+
+        Mockito.when(orderRepository.getByOrderIdForUser("00000000-0000-0000-0000-000000000004"))
+                .thenReturn(Optional.of(stubDetail));
+
+        Mockito.when(orderRepository.updateOrderStatusToCancelForUser(
+                        Mockito.any(),
+                        Mockito.any(),
+                        Mockito.any(),
+                        Mockito.any(),
+                        Mockito.any(),
+                        Mockito.any()
+                ))
+                .thenReturn(1);
+
+        Mockito.when(orderRepository.findById("00000000-0000-0000-0000-000000000004"))
+                .thenReturn(Optional.of(order));
+
+        // when
+        CancelOrderInfo orderInfo = orderServiceImpl.cancelOrderForUser("00000000-0000-0000-0000-000000000004", "2");
+
+        // then
+        Assertions.assertThat(orderInfo.getOrderId()).isEqualTo("00000000-0000-0000-0000-000000000003");
+        Assertions.assertThat(orderInfo.getPreviousStatus()).isEqualTo("PAYMENT_COMPLETED");
+        Assertions.assertThat(orderInfo.getCurrentStatus()).isEqualTo("CANCELED");
+        Assertions.assertThat(orderInfo.getCancelAt()).isEqualTo(LocalDateTime.of(2025, 10, 10, 12, 3, 0).toString());
+    }
+
+
+    @DisplayName("음식점 점주가 주문을 취소 상태로 변경하고자 할 때, 주문을 찾을 수 없는 경우 NotFoundOrderException 응답")
+    @Test
+    void cancelOrderForOwnerWithNotFoundException() {
+        // given
+        Mockito.when(orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000004"))
+                .thenReturn(Optional.empty());
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.cancelOrderForOwner("11111111-1111-1111-1111-111111111111", "00000000-0000-0000-0000-000000000004", "2"))
+                .isInstanceOf(NotFoundOrderException.class);
+
+    }
+
+    @DisplayName("음식점 점주가 주문을 취소 상태로 변경하고자 할 때, 요청한 점주가 주문에 접근할 권한이 없는 경우 AccessDeniedException 응답")
+    @Test
+    void cancelOrderForOwnerWithAccessDeniedException() {
+        // given
+        OrderDetailForOwner stubDetail = getStubDetailForOwner(
+                "1",
+                "tester1",
+                "11111111-1111-1111-1111-111111111111",
+                "2",
+                "맛있는집",
+                "00000000-0000-0000-0000-000000000002",
+                LocalDateTime.of(2025, 10, 8, 11, 0, 0),
+                OrderStatus.PAYMENT_COMPLETED,
+                "서울시 중구 어딘가 1-1",
+                new BigDecimal(35000),
+                0L
+        );
+
+        Mockito.when(orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000004"))
+                .thenReturn(Optional.of(stubDetail));
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.cancelOrderForOwner("11111111-1111-1111-1111-111111111111", "00000000-0000-0000-0000-000000000004", "1"))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @DisplayName("음식점 점주가 주문을 취소 상태로 변경하고자 할 때, 주문의 상태가 PAYMENT_COMPLETED, CONFIRMED가 아닌 경우 InvalidOrderStatusException 응답")
+    @Test
+    void cancelOrderForOwnerWithInvalidOrderStatusException() {
+        // given
+        OrderDetailForOwner stubDetail = getStubDetailForOwner(
+                "1",
+                "tester1",
+                "11111111-1111-1111-1111-111111111111",
+                "2",
+                "맛있는집",
+                "00000000-0000-0000-0000-000000000002",
+                LocalDateTime.of(2025, 10, 8, 11, 0, 0),
+                OrderStatus.CREATED,
+                "서울시 중구 어딘가 1-1",
+                new BigDecimal(35000),
+                0L
+        );
+
+        Mockito.when(orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000004"))
+                .thenReturn(Optional.of(stubDetail));
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.cancelOrderForOwner("11111111-1111-1111-1111-111111111111", "00000000-0000-0000-0000-000000000004", "2"))
+                .isInstanceOf(InvalidOrderStatusException.class);
+    }
+
+    @DisplayName("음식점 점주가 주문을 취소 상태로 변경하고자 할 때, 주문의 상태가 PAYMENT_COMPLETED, CONFIRMED가 아닌 경우 InvalidOrderStatusException 응답")
+    @Test
+    void cancelOrderForOwnerWithInvalidOrderStatusException2() {
+        // given
+        OrderDetailForOwner stubDetail = getStubDetailForOwner(
+                "1",
+                "tester1",
+                "11111111-1111-1111-1111-111111111111",
+                "2",
+                "맛있는집",
+                "00000000-0000-0000-0000-00000000000",
+                LocalDateTime.of(2025, 10, 8, 11, 0, 0),
+                OrderStatus.PAYMENT_PENDING,
+                "서울시 중구 어딘가 1-1",
+                new BigDecimal(35000),
+                0L
+        );
+
+        Mockito.when(orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000004"))
+                .thenReturn(Optional.of(stubDetail));
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.cancelOrderForOwner("11111111-1111-1111-1111-111111111111", "00000000-0000-0000-0000-000000000004", "2"))
+                .isInstanceOf(InvalidOrderStatusException.class);
+    }
+
+    @DisplayName("음식점 점주가 주문을 취소 상태로 변경하고자 할 때, 데이터베이스에서 상태를 변경하지 못한 경우 OrderCancelFailException 응답 ")
+    @Test
+    void cancelOrderForOwnerWithOrderCancelFailException() {
+        // given
+        OrderDetailForOwner stubDetail = getStubDetailForOwner(
+                "1",
+                "tester1",
+                "11111111-1111-1111-1111-111111111111",
+                "2",
+                "맛있는집",
+                "00000000-0000-0000-0000-000000000004",
+                LocalDateTime.of(2025, 10, 8, 11, 0, 0),
+                OrderStatus.CONFIRMED,
+                "서울시 중구 어딘가 1-1",
+                new BigDecimal(35000),
+                0L
+        );
+
+        Mockito.when(orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000004"))
+                .thenReturn(Optional.of(stubDetail));
+
+        Mockito.when(orderRepository.updateOrderStatusToCancelForOwner(
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any()
+        )).thenReturn(0);
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.cancelOrderForOwner("11111111-1111-1111-1111-111111111111", "00000000-0000-0000-0000-000000000004", "2"))
+                .isInstanceOf(OrderCancelFailException.class);
+    }
+
+    @DisplayName("음식점 점주가 주문 취소 API를 호출하면 CancelOrderInfo를 반환한다.")
+    @Test
+    void cancelOrderForOwnerTest() {
+        // given
+        OrderDetailForOwner stubDetail = getStubDetailForOwner(
+                "1",
+                "tester1",
+                "11111111-1111-1111-1111-111111111111",
+                "2",
+                "맛있는집",
+                "00000000-0000-0000-0000-000000000002",
+                LocalDateTime.of(2025, 10, 8, 11, 0, 0),
+                OrderStatus.CONFIRMED,
+                "서울시 중구 어딘가 1-1",
+                new BigDecimal(35000),
+                0L
+        );
+
+        Order order = Order.builder()
+                .orderId("00000000-0000-0000-0000-000000000004")
+                .orderStatus(OrderStatus.CANCELED)
+                .build();
+
+        ReflectionTestUtils.setField(order, "updatedAt", LocalDateTime.of(2025, 10, 10, 12, 3, 0));
+
+        Mockito.when(orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000004"))
+                .thenReturn(Optional.of(stubDetail));
+
+        Mockito.when(orderRepository.updateOrderStatusToCancelForOwner(
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any()
+        )).thenReturn(1);
+
+        Mockito.when(orderRepository.findById("00000000-0000-0000-0000-000000000004"))
+                .thenReturn(Optional.of(order));
+
+        // when
+        CancelOrderInfo orderInfo = orderServiceImpl.cancelOrderForOwner("11111111-1111-1111-1111-111111111111", "00000000-0000-0000-0000-000000000004", "2");
+
+        // then
+        Assertions.assertThat(orderInfo.getOrderId()).isEqualTo("00000000-0000-0000-0000-000000000004");
+        Assertions.assertThat(orderInfo.getPreviousStatus()).isEqualTo(OrderStatus.CONFIRMED.toString());
+        Assertions.assertThat(orderInfo.getCurrentStatus()).isEqualTo("CANCELED");
+        Assertions.assertThat(orderInfo.getCancelAt()).isEqualTo(LocalDateTime.of(2025, 10, 10, 12, 3, 0).toString());
     }
 
     private static OrderDetailForOwner getStubDetailForOwner(
