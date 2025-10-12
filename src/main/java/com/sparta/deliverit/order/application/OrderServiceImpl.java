@@ -181,7 +181,7 @@ public class OrderServiceImpl implements OrderService {
 
         LocalDateTime now = LocalDateTime.now(clock);
         LocalDateTime cutOffTime = currOrder.getOrderedAt().plusMinutes(TIMEOUT_MINUTES);
-        if (!now.isBefore(cutOffTime) ) {
+        if (!now.isBefore(cutOffTime)) {
             throw new OrderConfirmTimeOutException(OrderResponseCode.ORDER_CONFIRM_FAIL);
         }
 
@@ -204,7 +204,9 @@ public class OrderServiceImpl implements OrderService {
             throw new OrderConfirmFailException(OrderResponseCode.ORDER_CONFIRM_FAIL);
         }
 
-        Order nextOrder = orderRepository.getReferenceById(orderId);
+        Order nextOrder = orderRepository.findById(orderId).orElseThrow(
+                () -> new NotFoundOrderException(OrderResponseCode.NOT_FOUND_ORDER)
+        );
         return ConfirmOrderInfo.create(nextOrder);
     }
 
@@ -221,7 +223,7 @@ public class OrderServiceImpl implements OrderService {
 
         LocalDateTime now = LocalDateTime.now(clock);
         LocalDateTime cutOffTime = currOrder.getOrderedAt().plusMinutes(TIMEOUT_MINUTES);
-        if (!now.isBefore(cutOffTime) ) {
+        if (!now.isBefore(cutOffTime)) {
             throw new OrderCancelTimeOutException(OrderResponseCode.ORDER_CANCEL_FAIL);
         }
 

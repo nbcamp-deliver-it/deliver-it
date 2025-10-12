@@ -1078,8 +1078,8 @@ class OrderServiceImplTest {
         // Builder을 이용해서 updatedAt 필드값 생성 불가능하여 Stubing 불가능 -> Reflection 사용하여 해결
         ReflectionTestUtils.setField(order, "updatedAt", LocalDateTime.of(2025, 10, 10, 12, 3, 0));
 
-        Mockito.when(orderRepository.getReferenceById(Mockito.any()))
-                .thenReturn(order);
+        Mockito.when(orderRepository.findById(Mockito.any()))
+                .thenReturn(Optional.of(order));
 
         // when
         ConfirmOrderInfo confirmOrderInfo = orderServiceImpl.confirmOrder( "11111111-1111-1111-1111-111111111111", "00000000-0000-0000-0000-000000000003", "2");
