@@ -112,12 +112,22 @@ public class OrderControllerV1 implements OrderController {
     @PreAuthorize("hasRole('CUSTOMER')")
     @PatchMapping("/v1/orders/{orderId}")
     public ApiResponse<CancelOrderInfo> cancelOrderForUser(String orderId) {
-        return null;
+        // 임시 로그인
+        String userId = "2";
+
+        CancelOrderInfo cancelOrderInfo = orderService.cancelOrderForUser(orderId, userId);
+
+        return ApiResponse.create(OrderResponseCode.ORDER_CANCEL_SUCCESS,"주문 취소가 완료되었습니다.", cancelOrderInfo);
     }
 
     @PreAuthorize("hasRole('OWNER')")
     @PatchMapping("/v1/restaurants/{restaurantId}/orders/{orderId}")
     public ApiResponse<CancelOrderInfo> cancelOrderForOwner(String restaurantId, String orderId) {
-        return null;
+        // 임시 로그인
+        String userId = "2";
+
+        CancelOrderInfo cancelOrderInfo = orderService.cancelOrderForOwner(restaurantId, orderId, userId);
+
+        return ApiResponse.create(OrderResponseCode.ORDER_CANCEL_SUCCESS,"주문 취소가 완료되었습니다.", cancelOrderInfo);
     }
 }
