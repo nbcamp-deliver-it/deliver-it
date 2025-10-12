@@ -1,5 +1,6 @@
 package com.sparta.deliverit.order.infrastructure;
 
+import com.sparta.deliverit.order.domain.entity.Order;
 import com.sparta.deliverit.order.domain.entity.OrderStatus;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForOwner;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForUser;
@@ -99,5 +100,140 @@ class OrderRepositoryTest {
         Assertions.assertThat(findOrderList).size().isEqualTo(1);
         Assertions.assertThat(findOrderList.get(0).getOrderId()).isEqualTo("00000000-0000-0000-0000-000000000001");
         Assertions.assertThat(findOrderList.get(0).getTotalPrice()).isEqualByComparingTo("40000");
+    }
+
+    @DisplayName("음식점에서 주문을 확인 상태로 변경하고자 하는 경우, order의 상태가 'CONFIRM'이 되고 1을 반환 그리고 version의 값이 1 증가한다.")
+    @Test
+    void updateOrderStatusToConfirmTest() {
+        // given
+        Order currentOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000003");
+
+        Long beforeVersion = currentOrder.getVersion();
+
+        LocalDateTime nowMinusMinute = LocalDateTime.of(2025,10,10,12,3,0).minusMinutes(5);
+        // when
+        int result = orderRepository.updateOrderStatusToConfirm(
+                currentOrder.getOrderId(),
+                currentOrder.getRestaurant().getRestaurantId(),
+                2L,
+                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.CONFIRMED,
+                beforeVersion,
+                nowMinusMinute
+        );
+        Order nextOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000003");
+
+        // then
+        Assertions.assertThat(result).isEqualTo(1);
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
+    }
+
+    @DisplayName("음식점에서 주문을 확인 상태로 변경하고자 할 때, 접근한 유저 아이디가 음식 점주가 아닌 경우 상태가 변경되지 않는다.")
+    @Test
+    void updateOrderStatusToConfirmTest2() {
+        // given
+        Order currentOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000003");
+
+        Long beforeVersion = currentOrder.getVersion();
+
+        LocalDateTime nowMinusMinute = LocalDateTime.of(2025,10,10,12,3,0).minusMinutes(5);
+        // when
+        int result = orderRepository.updateOrderStatusToConfirm(
+                currentOrder.getOrderId(),
+                currentOrder.getRestaurant().getRestaurantId(),
+                1L,
+                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.CONFIRMED,
+                beforeVersion,
+                nowMinusMinute
+        );
+        Order nextOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000003");
+
+        // then
+        Assertions.assertThat(result).isEqualTo(0);
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_COMPLETED);
+    }
+
+    @DisplayName("음식점에서 주문을 확인 상태로 변경하고자 할 때, restaurantId가 다른 경우 상태가 변경되지 않는다.")
+    @Test
+    void updateOrderStatusToConfirmTest3() {
+        // given
+        Order currentOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000003");
+
+        Long beforeVersion = currentOrder.getVersion();
+
+        LocalDateTime nowMinusMinute = LocalDateTime.of(2025,10,10,12,3,0).minusMinutes(5);
+        // when
+        int result = orderRepository.updateOrderStatusToConfirm(
+                currentOrder.getOrderId(),
+                "11111111-1111-1111-1111-111111111112",
+                2L,
+                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.CONFIRMED,
+                beforeVersion,
+                nowMinusMinute
+        );
+        Order nextOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000003");
+
+        // then
+        Assertions.assertThat(result).isEqualTo(0);
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_COMPLETED);
+    }
+
+    @DisplayName("음식점에서 주문을 확인 상태로 변경하고자 할 때, 주문한지 5분이 지난 경우 주문 확인은 실패한다.")
+    @Test
+    void updateOrderStatusToConfirmTest4() {
+        // given
+        Order currentOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000003");
+
+        Long beforeVersion = currentOrder.getVersion();
+
+        LocalDateTime nowMinusMinute = LocalDateTime.of(2025,10,10, 12,6,0).minusMinutes(5);
+        // when
+        int result = orderRepository.updateOrderStatusToConfirm(
+                currentOrder.getOrderId(),
+                currentOrder.getRestaurant().getRestaurantId(),
+                2L,
+                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.CONFIRMED,
+                beforeVersion,
+                nowMinusMinute
+        );
+        Order nextOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000003");
+
+        // then
+        Assertions.assertThat(result).isEqualTo(0);
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_COMPLETED);
+    }
+
+    @DisplayName("음식점에서 주문을 확인 상태로 변경하고자 할 때, 주문한지 5분이 지나지 않은 경우 order의 상태가 'CONFIRM'이 되고 1을 반환 그리고 version의 값이 1 증가한다. ")
+    @Test
+    void updateOrderStatusToConfirmTest5() {
+        // given
+        Order currentOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000003");
+
+        Long beforeVersion = currentOrder.getVersion();
+
+        LocalDateTime nowMinusMinute = LocalDateTime.of(2025,10,10, 12,1,0).minusMinutes(5);
+        // when
+        int result = orderRepository.updateOrderStatusToConfirm(
+                currentOrder.getOrderId(),
+                currentOrder.getRestaurant().getRestaurantId(),
+                2L,
+                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.CONFIRMED,
+                beforeVersion,
+                nowMinusMinute
+        );
+        Order nextOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000003");
+
+        // then
+        Assertions.assertThat(result).isEqualTo(1);
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
     }
 }
