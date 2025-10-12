@@ -3,12 +3,12 @@ package com.sparta.deliverit.order.application;
 import com.sparta.deliverit.order.domain.entity.Order;
 import com.sparta.deliverit.order.domain.entity.OrderItem;
 import com.sparta.deliverit.order.domain.entity.OrderStatus;
-import com.sparta.deliverit.order.exception.NotFoundOrderException;
-import com.sparta.deliverit.order.exception.NotFoundOrderItemException;
+import com.sparta.deliverit.order.exception.*;
 import com.sparta.deliverit.order.infrastructure.OrderItemRepository;
 import com.sparta.deliverit.order.infrastructure.OrderRepository;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForOwner;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForUser;
+import com.sparta.deliverit.order.presentation.dto.response.ConfirmOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
 import com.sparta.deliverit.payment.application.service.PaymentService;
 import org.assertj.core.api.Assertions;
@@ -23,9 +23,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -45,6 +48,9 @@ class OrderServiceImplTest {
 
     @InjectMocks
     OrderServiceImpl orderServiceImpl;
+
+    @Mock
+    Clock clock;
 
     @DisplayName("주문 단 건 조회시, 조회 대상이 존재하지 않는 경우 NotFoundOrderException이 발생한다.")
     @Test
@@ -840,6 +846,247 @@ class OrderServiceImplTest {
                 return version;
             }
         };
+    }
+
+    @DisplayName("음식점에서 주문을 확인 상태로 변경하고자 할 때, 주문을 찾을 수 없는 경우 NotFoundOrderException 응답")
+    @Test
+    void confirmOrderWithNotFoundException() {
+        // given
+        Mockito.when(orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000003"))
+                .thenReturn(Optional.empty());
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.confirmOrder( "11111111-1111-1111-1111-111111111111", "00000000-0000-0000-0000-000000000003", "2"))
+                .isInstanceOf(NotFoundOrderException.class);
+
+    }
+
+    @DisplayName("음식점에서 주문을 확인 상태로 변경하고자 할 때, 접근한 사용자가 음식점 사용자가 아닌 경우 AccessDeniedException 응답")
+    @Test
+    void confirmOrderWithAccessDeniedException1() {
+        // given
+        OrderDetailForOwner stubDetail = getStubDetailForOwner(
+                "2",
+                "tester1",
+                "11111111-1111-1111-1111-111111111111",
+                "2",
+                "맛있는집",
+                "00000000-0000-0000-0000-000000000003",
+                LocalDateTime.of(2025, 10, 10, 11, 0, 0),
+                OrderStatus.PAYMENT_COMPLETED,
+                "서울시 중구 어딘가 1-1",
+                new BigDecimal(35000),
+                0L
+        );
+
+        Mockito.when(orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000003"))
+                .thenReturn(Optional.of(stubDetail));
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.confirmOrder("11111111-1111-1111-1111-111111111111","00000000-0000-0000-0000-000000000003",  "1"))
+                .isInstanceOf(AccessDeniedException.class);
+
+    }
+
+    @DisplayName("음식점에서 주문을 확인 상태로 변경하고자 할 때, RestaurantId가 일치하지 않은 경우 AccessDeniedException 응답 ")
+    @Test
+    void confirmOrderWithAccessDeniedException2() {
+        // given
+        OrderDetailForOwner stubDetail = getStubDetailForOwner(
+                "2",
+                "tester1",
+                "11111111-1111-1111-1111-111111111111",
+                "2",
+                "맛있는집",
+                "00000000-0000-0000-0000-000000000003",
+                LocalDateTime.of(2025, 10, 10, 11, 0, 0),
+                OrderStatus.PAYMENT_COMPLETED,
+                "서울시 중구 어딘가 1-1",
+                new BigDecimal(35000),
+                0L
+        );
+
+        Mockito.when(orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000003"))
+                .thenReturn(Optional.of(stubDetail));
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.confirmOrder( "11111111-1111-1111-1111-111111111110", "00000000-0000-0000-0000-000000000003", "2"))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @DisplayName("음식점에서 주문을 확인 상태로 변경하고자 할 때, 5분이 지난 후 시도하는 경우, OrderConfirmTimeOutException 응답")
+    @Test
+    void confirmOrderWithOrderConfirmTimeOutException() {
+        // given
+        Clock fixedClock = Clock.fixed(
+                LocalDateTime.of(2025, 10, 10, 12, 6, 0)
+                        .toInstant(ZoneOffset.UTC),
+                ZoneOffset.UTC
+        );
+
+        Mockito.when(clock.instant()).thenReturn(fixedClock.instant());
+        Mockito.when(clock.getZone()).thenReturn(fixedClock.getZone());
+
+        OrderDetailForOwner stubDetail = getStubDetailForOwner(
+                "2",
+                "tester1",
+                "11111111-1111-1111-1111-111111111111",
+                "2",
+                "맛있는집",
+                "00000000-0000-0000-0000-000000000003",
+                LocalDateTime.of(2025, 10, 10, 12, 0, 0),
+                OrderStatus.PAYMENT_COMPLETED,
+                "서울시 중구 어딘가 1-1",
+                new BigDecimal(35000),
+                0L
+        );
+
+        Mockito.when(orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000003"))
+                .thenReturn(Optional.of(stubDetail));
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.confirmOrder("11111111-1111-1111-1111-111111111111", "00000000-0000-0000-0000-000000000003","2"))
+                .isInstanceOf(OrderConfirmTimeOutException.class);
+    }
+
+    @DisplayName("음식점에서 주문을 확인 상태로 변경하고자 할 때, 주문 상태가 결제 완료가 아닌 경우 InvalidOrderStatusException 응답")
+    @Test
+    void confirmOrderWithInvalidOrderStatusException() {
+        // given
+        Clock fixedClock = Clock.fixed(
+                LocalDateTime.of(2025, 10, 10, 12, 3, 0)
+                        .toInstant(ZoneOffset.UTC),
+                ZoneOffset.UTC
+        );
+
+        Mockito.when(clock.instant()).thenReturn(fixedClock.instant());
+        Mockito.when(clock.getZone()).thenReturn(fixedClock.getZone());
+
+        OrderDetailForOwner stubDetail = getStubDetailForOwner(
+                "2",
+                "tester1",
+                "11111111-1111-1111-1111-111111111111",
+                "2",
+                "맛있는집",
+                "00000000-0000-0000-0000-000000000003",
+                LocalDateTime.of(2025, 10, 10, 12, 0, 0),
+                OrderStatus.CREATED,
+                "서울시 중구 어딘가 1-1",
+                new BigDecimal(35000),
+                0L
+        );
+
+        Mockito.when(orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000003"))
+                .thenReturn(Optional.of(stubDetail));
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.confirmOrder("11111111-1111-1111-1111-111111111111", "00000000-0000-0000-0000-000000000003", "2"))
+                .isInstanceOf(InvalidOrderStatusException.class);
+    }
+
+    @DisplayName("음식점에서 주문을 확인 상태로 변경하고자 할 때, 데이터베이스에서 상태를 변경하지 못한 경우 OrderConfirmFailException 응답")
+    @Test
+    void confirmOrderWithOrderConfirmFailException() {
+        // given
+        Clock fixedClock = Clock.fixed(
+                LocalDateTime.of(2025, 10, 10, 12, 3, 0)
+                        .toInstant(ZoneOffset.UTC),
+                ZoneOffset.UTC
+        );
+
+        Mockito.when(clock.instant()).thenReturn(fixedClock.instant());
+        Mockito.when(clock.getZone()).thenReturn(fixedClock.getZone());
+
+        OrderDetailForOwner stubDetail = getStubDetailForOwner(
+                "2",
+                "tester1",
+                "11111111-1111-1111-1111-111111111111",
+                "2",
+                "맛있는집",
+                "00000000-0000-0000-0000-000000000003",
+                LocalDateTime.of(2025, 10, 10, 12, 0, 0),
+                OrderStatus.PAYMENT_COMPLETED,
+                "서울시 중구 어딘가 1-1",
+                new BigDecimal(35000),
+                0L
+        );
+
+        Mockito.when(orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000003"))
+                .thenReturn(Optional.of(stubDetail));
+
+        Mockito.when(orderRepository.updateOrderStatusToConfirm(
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any())
+        ).thenReturn(0);
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.confirmOrder( "11111111-1111-1111-1111-111111111111", "00000000-0000-0000-0000-000000000003", "2"))
+                .isInstanceOf(OrderConfirmFailException.class);
+    }
+
+    @DisplayName("음식점에서 주문 확인 요청 API를 호출하면 ConfirmOrderInfo를 반환한다.")
+    @Test
+    void confirmOrderTest() {
+        // given
+        Clock fixedClock = Clock.fixed(
+                LocalDateTime.of(2025, 10, 10, 12, 3, 0)
+                        .toInstant(ZoneOffset.UTC),
+                ZoneOffset.UTC
+        );
+
+        Mockito.when(clock.instant()).thenReturn(fixedClock.instant());
+        Mockito.when(clock.getZone()).thenReturn(fixedClock.getZone());
+
+        OrderDetailForOwner stubDetail = getStubDetailForOwner(
+                "2",
+                "tester1",
+                "11111111-1111-1111-1111-111111111111",
+                "2",
+                "맛있는집",
+                "00000000-0000-0000-0000-000000000003",
+                LocalDateTime.of(2025, 10, 10, 12, 0, 0),
+                OrderStatus.PAYMENT_COMPLETED,
+                "서울시 중구 어딘가 1-1",
+                new BigDecimal(35000),
+                0L
+        );
+
+        Mockito.when(orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000003"))
+                .thenReturn(Optional.of(stubDetail));
+
+        Mockito.when(orderRepository.updateOrderStatusToConfirm(
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any())
+        ).thenReturn(1);
+
+        Order order = Order.builder()
+                .orderId("00000000-0000-0000-0000-000000000003")
+                .orderStatus(OrderStatus.CONFIRMED)
+                .build();
+
+        // Builder을 이용해서 updatedAt 필드값 생성 불가능하여 Stubing 불가능 -> Reflection 사용하여 해결
+        ReflectionTestUtils.setField(order, "updatedAt", LocalDateTime.of(2025, 10, 10, 12, 3, 0));
+
+        Mockito.when(orderRepository.getReferenceById(Mockito.any()))
+                .thenReturn(order);
+
+        // when
+        ConfirmOrderInfo confirmOrderInfo = orderServiceImpl.confirmOrder( "11111111-1111-1111-1111-111111111111", "00000000-0000-0000-0000-000000000003", "2");
+
+        // then
+        Assertions.assertThat(confirmOrderInfo.getOrderId()).isEqualTo("00000000-0000-0000-0000-000000000003");
+        Assertions.assertThat(confirmOrderInfo.getOrderStatus()).isEqualTo("CONFIRMED");
+        Assertions.assertThat(confirmOrderInfo.getConfirmedAt()).isEqualTo(LocalDateTime.of(2025, 10, 10, 12, 3, 0).toString());
     }
 
     private static OrderDetailForOwner getStubDetailForOwner(
