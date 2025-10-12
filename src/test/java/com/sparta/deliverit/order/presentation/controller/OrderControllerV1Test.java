@@ -556,4 +556,68 @@ class OrderControllerV1Test {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("음식점의 UUID 형식이 올바르지 않습니다."));
     }
+
+    @DisplayName("음식점 점주가 주문 확인 API 요청시, orderId UUID 형식이 아니면(글자 수 불일치) VALIDATION_FAILED 응답")
+    @Test
+    void confirmOrderForOwnerWithInvalidOrderId1() throws Exception {
+
+        // when // then
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/restaurants/{restaurantId}/orders/{orderId}/confirm", "11111111-1111-1111-1111-111111111111", "not-a-uuid")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문의 UUID 형식이 올바르지 않습니다."));
+    }
+
+    @DisplayName("음식점 점주가 주문 확인 API 요청시, OrderId UUID 형식이 아니면(허용하지 않은 문자가 들어간 경우) VALIDATION_FAILED 응답")
+    @Test
+    void confirmOrderForOwnerWithInvalidOrderId2() throws Exception {
+
+        // when // then
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/restaurants/{restaurantId}/orders/{orderId}/confirm", "11111111-1111-1111-1111-111111111111", "1f8e1d59-b0*0-4b$b-86f3-9a9c6ffb69c3")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문의 UUID 형식이 올바르지 않습니다."));
+    }
+
+    @DisplayName("음식점 점주가 주문 확인 API 요청시, restaurantId UUID 형식이 아니면(글자 수 불일치) VALIDATION_FAILED 응답")
+    @Test
+    void confirmOrderForOwnerWithInvalidRestaurantId1() throws Exception {
+
+        // when // then
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/restaurants/{restaurantId}/orders/{orderId}/confirm", "not-a-uuid", "11111111-1111-1111-1111-111111111111")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("음식점의 UUID 형식이 올바르지 않습니다."));
+    }
+
+    @DisplayName("음식점 점주가 주문 확인 API 요청시, restaurantId UUID 형식이 아니면(허용하지 않은 문자가 들어간 경우) VALIDATION_FAILED 응답")
+    @Test
+    void confirmOrderForOwnerWithInvalidRestaurantId2() throws Exception {
+
+        // when // then
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/restaurants/{restaurantId}/orders/{orderId}/confirm", "1f8e1d59-b0*0-4b$b-86f3-9a9c6ffb69c3", "11111111-1111-1111-1111-111111111111")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("음식점의 UUID 형식이 올바르지 않습니다."));
+    }
 }
