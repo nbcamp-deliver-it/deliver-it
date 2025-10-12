@@ -5,10 +5,13 @@ import com.sparta.deliverit.payment.domain.entity.Payment;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import com.sparta.deliverit.user.domain.entity.User;
 import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Getter
 @Entity
 @Table(name = "p_order")
 public class Order extends BaseEntity {
@@ -42,7 +45,23 @@ public class Order extends BaseEntity {
     @Column(name = "total_price", nullable = false, updatable = false)
     private BigDecimal totalPrice;
 
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
     protected Order() {
 
+    }
+
+    @Builder
+    private Order(String orderId, User user, Restaurant restaurant, Payment payment, LocalDateTime orderedAt, OrderStatus orderStatus, String address, BigDecimal totalPrice) {
+        this.orderId = orderId;
+        this.user = user;
+        this.restaurant = restaurant;
+        this.payment = payment;
+        this.orderedAt = orderedAt;
+        this.orderStatus = orderStatus;
+        this.address = address;
+        this.totalPrice = totalPrice;
     }
 }
