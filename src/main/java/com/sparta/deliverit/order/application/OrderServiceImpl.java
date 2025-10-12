@@ -12,10 +12,16 @@ import com.sparta.deliverit.order.presentation.dto.response.MenuInfo;
 import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
 import com.sparta.deliverit.payment.application.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -77,5 +83,74 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
 
         return OrderInfo.of(orderDetail, menuInfoList);
+    }
+
+    @Override
+    public Page<OrderInfo> getOrderListForUser(String userId, LocalDateTime from, LocalDateTime to, int pageNumber, int pageSize) {
+        Page<OrderDetailForUser> orderdetailPage = orderRepository.findOrdersByUserIdForUser(userId, from, to, PageRequest.of(pageNumber, pageSize));
+        List<OrderDetailForUser> orderDetailList = orderdetailPage.getContent();
+
+        boolean checkAccess = orderDetailList.stream()
+                .map(OrderDetailForUser::getUserId)
+                .allMatch(userId::equals);
+
+        if (!checkAccess) {
+            throw new AccessDeniedException("주문 목록에 접근할 권한이 없습니다.");
+        }
+
+        Set<String> orderIds = orderDetailList.stream()
+                .map(OrderDetailForUser::getOrderId)
+                .collect(Collectors.toSet());
+
+        Map<String, List<OrderItem>> itemsByOrderId = orderItemRepository.findAllByOrderIn(orderIds).stream()
+                .collect(Collectors.groupingBy(orderItem -> orderItem.getOrder().getOrderId()));
+
+
+        return orderdetailPage.map(o -> {
+            List<OrderItem> orderItemList = itemsByOrderId.getOrDefault(o.getOrderId(), List.of());
+            if (orderItemList.isEmpty()) {
+                throw new NotFoundOrderItemException(OrderResponseCode.NOT_FOUND_ORDER_ITEM);
+            }
+
+            List<MenuInfo> menuInfoList = orderItemList.stream()
+                    .map(MenuInfo::of)
+                    .toList();
+
+            return OrderInfo.of(o, menuInfoList);
+        });
+    }
+
+    @Override
+    public Page<OrderInfo> getOrderListForOwner(String userId, String restaurantId, LocalDateTime from, LocalDateTime to, int pageNumber, int pageSize) {
+        Page<OrderDetailForOwner> orderDetailPage = orderRepository.findOrdersByRestaurantIdForOwner(restaurantId, from, to, PageRequest.of(pageNumber, pageSize));
+        List<OrderDetailForOwner> orderDetailList = orderDetailPage.getContent();
+
+        boolean checkAccess = orderDetailList.stream()
+                .map(OrderDetailForOwner::getRestaurantUserId)
+                .allMatch(userId::equals);
+
+        if (!checkAccess) {
+            throw new AccessDeniedException("해당 음식점은 접근할 수 없는 주문 목록입니다.");
+        }
+
+        Set<String> orderIds = orderDetailList.stream()
+                .map(OrderDetailForOwner::getOrderId)
+                .collect(Collectors.toSet());
+
+        Map<String, List<OrderItem>> itemsByOrderId = orderItemRepository.findAllByOrderIn(orderIds).stream()
+                .collect(Collectors.groupingBy(orderItem -> orderItem.getOrder().getOrderId()));
+
+        return orderDetailPage.map(o -> {
+            List<OrderItem> orderItemList = itemsByOrderId.getOrDefault(o.getOrderId(), List.of());
+            if (orderItemList.isEmpty()) {
+                throw new NotFoundOrderItemException(OrderResponseCode.NOT_FOUND_ORDER_ITEM);
+            }
+
+            List<MenuInfo> menuInfoList = orderItemList.stream()
+                    .map(MenuInfo::of)
+                    .toList();
+
+            return OrderInfo.of(o, menuInfoList);
+        });
     }
 }
