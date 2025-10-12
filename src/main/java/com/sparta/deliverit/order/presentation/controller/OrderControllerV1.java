@@ -101,7 +101,12 @@ public class OrderControllerV1 implements OrderController {
     @PreAuthorize("hasRole('OWNER')")
     @PostMapping("/v1/restaurants/{restaurantId}/orders/{orderId}/confirm")
     public ApiResponse<ConfirmOrderInfo> confirmOrder(String restaurantId, String orderId) {
-        return null;
+        // 임시 로그인
+        String userId = "2";
+
+        ConfirmOrderInfo orderInfo = orderService.confirmOrder(restaurantId, orderId, userId);
+
+        return ApiResponse.create(OrderResponseCode.ORDER_CONFIRM_SUCCESS,"주문 확인이 완료되었습니다.", orderInfo);
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
