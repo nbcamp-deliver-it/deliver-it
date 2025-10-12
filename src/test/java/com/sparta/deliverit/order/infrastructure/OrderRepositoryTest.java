@@ -236,4 +236,222 @@ class OrderRepositoryTest {
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
         Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
     }
+
+    @DisplayName("고객이 주문을 취소 상태로 변경하고자 할 때, 주문한지 5분이 지나지 않은 경우 order의 상태가 'CANCEL'이 되고 1을 반환 그리고 version의 값이 1 증가한다. ")
+    @Test
+    void updateOrderStatusToCancelTest() {
+        // given
+        Order currentOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000004");
+
+        Long beforeVersion = currentOrder.getVersion();
+
+        LocalDateTime nowMinusMinute = LocalDateTime.of(2025,10,10, 12,1,0).minusMinutes(5);
+        // when
+        int result = orderRepository.updateOrderStatusToCancelForUser(
+                currentOrder.getOrderId(),
+                1L,
+                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.CANCELED,
+                beforeVersion,
+                nowMinusMinute
+        );
+
+        Order nextOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000004");
+
+        // then
+        Assertions.assertThat(result).isEqualTo(1);
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCELED);
+    }
+
+    @DisplayName("고객이 주문을 취소 상태로 변경하고자 할 때, 주문한지 5분이 지난 경우 updateOrderStatusToCancelForUser()는 0을 반환하고 상태가 변경되지 않아 PAYMENT_COMPLETED 상태를 유지한다..")
+    @Test
+    void updateOrderStatusToCancelTest2() {
+        // given
+        Order currentOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000004");
+
+        Long beforeVersion = currentOrder.getVersion();
+
+        LocalDateTime nowMinusMinute = LocalDateTime.of(2025,10,10, 12,6,0).minusMinutes(5);
+        // when
+        int result = orderRepository.updateOrderStatusToCancelForUser(
+                currentOrder.getOrderId(),
+                1L,
+                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.CANCELED,
+                beforeVersion,
+                nowMinusMinute
+        );
+
+        Order nextOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000004");
+
+        // then
+        Assertions.assertThat(result).isEqualTo(0);
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_COMPLETED);
+    }
+
+    @DisplayName("고객이 주문을 취소 상태로 변경하고자 할 때, 주문서 고객과 취소하고자 하는 고객이 다른 경우 updateOrderStatusToCancelForUser()는 0을 반환하고 상태가 변경되지 않아 PAYMENT_COMPLETED 상태를 유지한다..")
+    @Test
+    void updateOrderStatusToCancelTest3() {
+        // given
+        Order currentOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000004");
+
+        Long beforeVersion = currentOrder.getVersion();
+
+        LocalDateTime nowMinusMinute = LocalDateTime.of(2025,10,10, 12,2,0).minusMinutes(5);
+        // when
+        int result = orderRepository.updateOrderStatusToCancelForUser(
+                currentOrder.getOrderId(),
+                2L,
+                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.CANCELED,
+                beforeVersion,
+                nowMinusMinute
+        );
+
+        Order nextOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000004");
+
+        // then
+        Assertions.assertThat(result).isEqualTo(0);
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_COMPLETED);
+    }
+
+    @DisplayName("고객이 주문을 취소 상태로 변경하고자 할 때, 주문서 고객과 취소하고자 하는 고객이 다른 경우 updateOrderStatusToCancelForUser()는 0을 반환하고 상태가 변경되지 않아 PAYMENT_COMPLETED 상태를 유지한다..")
+    @Test
+    void updateOrderStatusToCancelTest4() {
+        // given
+        Order currentOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000004");
+
+        Long beforeVersion = currentOrder.getVersion();
+
+        LocalDateTime nowMinusMinute = LocalDateTime.of(2025,10,10, 12,2,0).minusMinutes(5);
+        // when
+        int result = orderRepository.updateOrderStatusToCancelForUser(
+                currentOrder.getOrderId(),
+                2L,
+                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.CANCELED,
+                beforeVersion,
+                nowMinusMinute
+        );
+
+        Order nextOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000004");
+
+        // then
+        Assertions.assertThat(result).isEqualTo(0);
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_COMPLETED);
+    }
+
+    @DisplayName("음식점 점주가 주문을 취소 상태로 변경하고자 할 때, 주문 상태가 PAYMENT_COMPLETED이면 'CANCEL'이 되고 1을 반환 그리고 version의 값이 1 증가한다. ")
+    @Test
+    void updateOrderStatusToCanceForOwnerlTest() {
+        // given
+        Order currentOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000004");
+
+        Long beforeVersion = currentOrder.getVersion();
+
+        LocalDateTime nowMinusMinute = LocalDateTime.of(2025,10,10, 12,1,0).minusMinutes(5);
+        // when
+        int result = orderRepository.updateOrderStatusToCancelForOwner(
+                currentOrder.getOrderId(),
+                "11111111-1111-1111-1111-111111111111",
+                2L,
+                List.of(OrderStatus.PAYMENT_COMPLETED, OrderStatus.CONFIRMED),
+                OrderStatus.CANCELED,
+                beforeVersion
+        );
+
+        Order nextOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000004");
+
+        // then
+        Assertions.assertThat(result).isEqualTo(1);
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCELED);
+    }
+
+    @DisplayName("음식점 점주가 주문을 취소 상태로 변경하고자 할 때, 주문 상태가 CONFIRMED이면 'CANCEL'이 되고 1을 반환 그리고 version의 값이 1 증가한다. ")
+    @Test
+    void updateOrderStatusToCanceForOwnerlTest2() {
+        // given
+        Order currentOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000005");
+
+        Long beforeVersion = currentOrder.getVersion();
+
+        LocalDateTime nowMinusMinute = LocalDateTime.of(2025,10,10, 12,1,0).minusMinutes(5);
+        // when
+        int result = orderRepository.updateOrderStatusToCancelForOwner(
+                currentOrder.getOrderId(),
+                "11111111-1111-1111-1111-111111111111",
+                2L,
+                List.of(OrderStatus.PAYMENT_COMPLETED, OrderStatus.CONFIRMED),
+                OrderStatus.CANCELED,
+                beforeVersion
+        );
+
+        Order nextOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000005");
+
+        // then
+        Assertions.assertThat(result).isEqualTo(1);
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCELED);
+    }
+
+
+
+    @DisplayName("음식점 점주가 주문을 취소 상태로 변경하고자 할 때, 음식점 정보가 다른 경우 고객이 다른 경우 updateOrderStatusToCancelForUser()는 0을 반환하고 상태가 변경되지 않아 PAYMENT_COMPLETED 상태를 유지한다..")
+    @Test
+    void updateOrderStatusToCanceForOwnerlTest3() {
+        // given
+        Order currentOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000004");
+
+        Long beforeVersion = currentOrder.getVersion();
+
+        LocalDateTime nowMinusMinute = LocalDateTime.of(2025,10,10, 12,1,0).minusMinutes(5);
+        // when
+        int result = orderRepository.updateOrderStatusToCancelForOwner(
+                currentOrder.getOrderId(),
+                "11111111-1111-1111-1111-111111111110",
+                2L,
+                List.of(OrderStatus.PAYMENT_COMPLETED, OrderStatus.CONFIRMED),
+                OrderStatus.CANCELED,
+                beforeVersion
+        );
+
+        Order nextOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000004");
+
+        // then
+        Assertions.assertThat(result).isEqualTo(0);
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_COMPLETED);
+    }
+
+    @DisplayName("음식점 점주가 주문을 취소 상태로 변경하고자 할 때, 음식점의 유저 정보와 요청한 유저 정보가 다른 경우 updateOrderStatusToCancelForUser()는 0을 반환하고 상태가 변경되지 않아 PAYMENT_COMPLETED 상태를 유지한다..")
+    @Test
+    void updateOrderStatusToCanceForOwnerlTest4() {
+        // given
+        Order currentOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000004");
+
+        Long beforeVersion = currentOrder.getVersion();
+
+        LocalDateTime nowMinusMinute = LocalDateTime.of(2025,10,10, 12,1,0).minusMinutes(5);
+        // when
+        int result = orderRepository.updateOrderStatusToCancelForOwner(
+                currentOrder.getOrderId(),
+                "11111111-1111-1111-1111-111111111111",
+                1L,
+                List.of(OrderStatus.PAYMENT_COMPLETED, OrderStatus.CONFIRMED),
+                OrderStatus.CANCELED,
+                beforeVersion
+        );
+
+        Order nextOrder = orderRepository.getReferenceById("00000000-0000-0000-0000-000000000004");
+
+        // then
+        Assertions.assertThat(result).isEqualTo(0);
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_COMPLETED);
+    }
 }

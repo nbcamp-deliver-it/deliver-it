@@ -99,4 +99,265 @@ public class OrderRepositoryTestForMysql {
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
         Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
     }
+
+    @DisplayName("특정 주문에 대하여 동시에 취소을 요청하는 경우 둘 중 하나는 성공하고 하나는 실패한다.")
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void updateOrderStatusToCancelForUserWithConcurrency() throws Exception {
+
+        OrderDetailForUser currentOrder = orderRepository.getByOrderIdForUser("00000000-0000-0000-0000-000000000004").orElseThrow();
+
+        System.out.println("currentOrder.toString() = " + currentOrder.toString());
+        final String orderId = currentOrder.getOrderId();
+        final String orderUserId = currentOrder.getUserId();
+        final OrderStatus currentStatus = OrderStatus.PAYMENT_COMPLETED;
+        final OrderStatus nextStatus = OrderStatus.CANCELED;
+        final Long beforeVersion = currentOrder.getVersion();
+
+        LocalDateTime cutOffTime = LocalDateTime.of(2025,10,10,12,3,0).minusMinutes(5);
+
+        TransactionTemplate txNew = new TransactionTemplate(txManager);
+        txNew.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        Callable<Integer> task = () -> {
+            latch.await(); // 동시에 시작
+            return txNew.execute(status -> {
+                // 여기 안은 완전 별도 트랜잭션
+                return orderRepository.updateOrderStatusToCancelForUser(
+                        orderId,
+                        Long.valueOf(orderUserId),
+                        currentStatus,
+                        nextStatus,
+                        beforeVersion,
+                        cutOffTime
+                );
+            });
+        };
+
+        ExecutorService es = Executors.newFixedThreadPool(2);
+        Future<Integer> f1 = es.submit(task);
+        Future<Integer> f2 = es.submit(task);
+
+        latch.countDown(); // 동시에 실행
+        es.shutdown();
+
+        int result1 = f1.get();
+        int result2 = f2.get();
+        Assertions.assertThat(result1 + result2).isEqualTo(1);
+
+        em.clear();
+
+        OrderDetailForUser nextOrder = orderRepository.getByOrderIdForUser("00000000-0000-0000-0000-000000000004").orElseThrow();
+
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCELED);
+    }
+
+    @DisplayName("특정 주문에 대하여 동시에 확인, 취소 요청하는 경우 둘 중 하나는 성공하고 하나는 실패한다.")
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void updateOrderStatusToCancelForUserWithupdateOrderStatusConfirm() throws Exception {
+
+        OrderDetailForOwner currentOrderForOwner = orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000004").orElseThrow();
+
+        System.out.println("currentOrder.toString() = " + currentOrderForOwner.toString());
+        final String orderIdForOwner = currentOrderForOwner.getOrderId();
+        final String restaurantIdForOwner = currentOrderForOwner.getRestaurantId();
+        final Long restaurantUserIdForOwner = Long.valueOf(currentOrderForOwner.getRestaurantUserId());
+        final OrderStatus currentStatusForOwner = OrderStatus.PAYMENT_COMPLETED;
+        final OrderStatus nextStatusForOwner = OrderStatus.CONFIRMED;
+        final Long beforeVersionForOwner = currentOrderForOwner.getVersion();
+
+
+        OrderDetailForUser currentOrderForUser = orderRepository.getByOrderIdForUser("00000000-0000-0000-0000-000000000004").orElseThrow();
+
+        System.out.println("currentOrder.toString() = " + currentOrderForUser.toString());
+        final String orderIdForUser = currentOrderForUser.getOrderId();
+        final String orderUserIdForUser = currentOrderForUser.getUserId();
+        final OrderStatus currentStatusForUser = OrderStatus.PAYMENT_COMPLETED;
+        final OrderStatus nextStatusForUser = OrderStatus.CANCELED;
+        final Long beforeVersionForUser = currentOrderForUser.getVersion();
+
+        LocalDateTime cutOffTime = LocalDateTime.of(2025,10,10,12,3,0).minusMinutes(5);
+
+        TransactionTemplate txNew = new TransactionTemplate(txManager);
+        txNew.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        Callable<Integer> updateOrderStatusToConfirm = () -> {
+            latch.await(); // 동시에 시작
+            return txNew.execute(status -> {
+                // 여기 안은 완전 별도 트랜잭션
+                return orderRepository.updateOrderStatusToConfirm(
+                        orderIdForOwner,
+                        restaurantIdForOwner,
+                        restaurantUserIdForOwner,
+                        currentStatusForOwner,
+                        nextStatusForOwner,
+                        beforeVersionForOwner,
+                        cutOffTime
+                );
+            });
+        };
+
+        Callable<Integer> updateOrderStatusToCancel = () -> {
+            latch.await(); // 동시에 시작
+            return txNew.execute(status -> {
+                // 여기 안은 완전 별도 트랜잭션
+                return orderRepository.updateOrderStatusToCancelForUser(
+                        orderIdForUser,
+                        Long.valueOf(orderUserIdForUser),
+                        currentStatusForUser,
+                        nextStatusForUser,
+                        beforeVersionForUser,
+                        cutOffTime
+                );
+            });
+        };
+
+        ExecutorService es = Executors.newFixedThreadPool(2);
+        Future<Integer> f1 = es.submit(updateOrderStatusToConfirm);
+        Future<Integer> f2 = es.submit(updateOrderStatusToCancel);
+
+        latch.countDown(); // 동시에 실행
+        es.shutdown();
+
+        int result1 = f1.get();
+        int result2 = f2.get();
+        Assertions.assertThat(result1 + result2).isEqualTo(1);
+
+        em.clear();
+
+        OrderDetailForUser nextOrder = orderRepository.getByOrderIdForUser("00000000-0000-0000-0000-000000000004").orElseThrow();
+
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersionForUser + 1);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isIn(OrderStatus.CONFIRMED, OrderStatus.CANCELED);
+    }
+
+    @DisplayName("음식점에서 특정 주문에 대하여 동시에 취소을 요청하는 경우 둘 중 하나는 성공하고 하나는 실패한다.")
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void updateOrderStatusToCancelForOwnerWithConcurrency() throws Exception {
+
+        OrderDetailForOwner currentOrder = orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000004").orElseThrow();
+
+        System.out.println("currentOrder.toString() = " + currentOrder.toString());
+        final String orderId = currentOrder.getOrderId();
+        final String restaurantId = "11111111-1111-1111-1111-111111111111";
+        final Long accessUserId = 2L;
+        final List<OrderStatus> currentOrderStatusList = List.of(OrderStatus.PAYMENT_COMPLETED, OrderStatus.CONFIRMED);
+        final OrderStatus nextStatus = OrderStatus.CANCELED;
+        final Long beforeVersion = currentOrder.getVersion();
+
+        TransactionTemplate txNew = new TransactionTemplate(txManager);
+        txNew.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        Callable<Integer> task = () -> {
+            latch.await(); // 동시에 시작
+            return txNew.execute(status -> {
+                // 여기 안은 완전 별도 트랜잭션
+                return orderRepository.updateOrderStatusToCancelForOwner(
+                        orderId,
+                        restaurantId,
+                        accessUserId,
+                        currentOrderStatusList,
+                        nextStatus,
+                        beforeVersion
+                );
+            });
+        };
+
+        ExecutorService es = Executors.newFixedThreadPool(2);
+        Future<Integer> f1 = es.submit(task);
+        Future<Integer> f2 = es.submit(task);
+
+        latch.countDown(); // 동시에 실행
+        es.shutdown();
+
+        int result1 = f1.get();
+        int result2 = f2.get();
+        Assertions.assertThat(result1 + result2).isEqualTo(1);
+
+        em.clear();
+
+        OrderDetailForUser nextOrder = orderRepository.getByOrderIdForUser("00000000-0000-0000-0000-000000000004").orElseThrow();
+
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCELED);
+    }
+
+    @DisplayName("음식 점주가 특정 주문에 대하여 동시에 확인, 취소 요청하는 경우 둘 중 하나는 성공하고 하나는 실패한다.")
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void updateOrderStatusToCancelForOwnerWithupdateOrderStatusConfirm() throws Exception {
+
+        OrderDetailForOwner currentOrderForOwner = orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000004").orElseThrow();
+
+        System.out.println("currentOrder.toString() = " + currentOrderForOwner.toString());
+        final String orderIdForOwner = currentOrderForOwner.getOrderId();
+        final String restaurantIdForOwner = currentOrderForOwner.getRestaurantId();
+        final Long restaurantUserIdForOwner = Long.valueOf(currentOrderForOwner.getRestaurantUserId());
+        final Long beforeVersionForOwner = currentOrderForOwner.getVersion();
+
+        LocalDateTime cutOffTime = LocalDateTime.of(2025,10,10,12,3,0).minusMinutes(5);
+
+        TransactionTemplate txNew = new TransactionTemplate(txManager);
+        txNew.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        Callable<Integer> updateOrderStatusToConfirm = () -> {
+            latch.await(); // 동시에 시작
+            return txNew.execute(status -> {
+                // 여기 안은 완전 별도 트랜잭션
+                return orderRepository.updateOrderStatusToConfirm(
+                        orderIdForOwner,
+                        restaurantIdForOwner,
+                        restaurantUserIdForOwner,
+                        OrderStatus.PAYMENT_COMPLETED,
+                        OrderStatus.CONFIRMED,
+                        beforeVersionForOwner,
+                        cutOffTime
+                );
+            });
+        };
+
+        Callable<Integer> updateOrderStatusToCancel = () -> {
+            latch.await(); // 동시에 시작
+            return txNew.execute(status -> {
+                // 여기 안은 완전 별도 트랜잭션
+                return orderRepository.updateOrderStatusToCancelForOwner(
+                        orderIdForOwner,
+                        restaurantIdForOwner,
+                        restaurantUserIdForOwner,
+                        List.of(OrderStatus.PAYMENT_COMPLETED, OrderStatus.CONFIRMED),
+                        OrderStatus.CANCELED,
+                        beforeVersionForOwner
+                );
+            });
+        };
+
+        ExecutorService es = Executors.newFixedThreadPool(2);
+        Future<Integer> f1 = es.submit(updateOrderStatusToConfirm);
+        Future<Integer> f2 = es.submit(updateOrderStatusToCancel);
+
+        latch.countDown(); // 동시에 실행
+        es.shutdown();
+
+        int result1 = f1.get();
+        int result2 = f2.get();
+        Assertions.assertThat(result1 + result2).isEqualTo(1);
+
+        em.clear();
+
+        OrderDetailForUser nextOrder = orderRepository.getByOrderIdForUser("00000000-0000-0000-0000-000000000004").orElseThrow();
+
+        Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersionForOwner + 1);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isIn(OrderStatus.CONFIRMED, OrderStatus.CANCELED);
+    }
 }
