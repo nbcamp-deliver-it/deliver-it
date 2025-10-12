@@ -38,7 +38,17 @@ public class OrderControllerV1 implements OrderController {
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/v1/orders")
     public ApiResponse<Page<OrderInfo>> getOrderListForUser(LocalDateTime from, LocalDateTime to, Integer pageNumber, Integer pageSize) {
-        return null;
+        // 임시 로그인
+        String userId = "1";
+
+        Page<OrderInfo> orderInfoList = orderService.getOrderListForUser(
+                userId,
+                from,
+                to,
+                pageNumber,
+                pageSize
+        );
+        return ApiResponse.create(OrderResponseCode.ORDER_LIST_SUCCESS,"고객 본인의 주문 목록을 조회했습니다.", orderInfoList);
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -56,7 +66,19 @@ public class OrderControllerV1 implements OrderController {
     @PreAuthorize("hasRole('OWNER')")
     @GetMapping("/v1/restaurants/{restaurantId}/orders")
     public ApiResponse<Page<OrderInfo>> getOrderListForOwner(String restaurantId, LocalDateTime from, LocalDateTime to, Integer pageNumber, Integer pageSize) {
-        return null;
+        // 임시 로그인
+        String userId = "1";
+
+        Page<OrderInfo> orderInfoList = orderService.getOrderListForOwner(
+                userId,
+                restaurantId,
+                from,
+                to,
+                pageNumber,
+                pageSize
+        );
+
+        return ApiResponse.create(OrderResponseCode.ORDER_LIST_SUCCESS,"음식점에서 주문 목록을 조회했습니다.", orderInfoList);
     }
 
     @PreAuthorize("hasRole('OWNER')")
