@@ -2,6 +2,7 @@ package com.sparta.deliverit.order.presentation.controller;
 
 import com.sparta.deliverit.global.response.ApiResponse;
 import com.sparta.deliverit.global.response.code.OrderResponseCode;
+import com.sparta.deliverit.order.application.OrderService;
 import com.sparta.deliverit.order.presentation.dto.response.CancelOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.request.CreateOrderRequest;
 import com.sparta.deliverit.order.domain.entity.OrderStatus;
@@ -10,12 +11,16 @@ import com.sparta.deliverit.order.presentation.dto.response.CreateOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.MenuInfo;
 import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,160 +28,59 @@ import java.util.List;
 @RestController
 public class OrderControllerV1 implements OrderController {
 
+    private final OrderService orderService;
+
+    @Autowired
+    public OrderControllerV1(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/v1/orders")
-    public ApiResponse<List<OrderInfo>> getOrderList(Authentication userAuthInfo) {
-
-        if (isCustomer(userAuthInfo)) {
-            // TODO: 고객 정보를 이용해서 주문 목록을 가져오도록 구현해야 함
-            MenuInfo menuInfo1 = MenuInfo.builder()
-                    .menuName("간짜장")
-                    .quantity(2)
-                    .price(7000)
-                    .build();
-
-            MenuInfo menuInfo2 = MenuInfo.builder()
-                    .menuName("탕수육")
-                    .quantity(1)
-                    .price(15000)
-                    .build();
-
-            OrderInfo orderInfo = OrderInfo.builder()
-                    .orderId("7939146e-b329-4f6e-9fa9-673381e78b8a")
-                    .restaurantName("짜왕")
-                    .username("두둥탁")
-                    .orderTime(LocalDateTime.of(2025, 3, 3, 11, 45, 11, 345128900).toString())
-                    .orderStatus(OrderStatus.CREATED)
-                    .deliveryAddress("경기도 수원시 영통구 영통로")
-                    .totalPrice(29000)
-                    .menus(List.of(menuInfo1, menuInfo2))
-                    .build();
-
-            return ApiResponse.create(OrderResponseCode.ORDER_LIST_SUCCESS, "고객의 주문 목록을 조회했습니다.", List.of(orderInfo));
-        } else if (isOwner(userAuthInfo)) {
-            // TODO: 가능하면 API를 분리해주는 것이 좋을 것 같음
-            // TODO: 레스토랑 정보를 바탕으로 주문 목록을 가져오도록 구현해야함
-            MenuInfo menuInfo1 = MenuInfo.builder()
-                    .menuName("후라이드 치킨")
-                    .quantity(1)
-                    .price(16000)
-                    .build();
-
-            MenuInfo menuInfo2 = MenuInfo.builder()
-                    .menuName("콜라")
-                    .quantity(2)
-                    .price(6000)
-                    .build();
-
-            OrderInfo orderInfo = OrderInfo.builder()
-                    .orderId("550e8400-e29b-41d4-a716-446655440000")
-                    .restaurantName("치킨성")
-                    .username("포이응")
-                    .orderTime(LocalDateTime.of(2025, 9, 30, 17, 45, 12, 345678900).toString())
-                    .orderStatus(OrderStatus.CREATED)
-                    .deliveryAddress("서울특별시 강남구 테헤란로 1927")
-                    .totalPrice(28000)
-                    .menus(List.of(menuInfo1, menuInfo2))
-                    .build();
-
-            return ApiResponse.create(OrderResponseCode.ORDER_LIST_SUCCESS, "음식점의 주문 목록을 조회했습니다.", List.of(orderInfo));
-        }
-        throw new AccessDeniedException("권한이 없습니다.");
+    public ApiResponse<Page<OrderInfo>> getOrderListForUser(LocalDateTime from, LocalDateTime to, Integer pageNumber, Integer pageSize) {
+        return null;
     }
 
+    @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/v1/orders/{orderId}")
-    public ApiResponse<OrderInfo> getOrder(@PathVariable String orderId, Authentication userAuthInfo) {
-
-        if (isCustomer(userAuthInfo)) {
-            MenuInfo menuInfo1 = MenuInfo.builder()
-                    .menuName("간짜장")
-                    .quantity(2)
-                    .price(7000)
-                    .build();
-
-            MenuInfo menuInfo2 = MenuInfo.builder()
-                    .menuName("탕수육")
-                    .quantity(1)
-                    .price(15000)
-                    .build();
-
-            OrderInfo orderInfo = OrderInfo.builder()
-                    .orderId("7939146e-b329-4f6e-9fa9-673381e78b8a")
-                    .restaurantName("짜왕")
-                    .username("두둥탁")
-                    .orderTime(LocalDateTime.of(2025, 3, 3, 11, 45, 11, 345128900).toString())
-                    .orderStatus(OrderStatus.CREATED)
-                    .deliveryAddress("경기도 수원시 영통구 영통로")
-                    .totalPrice(29000)
-                    .menus(List.of(menuInfo1, menuInfo2))
-                    .build();
-
-            return ApiResponse.create(OrderResponseCode.ORDER_DETAIL_SUCCESS,"고객의 주문을 조회했습니다.", orderInfo);
-
-        } else if (isOwner(userAuthInfo)) {
-            MenuInfo menuInfo1 = MenuInfo.builder()
-                    .menuName("후라이드 치킨")
-                    .quantity(1)
-                    .price(16000)
-                    .build();
-
-            MenuInfo menuInfo2 = MenuInfo.builder()
-                    .menuName("콜라")
-                    .quantity(2)
-                    .price(6000)
-                    .build();
-
-            OrderInfo orderInfo = OrderInfo.builder()
-                    .orderId("550e8400-e29b-41d4-a716-446655440000")
-                    .restaurantName("치킨성")
-                    .username("포이응")
-                    .orderTime(LocalDateTime.of(2025, 9, 30, 17, 45, 12, 345678900).toString())
-                    .orderStatus(OrderStatus.CREATED)
-                    .deliveryAddress("서울특별시 강남구 테헤란로 1927")
-                    .totalPrice(28000)
-                    .menus(List.of(menuInfo1, menuInfo2))
-                    .build();
-
-            return ApiResponse.create(OrderResponseCode.ORDER_DETAIL_SUCCESS,"음식점의 주문을 조회했습니다.", orderInfo);
-
-        }
-
-        throw new AccessDeniedException("권한이 없습니다.");
+    public ApiResponse<OrderInfo> getOrderForUser(String orderId) {
+        return null;
     }
 
+
+    @PreAuthorize("hasRole('OWNER')")
+    @GetMapping("/v1/restaurants/{restaurantId}/orders")
+    public ApiResponse<Page<OrderInfo>> getOrderListForOwner(String restaurantId, LocalDateTime from, LocalDateTime to, Integer pageNumber, Integer pageSize) {
+        return null;
+    }
+
+    @PreAuthorize("hasRole('OWNER')")
+    @GetMapping("/v1/restaurants/{restaurantId}/orders/{orderId}")
+    public ApiResponse<OrderInfo> getOrderForOwner(String restaurantId, String orderId) {
+        return null;
+    }
+
+    @PreAuthorize("hasRole('OWNER')")
     @PostMapping("/v1/orders")
     public ApiResponse<CreateOrderInfo> createOrder(CreateOrderRequest request) {
-        CreateOrderInfo orderInfo = CreateOrderInfo.builder()
-                .orderId("7939146e-b329-4f6e-9fa9-673381e78b8a")
-                .orderStatus("PENDING_PAYMENT")
-                .totalPrice(28000)
-                .build();
-
-        return ApiResponse.create(OrderResponseCode.ORDER_SUCCESS ,"주문이 정상적으로 완료되었습니다.", orderInfo);
+        return null;
     }
 
-    @PostMapping("/v1/orders/{orderId}/confirm")
-    public ApiResponse<ConfirmOrderInfo> confirmOrder(@PathVariable String orderId) {
-
-        ConfirmOrderInfo confirmOrderInfo = ConfirmOrderInfo.of("550e8400-e29b-41d4-a716-446655440000", OrderStatus.CONFIRMED.getDescription(), "2025-09-29T20:15:42+09:00");
-
-        return ApiResponse.create(OrderResponseCode.ORDER_CONFIRM_SUCCESS,"주문 확인이 완료되었습니다.", confirmOrderInfo);
+    @PreAuthorize("hasRole('OWNER')")
+    @PostMapping("/v1/restaurants/{restaurantId}/orders/{orderId}/confirm")
+    public ApiResponse<ConfirmOrderInfo> confirmOrder(String restaurantId, String orderId) {
+        return null;
     }
 
+    @PreAuthorize("hasRole('CUSTOMER')")
     @PatchMapping("/v1/orders/{orderId}")
-    public ApiResponse<CancelOrderInfo> cancelOrder(@PathVariable String orderId) {
-
-        CancelOrderInfo cancelOrderInfo = CancelOrderInfo.of("550e8400-e29b-41d4-a716-446655440000", OrderStatus.CONFIRMED.getDescription(), OrderStatus.CANCELED.getDescription(), "2025-09-29T20:25:05+09:00");
-
-        return ApiResponse.create(OrderResponseCode.ORDER_CANCEL_SUCCESS,"주문 취소가 완료되었습니다.", cancelOrderInfo);
+    public ApiResponse<CancelOrderInfo> cancelOrderForUser(String orderId) {
+        return null;
     }
 
-    private static boolean isOwner(Authentication authentication) {
-        return authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
-    }
-
-    private static boolean isCustomer(Authentication authentication) {
-        return authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"));
+    @PreAuthorize("hasRole('OWNER')")
+    @PatchMapping("/v1/restaurants/{restaurantId}/orders/{orderId}")
+    public ApiResponse<CancelOrderInfo> cancelOrderForOwner(String restaurantId, String orderId) {
+        return null;
     }
 }
