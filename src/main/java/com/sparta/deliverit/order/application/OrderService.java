@@ -1,5 +1,6 @@
 package com.sparta.deliverit.order.application;
 
+import com.sparta.deliverit.order.presentation.dto.response.ConfirmOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
 import org.springframework.data.domain.Page;
 
@@ -14,4 +15,6 @@ public interface OrderService {
     Page<OrderInfo> getOrderListForUser(String userId, LocalDateTime from, LocalDateTime to, int pageNumber, int pageSize);
 
     Page<OrderInfo> getOrderListForOwner(String userId, String restaurantId ,LocalDateTime from, LocalDateTime to, int pageNumber, int pageSize);
+
+    ConfirmOrderInfo confirmOrder(String restaurantId, String orderId, String accessUserId);
 }

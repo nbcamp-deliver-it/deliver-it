@@ -1,13 +1,15 @@
 package com.sparta.deliverit.order.application;
 
 import com.sparta.deliverit.global.response.code.OrderResponseCode;
+import com.sparta.deliverit.order.domain.entity.Order;
 import com.sparta.deliverit.order.domain.entity.OrderItem;
-import com.sparta.deliverit.order.exception.NotFoundOrderException;
-import com.sparta.deliverit.order.exception.NotFoundOrderItemException;
+import com.sparta.deliverit.order.domain.entity.OrderStatus;
+import com.sparta.deliverit.order.exception.*;
 import com.sparta.deliverit.order.infrastructure.OrderItemRepository;
 import com.sparta.deliverit.order.infrastructure.OrderRepository;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForOwner;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForUser;
+import com.sparta.deliverit.order.presentation.dto.response.ConfirmOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.MenuInfo;
 import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
 import com.sparta.deliverit.payment.application.service.PaymentService;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -26,15 +29,19 @@ import java.util.stream.Collectors;
 @Service
 public class OrderServiceImpl implements OrderService {
 
+    private static final int TIMEOUT_MINUTES = 5;
+
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final PaymentService paymentService;
+    private final Clock clock;
 
     @Autowired
-    public OrderServiceImpl(OrderRepository orderRepository, OrderItemRepository orderItemRepository, PaymentService paymentService) {
+    public OrderServiceImpl(OrderRepository orderRepository, OrderItemRepository orderItemRepository, PaymentService paymentService, Clock clock) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.paymentService = paymentService;
+        this.clock = clock;
     }
 
     @Override
@@ -152,5 +159,45 @@ public class OrderServiceImpl implements OrderService {
 
             return OrderInfo.of(o, menuInfoList);
         });
+    }
+
+    @Override
+    public ConfirmOrderInfo confirmOrder(String restaurantId, String orderId, String accessUserId) {
+
+        OrderDetailForOwner currOrder = orderRepository.getByOrderIdForOwner(orderId).orElseThrow(
+                () -> new NotFoundOrderException(OrderResponseCode.NOT_FOUND_ORDER)
+        );
+
+        if (!accessUserId.equals(currOrder.getRestaurantUserId()) || !restaurantId.equals(currOrder.getRestaurantId())) {
+            throw new AccessDeniedException("주문에 접근할 수 없는 사용자입니다.");
+        }
+
+        LocalDateTime now = LocalDateTime.now(clock);
+        LocalDateTime cutOffTime = currOrder.getOrderedAt().plusMinutes(TIMEOUT_MINUTES);
+        if (!now.isBefore(cutOffTime) ) {
+            throw new OrderConfirmTimeOutException(OrderResponseCode.ORDER_CONFIRM_FAIL);
+        }
+
+        if (currOrder.getOrderStatus() != OrderStatus.PAYMENT_COMPLETED) {
+            throw new InvalidOrderStatusException(OrderResponseCode.INVALID_ORDER_STATUS);
+        }
+
+        LocalDateTime nowMinusMinute = now.minusMinutes(TIMEOUT_MINUTES);
+        int queryResult = orderRepository.updateOrderStatusToConfirm(
+                orderId,
+                restaurantId,
+                Long.valueOf(accessUserId),
+                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.CONFIRMED,
+                currOrder.getVersion(),
+                nowMinusMinute
+        );
+
+        if (queryResult == 0) {
+            throw new OrderConfirmFailException(OrderResponseCode.ORDER_CONFIRM_FAIL);
+        }
+
+        Order nextOrder = orderRepository.getReferenceById(orderId);
+        return ConfirmOrderInfo.create(nextOrder);
     }
 }

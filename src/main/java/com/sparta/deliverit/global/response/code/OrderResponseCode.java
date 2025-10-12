@@ -11,6 +11,10 @@ public enum OrderResponseCode implements ResponseCode {
     ORDER_CANCEL_SUCCESS(OK, "주문이 취소되었습니다."),
     ORDER_CONFIRM_SUCCESS(OK, "주문이 확인되었습니다."),
 
+    ORDER_CONFIRM_FAIL(CONFLICT, "주문 확인에 실패했습니다."),
+
+    INVALID_ORDER_STATUS(CONFLICT, "요청에 유효한 주문 상태가 아닙니다."),
+
     ORDER_SUCCESS(OK, "주문에 성공했습니다."),
 
     ORDER_FAILED(BAD_REQUEST, "주문에 실패했습니다."), // 세분화 필요
