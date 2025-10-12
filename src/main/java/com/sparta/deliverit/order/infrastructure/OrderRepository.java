@@ -1,11 +1,13 @@
 package com.sparta.deliverit.order.infrastructure;
 
 import com.sparta.deliverit.order.domain.entity.Order;
+import com.sparta.deliverit.order.domain.entity.OrderStatus;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForOwner;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -110,4 +112,19 @@ public interface OrderRepository extends JpaRepository<Order, String> {
             @Param("to") LocalDateTime to,
             Pageable pageable
     );
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(
+            """
+                UPDATE Order o
+                SET o.orderStatus = :nextStatus,
+                    o.version = o.version + 1
+                WHERE o.orderId = :orderId
+                    AND o.orderStatus = :currStatus
+                    AND o.restaurant.restaurantId = :restaurantId
+                    AND o.restaurant.user.id = :accessUserId
+                    AND o.version = :version
+                    AND o.orderedAt > :nowMinusMinute
+            """)
+    int updateOrderStatusToConfirm(@Param("orderId") String orderId, @Param("restaurantId") String restaurantId, @Param("accessUserId") Long accessUserId, @Param("currStatus") OrderStatus currStatus, @Param("nextStatus") OrderStatus nextStatus, @Param("version") Long version, @Param("nowMinusMinute") LocalDateTime nowMinusMinute);
 }
