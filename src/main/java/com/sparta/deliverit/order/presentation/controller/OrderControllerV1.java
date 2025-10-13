@@ -11,6 +11,7 @@ import com.sparta.deliverit.order.presentation.dto.response.CreateOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.MenuInfo;
 import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
 
+import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.AccessDeniedException;
@@ -94,7 +95,7 @@ public class OrderControllerV1 implements OrderController {
 
     @PreAuthorize("hasRole('OWNER')")
     @PostMapping("/v1/orders")
-    public ApiResponse<CreateOrderInfo> createOrder(CreateOrderRequest request) {
+    public ApiResponse<CreateOrderInfo> createOrder(CreateOrderRequest request, PaymentRequestDto paymentRequest) {
         return null;
     }
 

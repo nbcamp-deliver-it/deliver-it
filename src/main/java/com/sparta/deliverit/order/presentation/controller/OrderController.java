@@ -8,6 +8,7 @@ import com.sparta.deliverit.order.presentation.dto.response.ConfirmOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.CreateOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
 
+import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import org.springframework.data.domain.Page;
@@ -83,7 +84,7 @@ public interface OrderController {
                     message = "주문의 UUID 형식이 올바르지 않습니다.")
             @PathVariable String orderId);
 
-    ApiResponse<CreateOrderInfo> createOrder(@RequestBody @Valid CreateOrderRequest request);
+    ApiResponse<CreateOrderInfo> createOrder(@Valid @RequestBody CreateOrderRequest orderRequest, @Valid @RequestBody PaymentRequestDto paymentRequest);
 
     ApiResponse<ConfirmOrderInfo> confirmOrder(
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
