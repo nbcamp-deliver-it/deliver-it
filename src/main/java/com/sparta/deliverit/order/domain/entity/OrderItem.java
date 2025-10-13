@@ -29,7 +29,7 @@ public class OrderItem extends BaseEntity {
     private String menuNameSnapshot;
 
     @Column(name = "menu_price_snapshot", nullable = false)
-    private BigDecimal menuPriceSnapshop;
+    private BigDecimal menuPriceSnapshot;
 
     @Column(nullable = false)
     private int quantity;
@@ -39,22 +39,22 @@ public class OrderItem extends BaseEntity {
     }
 
     @Builder
-    private OrderItem(String orderItemId, Order order, Menu menu, String menuNameSnapshot, BigDecimal menuPriceSnapshop, int quantity) {
+    private OrderItem(String orderItemId, Order order, Menu menu, String menuNameSnapshot, BigDecimal menuPriceSnapshot, int quantity) {
         this.orderItemId = orderItemId;
         this.order = order;
         this.menu = menu;
         this.menuNameSnapshot = menuNameSnapshot;
-        this.menuPriceSnapshop = menuPriceSnapshop;
+        this.menuPriceSnapshot = menuPriceSnapshot;
         this.quantity = quantity;
     }
 
-    public static OrderItem create(String orderItemId, Order order, Menu menu, String menuNameSnapshot, BigDecimal menuPriceSnapshop, int quantiy) {
+    public static OrderItem create(String orderItemId, Order order, Menu menu, String menuNameSnapshot, BigDecimal menuPriceSnapshot, int quantiy) {
         return OrderItem.builder()
                 .orderItemId(orderItemId)
                 .order(order)
                 .menu(menu)
                 .menuNameSnapshot(menuNameSnapshot)
-                .menuPriceSnapshop(menuPriceSnapshop)
+                .menuPriceSnapshot(menuPriceSnapshot)
                 .quantity(quantiy)
                 .build();
     }

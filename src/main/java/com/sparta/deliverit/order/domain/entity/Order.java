@@ -1,7 +1,6 @@
 package com.sparta.deliverit.order.domain.entity;
 
 import com.sparta.deliverit.anything.entity.BaseEntity;
-import com.sparta.deliverit.payment.domain.entity.Payment;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import com.sparta.deliverit.user.domain.entity.User;
 import jakarta.persistence.*;
@@ -29,9 +28,6 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "restaurant_id", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "fk_order_restaurant"))
     private Restaurant restaurant;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    private Payment payment;
-
     @Column(name = "ordered_at", nullable = false, updatable = false)
     LocalDateTime orderedAt;
 
@@ -54,11 +50,10 @@ public class Order extends BaseEntity {
     }
 
     @Builder
-    private Order(String orderId, User user, Restaurant restaurant, Payment payment, LocalDateTime orderedAt, OrderStatus orderStatus, String address, BigDecimal totalPrice) {
+    private Order(String orderId, User user, Restaurant restaurant, LocalDateTime orderedAt, OrderStatus orderStatus, String address, BigDecimal totalPrice) {
         this.orderId = orderId;
         this.user = user;
         this.restaurant = restaurant;
-        this.payment = payment;
         this.orderedAt = orderedAt;
         this.orderStatus = orderStatus;
         this.address = address;
