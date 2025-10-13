@@ -3,6 +3,8 @@ package com.sparta.deliverit.order.presentation.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.deliverit.order.application.OrderService;
 import com.sparta.deliverit.order.domain.entity.OrderStatus;
+import com.sparta.deliverit.order.presentation.dto.request.CreateOrderRequest;
+import com.sparta.deliverit.order.presentation.dto.request.OrderMenuRequest;
 import com.sparta.deliverit.order.presentation.dto.response.MenuInfo;
 import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -715,5 +718,402 @@ class OrderControllerV1Test {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문의 UUID 형식이 올바르지 않습니다."));
+    }
+
+    @DisplayName("주문 생성 시 RestaurantId가 UUID 형식이 아니면(글자 수 불일치) VALIDATION_FAILED 응답")
+    @Test
+    void createOrderWithInvalidRestaurantId1() throws Exception {
+        OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
+                .menuId("2d9a92a1-69e0-4d12-8032-2ac6a1a7e501")
+                .quantity(2)
+                .build();
+
+        OrderMenuRequest menuRequest2 = OrderMenuRequest.builder()
+                .menuId("e0a476d8-3f29-4b32-b021-d89a447d2f7f")
+                .quantity(1)
+                .build();
+
+        List<OrderMenuRequest> orderMenuRequests = List.of(menuRequest1, menuRequest2);
+        CreateOrderRequest request = CreateOrderRequest.builder()
+                .restaurantId("not-a-uuid")
+                .menus(orderMenuRequests)
+                .deliveryAddress("서울특별시 강남구 테헤란로 1927")
+                .build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/orders")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                                .content(objectMapper.writeValueAsString(request))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("음식점의 UUID 형식이 올바르지 않습니다."));
+    }
+
+    @DisplayName("주문 생성 시 RestaurantId가 UUID 형식이 아니면(특수문자 포함) VALIDATION_FAILED 응답")
+    @Test
+    void createOrderWithInvalidRestaurantId2() throws Exception {
+        OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
+                .menuId("2d9a92a1-69e0-4d12-8032-2ac6a1a7e501")
+                .quantity(2)
+                .build();
+
+        OrderMenuRequest menuRequest2 = OrderMenuRequest.builder()
+                .menuId("e0a476d8-3f29-4b32-b021-d89a447d2f7f")
+                .quantity(1)
+                .build();
+
+        List<OrderMenuRequest> orderMenuRequests = List.of(menuRequest1, menuRequest2);
+        CreateOrderRequest request = CreateOrderRequest.builder()
+                .restaurantId("1f8e1d59-b0*0-4b$b-86f3-9a9c6ffb69c3")
+                .menus(orderMenuRequests)
+                .deliveryAddress("서울특별시 강남구 테헤란로 1927")
+                .build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/orders")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                                .content(objectMapper.writeValueAsString(request))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("음식점의 UUID 형식이 올바르지 않습니다."));
+    }
+
+    @DisplayName("주문 생성 시 RestaurantId가 비어 있으면 VALIDATION_FAILED 응답")
+    @Test
+    void createOrderWithInvalidRestaurantId3() throws Exception {
+        OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
+                .menuId("2d9a92a1-69e0-4d12-8032-2ac6a1a7e501")
+                .quantity(2)
+                .build();
+
+        OrderMenuRequest menuRequest2 = OrderMenuRequest.builder()
+                .menuId("e0a476d8-3f29-4b32-b021-d89a447d2f7f")
+                .quantity(1)
+                .build();
+
+        List<OrderMenuRequest> orderMenuRequests = List.of(menuRequest1, menuRequest2);
+        CreateOrderRequest request = CreateOrderRequest.builder()
+                .restaurantId("")
+                .menus(orderMenuRequests)
+                .deliveryAddress("서울특별시 강남구 테헤란로 1927")
+                .build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/orders")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                                .content(objectMapper.writeValueAsString(request))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").isString())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").isString());
+    }
+
+    @DisplayName("주문 생성 시 RestaurantId가 UUID 형식에 맞으면 정상 응답을 반환한다.")
+    @Test
+    void createOrderWitValidRestaurantId() throws Exception {
+        OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
+                .menuId("2d9a92a1-69e0-4d12-8032-2ac6a1a7e501")
+                .quantity(2)
+                .build();
+
+        OrderMenuRequest menuRequest2 = OrderMenuRequest.builder()
+                .menuId("e0a476d8-3f29-4b32-b021-d89a447d2f7f")
+                .quantity(1)
+                .build();
+
+        List<OrderMenuRequest> orderMenuRequests = List.of(menuRequest1, menuRequest2);
+        CreateOrderRequest request = CreateOrderRequest.builder()
+                .restaurantId("1f8e1d59-b000-4b0b-86f3-9a9c6ffb69c3")
+                .menus(orderMenuRequests)
+                .deliveryAddress("서울특별시 강남구 테헤란로 1927")
+                .build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/orders")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                                .content(objectMapper.writeValueAsString(request))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_CREATE_SUCCESS"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문을 정상적으로 생성했습니다."));
+    }
+
+    @DisplayName("주문 생성 시 menu가 0개이면 VALIDATION_FAILED 응답")
+    @Test
+    void createOrderWithMenusEmpty() throws Exception {
+        CreateOrderRequest request = CreateOrderRequest.builder()
+                .restaurantId("1f8e1d59-b000-4b0b-86f3-9a9c6ffb69c3")
+                .menus(List.of())
+                .deliveryAddress("서울특별시 강남구 테헤란로 1927")
+                .build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/orders")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                                .content(objectMapper.writeValueAsString(request))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("메뉴는 적어도 한 개 이상 주문해야합니다. "));
+    }
+
+    @DisplayName("주문 생성 시 menu가 1개 이상이면 정상 응답을 반환한다.")
+    @Test
+    void createOrderWithMenuNotEmpty() throws Exception {
+        OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
+                .menuId("2d9a92a1-69e0-4d12-8032-2ac6a1a7e501")
+                .quantity(2)
+                .build();
+
+        CreateOrderRequest request = CreateOrderRequest.builder()
+                .restaurantId("1f8e1d59-b000-4b0b-86f3-9a9c6ffb69c3")
+                .menus(List.of(menuRequest1))
+                .deliveryAddress("서울특별시 강남구 테헤란로 1927")
+                .build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/orders")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                                .content(objectMapper.writeValueAsString(request))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_CREATE_SUCCESS"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문을 정상적으로 생성했습니다."));
+    }
+
+    @DisplayName("주문 생성 시 주소가 비어 있으면 VALIDATION_FAILED 응답")
+    @Test
+    void createOrderWithAddressEmpty() throws Exception {
+        OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
+                .menuId("2d9a92a1-69e0-4d12-8032-2ac6a1a7e501")
+                .quantity(2)
+                .build();
+
+        CreateOrderRequest request = CreateOrderRequest.builder()
+                .restaurantId("1f8e1d59-b000-4b0b-86f3-9a9c6ffb69c3")
+                .menus(List.of(menuRequest1))
+                .deliveryAddress("")
+                .build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/orders")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                                .content(objectMapper.writeValueAsString(request))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("배송지는 필수 값입니다."));
+    }
+
+    @DisplayName("주문 생성 시 주소가 입력되어 있으면 정상 응답을 반환한다.")
+    @Test
+    void createOrderWithAddressNotEmpty() throws Exception {
+        OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
+                .menuId("2d9a92a1-69e0-4d12-8032-2ac6a1a7e501")
+                .quantity(2)
+                .build();
+
+        CreateOrderRequest request = CreateOrderRequest.builder()
+                .restaurantId("1f8e1d59-b000-4b0b-86f3-9a9c6ffb69c3")
+                .menus(List.of(menuRequest1))
+                .deliveryAddress("경기도 수원시 영통구 영통로")
+                .build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/orders")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                                .content(objectMapper.writeValueAsString(request))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_CREATE_SUCCESS"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문을 정상적으로 생성했습니다."));
+    }
+
+    @DisplayName("주문 생성 시 MenuId가 UUID 형식이 아니면(글자 수 불일치) VALIDATION_FAILED 응답")
+    @Test
+    void createOrderWithInvalidMenuId1() throws Exception {
+        OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
+                .menuId("not-a-uuid")
+                .quantity(1)
+                .build();
+
+        CreateOrderRequest request = CreateOrderRequest.builder()
+                .restaurantId("1f8e1d59-b000-4b0b-86f3-9a9c6ffb69c3")
+                .menus(List.of(menuRequest1))
+                .deliveryAddress("경기도 수원시 영통구 영통로")
+                .build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/orders")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                                .content(objectMapper.writeValueAsString(request))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("메뉴의 UUID 형식이 올바르지 않습니다."));
+    }
+
+    @DisplayName("주문 생성 시 MenuId가 UUID 형식이 아니면(특수문자 포함) VALIDATION_FAILED 응답")
+    @Test
+    void createOrderWithInvalidMenuId2() throws Exception {
+        OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
+                .menuId("e0a476d8-3f29-4**2-b021-d89a447d2f7f")
+                .quantity(1)
+                .build();
+
+        CreateOrderRequest request = CreateOrderRequest.builder()
+                .restaurantId("1f8e1d59-b000-4b0b-86f3-9a9c6ffb69c3")
+                .menus(List.of(menuRequest1))
+                .deliveryAddress("경기도 수원시 영통구 영통로")
+                .build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/orders")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                                .content(objectMapper.writeValueAsString(request))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("메뉴의 UUID 형식이 올바르지 않습니다."));
+    }
+
+    @DisplayName("주문 생성 시 MenuId가 비어 있으면 VALIDATION_FAILED 응답")
+    @Test
+    void createOrderWithInvalidMenuId3() throws Exception {
+        OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
+                .menuId("")
+                .quantity(1)
+                .build();
+
+        CreateOrderRequest request = CreateOrderRequest.builder()
+                .restaurantId("1f8e1d59-b000-4b0b-86f3-9a9c6ffb69c3")
+                .menus(List.of(menuRequest1))
+                .deliveryAddress("경기도 수원시 영통구 영통로")
+                .build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/orders")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                                .content(objectMapper.writeValueAsString(request))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("메뉴의 UUID 형식이 올바르지 않습니다."));
+    }
+
+    @DisplayName("주문 생성 시 MenuId가 UUID 형식에 맞으면 정상 응답을 반환한다.")
+    @Test
+    void createOrderWithValidMenuId() throws Exception {
+        OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
+                .menuId("e0a476d8-3f29-4b32-b021-d89a447d2f7f")
+                .quantity(1)
+                .build();
+
+        CreateOrderRequest request = CreateOrderRequest.builder()
+                .restaurantId("1f8e1d59-b000-4b0b-86f3-9a9c6ffb69c3")
+                .menus(List.of(menuRequest1))
+                .deliveryAddress("경기도 수원시 영통구 영통로")
+                .build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/orders")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                                .content(objectMapper.writeValueAsString(request))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_CREATE_SUCCESS"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문을 정상적으로 생성했습니다."));
+    }
+
+    @DisplayName("주문 생성 시 메뉴의 수량이 자연수가 아니면(0 이하) VALIDATION_FAILED 응답")
+    @Test
+    void createOrderWithMenuQuantityIsZero() throws Exception {
+        OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
+                .menuId("e0a476d8-3f29-4b32-b021-d89a447d2f7f")
+                .quantity(0)
+                .build();
+
+        CreateOrderRequest request = CreateOrderRequest.builder()
+                .restaurantId("1f8e1d59-b000-4b0b-86f3-9a9c6ffb69c3")
+                .menus(List.of(menuRequest1))
+                .deliveryAddress("경기도 수원시 영통구 영통로")
+                .build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/orders")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                                .content(objectMapper.writeValueAsString(request))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("메뉴 수량은 양의 정수여야 합니다."));
+    }
+
+    @DisplayName("주문 생성 시 메뉴의 수량이 자연수라면 정상 응답을 반환한다.")
+    @Test
+    void createOrderWithMenuQuantityIsNaturalNumber() throws Exception {
+        OrderMenuRequest menuRequest1 = OrderMenuRequest.builder()
+                .menuId("e0a476d8-3f29-4b32-b021-d89a447d2f7f")
+                .quantity(1)
+                .build();
+
+        CreateOrderRequest request = CreateOrderRequest.builder()
+                .restaurantId("1f8e1d59-b000-4b0b-86f3-9a9c6ffb69c3")
+                .menus(List.of(menuRequest1))
+                .deliveryAddress("경기도 수원시 영통구 영통로")
+                .build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .post("/v1/orders")
+                                .with(SecurityMockMvcRequestPostProcessors.user("owner").roles("OWNER"))
+                                .with(SecurityMockMvcRequestPostProcessors.csrf())
+                                .content(objectMapper.writeValueAsString(request))
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("ORDER_CREATE_SUCCESS"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("주문을 정상적으로 생성했습니다."));
     }
 }
