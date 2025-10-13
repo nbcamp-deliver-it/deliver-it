@@ -32,7 +32,7 @@ public class CancelOrderInfo {
     public static CancelOrderInfo create(Order nextOrder) {
         return CancelOrderInfo.builder()
                 .orderId(nextOrder.getOrderId())
-                .previousStatus(OrderStatus.PAYMENT_COMPLETED.toString())
+                .previousStatus(OrderStatus.ORDER_COMPLETED.toString())
                 .currentStatus(nextOrder.getOrderStatus().toString())
                 .cancelAt(nextOrder.getUpdatedAt().toString())
                 .build();

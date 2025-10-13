@@ -76,7 +76,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -100,7 +100,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -127,7 +127,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -196,7 +196,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -222,7 +222,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -251,7 +251,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -307,7 +307,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -319,7 +319,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -331,7 +331,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -362,7 +362,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L);
@@ -376,7 +376,7 @@ class OrderServiceImplTest {
                 .restaurant(null)
                 .payment(null)
                 .orderedAt(from)
-                .orderStatus(OrderStatus.CREATED)
+                .orderStatus(OrderStatus.ORDER_CREATED)
                 .address("서울시 중구 어딘가 1-1")
                 .totalPrice(new BigDecimal(35000))
                 .build();
@@ -423,7 +423,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -434,7 +434,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000003",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 강남구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L);
@@ -454,7 +454,7 @@ class OrderServiceImplTest {
                 .restaurant(null)
                 .payment(null)
                 .orderedAt(from)
-                .orderStatus(OrderStatus.CREATED)
+                .orderStatus(OrderStatus.ORDER_CREATED)
                 .address("서울시 중구 어딘가 1-1")
                 .totalPrice(new BigDecimal(42000))
                 .build();
@@ -465,7 +465,7 @@ class OrderServiceImplTest {
                 .restaurant(null)
                 .payment(null)
                 .orderedAt(from)
-                .orderStatus(OrderStatus.CREATED)
+                .orderStatus(OrderStatus.ORDER_CREATED)
                 .address("서울시 강남구 어딘가 1-1")
                 .totalPrice(new BigDecimal(14000))
                 .build();
@@ -548,7 +548,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000001",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -561,7 +561,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -574,7 +574,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000003",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -606,7 +606,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -621,7 +621,7 @@ class OrderServiceImplTest {
                 .restaurant(null)
                 .payment(null)
                 .orderedAt(from)
-                .orderStatus(OrderStatus.CREATED)
+                .orderStatus(OrderStatus.ORDER_CREATED)
                 .address("서울시 중구 어딘가 1-1")
                 .totalPrice(new BigDecimal(35000))
                 .build();
@@ -669,7 +669,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -682,7 +682,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000003",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 강남구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -703,7 +703,7 @@ class OrderServiceImplTest {
                 .restaurant(null)
                 .payment(null)
                 .orderedAt(from)
-                .orderStatus(OrderStatus.CREATED)
+                .orderStatus(OrderStatus.ORDER_CREATED)
                 .address("서울시 중구 어딘가 1-1")
                 .totalPrice(new BigDecimal(42000))
                 .build();
@@ -714,7 +714,7 @@ class OrderServiceImplTest {
                 .restaurant(null)
                 .payment(null)
                 .orderedAt(from)
-                .orderStatus(OrderStatus.CREATED)
+                .orderStatus(OrderStatus.ORDER_CREATED)
                 .address("서울시 강남구 어딘가 1-1")
                 .totalPrice(new BigDecimal(14000))
                 .build();
@@ -874,7 +874,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000003",
                 LocalDateTime.of(2025, 10, 10, 11, 0, 0),
-                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.ORDER_COMPLETED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -901,7 +901,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000003",
                 LocalDateTime.of(2025, 10, 10, 11, 0, 0),
-                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.ORDER_COMPLETED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -936,7 +936,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000003",
                 LocalDateTime.of(2025, 10, 10, 12, 0, 0),
-                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.ORDER_COMPLETED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -971,7 +971,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000003",
                 LocalDateTime.of(2025, 10, 10, 12, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -1006,7 +1006,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000003",
                 LocalDateTime.of(2025, 10, 10, 12, 0, 0),
-                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.ORDER_COMPLETED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -1051,7 +1051,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000003",
                 LocalDateTime.of(2025, 10, 10, 12, 0, 0),
-                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.ORDER_COMPLETED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -1072,7 +1072,7 @@ class OrderServiceImplTest {
 
         Order order = Order.builder()
                 .orderId("00000000-0000-0000-0000-000000000003")
-                .orderStatus(OrderStatus.CONFIRMED)
+                .orderStatus(OrderStatus.ORDER_CONFIRMED)
                 .build();
 
         // Builder을 이용해서 updatedAt 필드값 생성 불가능하여 Stubing 불가능 -> Reflection 사용하여 해결
@@ -1086,7 +1086,7 @@ class OrderServiceImplTest {
 
         // then
         Assertions.assertThat(confirmOrderInfo.getOrderId()).isEqualTo("00000000-0000-0000-0000-000000000003");
-        Assertions.assertThat(confirmOrderInfo.getOrderStatus()).isEqualTo("CONFIRMED");
+        Assertions.assertThat(confirmOrderInfo.getOrderStatus()).isEqualTo("ORDER_CONFIRMED");
         Assertions.assertThat(confirmOrderInfo.getConfirmedAt()).isEqualTo(LocalDateTime.of(2025, 10, 10, 12, 3, 0).toString());
     }
 
@@ -1114,7 +1114,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -1149,7 +1149,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000004",
                 LocalDateTime.of(2025, 10, 10, 12, 0, 0),
-                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.ORDER_COMPLETED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -1184,7 +1184,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000004",
                 LocalDateTime.of(2025, 10, 10, 12, 0, 0),
-                OrderStatus.CONFIRMED,
+                OrderStatus.ORDER_CONFIRMED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -1218,7 +1218,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000004",
                 LocalDateTime.of(2025, 10, 10, 12, 0, 0),
-                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.ORDER_COMPLETED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -1262,7 +1262,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000004",
                 LocalDateTime.of(2025, 10, 10, 12, 0, 0),
-                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.ORDER_COMPLETED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -1270,7 +1270,7 @@ class OrderServiceImplTest {
 
         Order order = Order.builder()
                 .orderId("00000000-0000-0000-0000-000000000003")
-                .orderStatus(OrderStatus.CANCELED)
+                .orderStatus(OrderStatus.ORDER_CANCELED)
                 .build();
 
         ReflectionTestUtils.setField(order, "updatedAt", LocalDateTime.of(2025, 10, 10, 12, 3, 0));
@@ -1296,8 +1296,8 @@ class OrderServiceImplTest {
 
         // then
         Assertions.assertThat(orderInfo.getOrderId()).isEqualTo("00000000-0000-0000-0000-000000000003");
-        Assertions.assertThat(orderInfo.getPreviousStatus()).isEqualTo("PAYMENT_COMPLETED");
-        Assertions.assertThat(orderInfo.getCurrentStatus()).isEqualTo("CANCELED");
+        Assertions.assertThat(orderInfo.getPreviousStatus()).isEqualTo("ORDER_COMPLETED");
+        Assertions.assertThat(orderInfo.getCurrentStatus()).isEqualTo("ORDER_CANCELED");
         Assertions.assertThat(orderInfo.getCancelAt()).isEqualTo(LocalDateTime.of(2025, 10, 10, 12, 3, 0).toString());
     }
 
@@ -1327,7 +1327,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.PAYMENT_COMPLETED,
+                OrderStatus.ORDER_COMPLETED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -1353,7 +1353,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CREATED,
+                OrderStatus.ORDER_CREATED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -1405,7 +1405,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000004",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CONFIRMED,
+                OrderStatus.ORDER_CONFIRMED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -1440,7 +1440,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.CONFIRMED,
+                OrderStatus.ORDER_CONFIRMED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -1448,7 +1448,7 @@ class OrderServiceImplTest {
 
         Order order = Order.builder()
                 .orderId("00000000-0000-0000-0000-000000000004")
-                .orderStatus(OrderStatus.CANCELED)
+                .orderStatus(OrderStatus.ORDER_CANCELED)
                 .build();
 
         ReflectionTestUtils.setField(order, "updatedAt", LocalDateTime.of(2025, 10, 10, 12, 3, 0));
@@ -1473,8 +1473,8 @@ class OrderServiceImplTest {
 
         // then
         Assertions.assertThat(orderInfo.getOrderId()).isEqualTo("00000000-0000-0000-0000-000000000004");
-        Assertions.assertThat(orderInfo.getPreviousStatus()).isEqualTo(OrderStatus.CONFIRMED.toString());
-        Assertions.assertThat(orderInfo.getCurrentStatus()).isEqualTo("CANCELED");
+        Assertions.assertThat(orderInfo.getPreviousStatus()).isEqualTo(OrderStatus.ORDER_CONFIRMED.toString());
+        Assertions.assertThat(orderInfo.getCurrentStatus()).isEqualTo("ORDER_CANCELED");
         Assertions.assertThat(orderInfo.getCancelAt()).isEqualTo(LocalDateTime.of(2025, 10, 10, 12, 3, 0).toString());
     }
 

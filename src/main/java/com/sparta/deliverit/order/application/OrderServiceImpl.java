@@ -33,7 +33,7 @@ public class OrderServiceImpl implements OrderService {
 
     private static final int TIMEOUT_MINUTES = 5;
     private static final Set<OrderStatus> CANCELABLE_STATUS_SET =
-            EnumSet.of(OrderStatus.PAYMENT_COMPLETED, OrderStatus.CONFIRMED);
+            EnumSet.of(OrderStatus.ORDER_COMPLETED, OrderStatus.ORDER_CONFIRMED);
 
     private static final List<OrderStatus> CANCELABLE_STATUS_LIST =
             List.copyOf(CANCELABLE_STATUS_SET);
@@ -185,7 +185,7 @@ public class OrderServiceImpl implements OrderService {
             throw new OrderConfirmTimeOutException(OrderResponseCode.ORDER_CONFIRM_FAIL);
         }
 
-        if (currOrder.getOrderStatus() != OrderStatus.PAYMENT_COMPLETED) {
+        if (currOrder.getOrderStatus() != OrderStatus.ORDER_COMPLETED) {
             throw new InvalidOrderStatusException(OrderResponseCode.INVALID_ORDER_STATUS);
         }
 
@@ -194,8 +194,8 @@ public class OrderServiceImpl implements OrderService {
                 orderId,
                 restaurantId,
                 Long.valueOf(accessUserId),
-                OrderStatus.PAYMENT_COMPLETED,
-                OrderStatus.CONFIRMED,
+                OrderStatus.ORDER_COMPLETED,
+                OrderStatus.ORDER_CONFIRMED,
                 currOrder.getVersion(),
                 nowMinusMinute
         );
@@ -227,7 +227,7 @@ public class OrderServiceImpl implements OrderService {
             throw new OrderCancelTimeOutException(OrderResponseCode.ORDER_CANCEL_FAIL);
         }
 
-        if (currOrder.getOrderStatus() != OrderStatus.PAYMENT_COMPLETED) {
+        if (currOrder.getOrderStatus() != OrderStatus.ORDER_COMPLETED) {
             throw new InvalidOrderStatusException(OrderResponseCode.INVALID_ORDER_STATUS);
         }
 
@@ -235,8 +235,8 @@ public class OrderServiceImpl implements OrderService {
         int queryResult = orderRepository.updateOrderStatusToCancelForUser(
                 orderId,
                 Long.valueOf(accessUserId),
-                OrderStatus.PAYMENT_COMPLETED,
-                OrderStatus.CANCELED,
+                OrderStatus.ORDER_COMPLETED,
+                OrderStatus.ORDER_CANCELED,
                 currOrder.getVersion(),
                 nowMinusMinute
         );
@@ -273,7 +273,7 @@ public class OrderServiceImpl implements OrderService {
                 restaurantId,
                 Long.valueOf(accessUserId),
                 CANCELABLE_STATUS_LIST,
-                OrderStatus.CANCELED,
+                OrderStatus.ORDER_CANCELED,
                 currOrder.getVersion()
         );
 

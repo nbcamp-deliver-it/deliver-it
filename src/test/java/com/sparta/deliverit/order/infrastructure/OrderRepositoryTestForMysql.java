@@ -55,7 +55,7 @@ public class OrderRepositoryTestForMysql {
         final String restaurantId = currentOrder.getRestaurantId();
         final Long restaurantUserId = Long.valueOf(currentOrder.getRestaurantUserId());
         final OrderStatus currentStatus = currentOrder.getOrderStatus();
-        final OrderStatus nextStatus = OrderStatus.CONFIRMED;
+        final OrderStatus nextStatus = OrderStatus.ORDER_CONFIRMED;
         final Long beforeVersion = currentOrder.getVersion();
 
         LocalDateTime cutOffTime = LocalDateTime.of(2025,10,10,12,3,0).minusMinutes(5);
@@ -97,7 +97,7 @@ public class OrderRepositoryTestForMysql {
         OrderDetailForOwner nextOrder = orderRepository.getByOrderIdForOwner("00000000-0000-0000-0000-000000000003").orElseThrow();
 
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDER_CONFIRMED);
     }
 
     @DisplayName("특정 주문에 대하여 동시에 취소을 요청하는 경우 둘 중 하나는 성공하고 하나는 실패한다.")
@@ -110,8 +110,8 @@ public class OrderRepositoryTestForMysql {
         System.out.println("currentOrder.toString() = " + currentOrder.toString());
         final String orderId = currentOrder.getOrderId();
         final String orderUserId = currentOrder.getUserId();
-        final OrderStatus currentStatus = OrderStatus.PAYMENT_COMPLETED;
-        final OrderStatus nextStatus = OrderStatus.CANCELED;
+        final OrderStatus currentStatus = OrderStatus.ORDER_COMPLETED;
+        final OrderStatus nextStatus = OrderStatus.ORDER_CANCELED;
         final Long beforeVersion = currentOrder.getVersion();
 
         LocalDateTime cutOffTime = LocalDateTime.of(2025,10,10,12,3,0).minusMinutes(5);
@@ -152,7 +152,7 @@ public class OrderRepositoryTestForMysql {
         OrderDetailForUser nextOrder = orderRepository.getByOrderIdForUser("00000000-0000-0000-0000-000000000004").orElseThrow();
 
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCELED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDER_CANCELED);
     }
 
     @DisplayName("특정 주문에 대하여 동시에 확인, 취소 요청하는 경우 둘 중 하나는 성공하고 하나는 실패한다.")
@@ -166,8 +166,8 @@ public class OrderRepositoryTestForMysql {
         final String orderIdForOwner = currentOrderForOwner.getOrderId();
         final String restaurantIdForOwner = currentOrderForOwner.getRestaurantId();
         final Long restaurantUserIdForOwner = Long.valueOf(currentOrderForOwner.getRestaurantUserId());
-        final OrderStatus currentStatusForOwner = OrderStatus.PAYMENT_COMPLETED;
-        final OrderStatus nextStatusForOwner = OrderStatus.CONFIRMED;
+        final OrderStatus currentStatusForOwner = OrderStatus.ORDER_COMPLETED;
+        final OrderStatus nextStatusForOwner = OrderStatus.ORDER_CONFIRMED;
         final Long beforeVersionForOwner = currentOrderForOwner.getVersion();
 
 
@@ -176,8 +176,8 @@ public class OrderRepositoryTestForMysql {
         System.out.println("currentOrder.toString() = " + currentOrderForUser.toString());
         final String orderIdForUser = currentOrderForUser.getOrderId();
         final String orderUserIdForUser = currentOrderForUser.getUserId();
-        final OrderStatus currentStatusForUser = OrderStatus.PAYMENT_COMPLETED;
-        final OrderStatus nextStatusForUser = OrderStatus.CANCELED;
+        final OrderStatus currentStatusForUser = OrderStatus.ORDER_COMPLETED;
+        final OrderStatus nextStatusForUser = OrderStatus.ORDER_CANCELED;
         final Long beforeVersionForUser = currentOrderForUser.getVersion();
 
         LocalDateTime cutOffTime = LocalDateTime.of(2025,10,10,12,3,0).minusMinutes(5);
@@ -234,7 +234,7 @@ public class OrderRepositoryTestForMysql {
         OrderDetailForUser nextOrder = orderRepository.getByOrderIdForUser("00000000-0000-0000-0000-000000000004").orElseThrow();
 
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersionForUser + 1);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isIn(OrderStatus.CONFIRMED, OrderStatus.CANCELED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isIn(OrderStatus.ORDER_CONFIRMED, OrderStatus.ORDER_CANCELED);
     }
 
     @DisplayName("음식점에서 특정 주문에 대하여 동시에 취소을 요청하는 경우 둘 중 하나는 성공하고 하나는 실패한다.")
@@ -248,8 +248,8 @@ public class OrderRepositoryTestForMysql {
         final String orderId = currentOrder.getOrderId();
         final String restaurantId = "11111111-1111-1111-1111-111111111111";
         final Long accessUserId = 2L;
-        final List<OrderStatus> currentOrderStatusList = List.of(OrderStatus.PAYMENT_COMPLETED, OrderStatus.CONFIRMED);
-        final OrderStatus nextStatus = OrderStatus.CANCELED;
+        final List<OrderStatus> currentOrderStatusList = List.of(OrderStatus.ORDER_COMPLETED, OrderStatus.ORDER_CONFIRMED);
+        final OrderStatus nextStatus = OrderStatus.ORDER_CANCELED;
         final Long beforeVersion = currentOrder.getVersion();
 
         TransactionTemplate txNew = new TransactionTemplate(txManager);
@@ -288,7 +288,7 @@ public class OrderRepositoryTestForMysql {
         OrderDetailForUser nextOrder = orderRepository.getByOrderIdForUser("00000000-0000-0000-0000-000000000004").orElseThrow();
 
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCELED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDER_CANCELED);
     }
 
     @DisplayName("음식 점주가 특정 주문에 대하여 동시에 확인, 취소 요청하는 경우 둘 중 하나는 성공하고 하나는 실패한다.")
@@ -319,8 +319,8 @@ public class OrderRepositoryTestForMysql {
                         orderIdForOwner,
                         restaurantIdForOwner,
                         restaurantUserIdForOwner,
-                        OrderStatus.PAYMENT_COMPLETED,
-                        OrderStatus.CONFIRMED,
+                        OrderStatus.ORDER_COMPLETED,
+                        OrderStatus.ORDER_CONFIRMED,
                         beforeVersionForOwner,
                         cutOffTime
                 );
@@ -335,8 +335,8 @@ public class OrderRepositoryTestForMysql {
                         orderIdForOwner,
                         restaurantIdForOwner,
                         restaurantUserIdForOwner,
-                        List.of(OrderStatus.PAYMENT_COMPLETED, OrderStatus.CONFIRMED),
-                        OrderStatus.CANCELED,
+                        List.of(OrderStatus.ORDER_COMPLETED, OrderStatus.ORDER_CONFIRMED),
+                        OrderStatus.ORDER_CANCELED,
                         beforeVersionForOwner
                 );
             });
@@ -358,6 +358,6 @@ public class OrderRepositoryTestForMysql {
         OrderDetailForUser nextOrder = orderRepository.getByOrderIdForUser("00000000-0000-0000-0000-000000000004").orElseThrow();
 
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersionForOwner + 1);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isIn(OrderStatus.CONFIRMED, OrderStatus.CANCELED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isIn(OrderStatus.ORDER_CONFIRMED, OrderStatus.ORDER_CANCELED);
     }
 }

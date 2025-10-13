@@ -40,7 +40,7 @@ class OrderRepositoryTest {
             Assertions.assertThat(order.getUserName()).isEqualTo("tester1");
             Assertions.assertThat(order.getRestaurantId()).isEqualTo("11111111-1111-1111-1111-111111111111");
             Assertions.assertThat(order.getRestaurantName()).isEqualTo("맛있는집");
-            Assertions.assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CREATED);
+            Assertions.assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.ORDER_CREATED);
             Assertions.assertThat(order.getAddress()).isEqualTo("서울시 중구 어딘가 1-1");
             Assertions.assertThat(order.getTotalPrice()).isEqualByComparingTo("40000");
             Assertions.assertThat(order.getVersion()).isEqualByComparingTo(0L);
@@ -61,7 +61,7 @@ class OrderRepositoryTest {
             Assertions.assertThat(order.getRestaurantId()).isEqualTo("11111111-1111-1111-1111-111111111111");
             Assertions.assertThat(order.getRestaurantUserId()).isEqualTo("2");
             Assertions.assertThat(order.getRestaurantName()).isEqualTo("맛있는집");
-            Assertions.assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CREATED);
+            Assertions.assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.ORDER_CREATED);
             Assertions.assertThat(order.getAddress()).isEqualTo("서울시 중구 어딘가 1-1");
             Assertions.assertThat(order.getTotalPrice()).isEqualByComparingTo("40000");
             Assertions.assertThat(order.getVersion()).isEqualByComparingTo(0L);
@@ -116,8 +116,8 @@ class OrderRepositoryTest {
                 currentOrder.getOrderId(),
                 currentOrder.getRestaurant().getRestaurantId(),
                 2L,
-                OrderStatus.PAYMENT_COMPLETED,
-                OrderStatus.CONFIRMED,
+                OrderStatus.ORDER_COMPLETED,
+                OrderStatus.ORDER_CONFIRMED,
                 beforeVersion,
                 nowMinusMinute
         );
@@ -126,7 +126,7 @@ class OrderRepositoryTest {
         // then
         Assertions.assertThat(result).isEqualTo(1);
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDER_CONFIRMED);
     }
 
     @DisplayName("음식점에서 주문을 확인 상태로 변경하고자 할 때, 접근한 유저 아이디가 음식 점주가 아닌 경우 상태가 변경되지 않는다.")
@@ -143,8 +143,8 @@ class OrderRepositoryTest {
                 currentOrder.getOrderId(),
                 currentOrder.getRestaurant().getRestaurantId(),
                 1L,
-                OrderStatus.PAYMENT_COMPLETED,
-                OrderStatus.CONFIRMED,
+                OrderStatus.ORDER_COMPLETED,
+                OrderStatus.ORDER_CONFIRMED,
                 beforeVersion,
                 nowMinusMinute
         );
@@ -153,7 +153,7 @@ class OrderRepositoryTest {
         // then
         Assertions.assertThat(result).isEqualTo(0);
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_COMPLETED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDER_COMPLETED);
     }
 
     @DisplayName("음식점에서 주문을 확인 상태로 변경하고자 할 때, restaurantId가 다른 경우 상태가 변경되지 않는다.")
@@ -170,8 +170,8 @@ class OrderRepositoryTest {
                 currentOrder.getOrderId(),
                 "11111111-1111-1111-1111-111111111112",
                 2L,
-                OrderStatus.PAYMENT_COMPLETED,
-                OrderStatus.CONFIRMED,
+                OrderStatus.ORDER_COMPLETED,
+                OrderStatus.ORDER_CONFIRMED,
                 beforeVersion,
                 nowMinusMinute
         );
@@ -180,7 +180,7 @@ class OrderRepositoryTest {
         // then
         Assertions.assertThat(result).isEqualTo(0);
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_COMPLETED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDER_COMPLETED);
     }
 
     @DisplayName("음식점에서 주문을 확인 상태로 변경하고자 할 때, 주문한지 5분이 지난 경우 주문 확인은 실패한다.")
@@ -197,8 +197,8 @@ class OrderRepositoryTest {
                 currentOrder.getOrderId(),
                 currentOrder.getRestaurant().getRestaurantId(),
                 2L,
-                OrderStatus.PAYMENT_COMPLETED,
-                OrderStatus.CONFIRMED,
+                OrderStatus.ORDER_COMPLETED,
+                OrderStatus.ORDER_CONFIRMED,
                 beforeVersion,
                 nowMinusMinute
         );
@@ -207,7 +207,7 @@ class OrderRepositoryTest {
         // then
         Assertions.assertThat(result).isEqualTo(0);
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_COMPLETED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDER_COMPLETED);
     }
 
     @DisplayName("음식점에서 주문을 확인 상태로 변경하고자 할 때, 주문한지 5분이 지나지 않은 경우 order의 상태가 'CONFIRM'이 되고 1을 반환 그리고 version의 값이 1 증가한다. ")
@@ -224,8 +224,8 @@ class OrderRepositoryTest {
                 currentOrder.getOrderId(),
                 currentOrder.getRestaurant().getRestaurantId(),
                 2L,
-                OrderStatus.PAYMENT_COMPLETED,
-                OrderStatus.CONFIRMED,
+                OrderStatus.ORDER_COMPLETED,
+                OrderStatus.ORDER_CONFIRMED,
                 beforeVersion,
                 nowMinusMinute
         );
@@ -234,7 +234,7 @@ class OrderRepositoryTest {
         // then
         Assertions.assertThat(result).isEqualTo(1);
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDER_CONFIRMED);
     }
 
     @DisplayName("고객이 주문을 취소 상태로 변경하고자 할 때, 주문한지 5분이 지나지 않은 경우 order의 상태가 'CANCEL'이 되고 1을 반환 그리고 version의 값이 1 증가한다. ")
@@ -250,8 +250,8 @@ class OrderRepositoryTest {
         int result = orderRepository.updateOrderStatusToCancelForUser(
                 currentOrder.getOrderId(),
                 1L,
-                OrderStatus.PAYMENT_COMPLETED,
-                OrderStatus.CANCELED,
+                OrderStatus.ORDER_COMPLETED,
+                OrderStatus.ORDER_CANCELED,
                 beforeVersion,
                 nowMinusMinute
         );
@@ -261,7 +261,7 @@ class OrderRepositoryTest {
         // then
         Assertions.assertThat(result).isEqualTo(1);
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCELED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDER_CANCELED);
     }
 
     @DisplayName("고객이 주문을 취소 상태로 변경하고자 할 때, 주문한지 5분이 지난 경우 updateOrderStatusToCancelForUser()는 0을 반환하고 상태가 변경되지 않아 PAYMENT_COMPLETED 상태를 유지한다..")
@@ -277,8 +277,8 @@ class OrderRepositoryTest {
         int result = orderRepository.updateOrderStatusToCancelForUser(
                 currentOrder.getOrderId(),
                 1L,
-                OrderStatus.PAYMENT_COMPLETED,
-                OrderStatus.CANCELED,
+                OrderStatus.ORDER_COMPLETED,
+                OrderStatus.ORDER_CANCELED,
                 beforeVersion,
                 nowMinusMinute
         );
@@ -288,7 +288,7 @@ class OrderRepositoryTest {
         // then
         Assertions.assertThat(result).isEqualTo(0);
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_COMPLETED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDER_COMPLETED);
     }
 
     @DisplayName("고객이 주문을 취소 상태로 변경하고자 할 때, 주문서 고객과 취소하고자 하는 고객이 다른 경우 updateOrderStatusToCancelForUser()는 0을 반환하고 상태가 변경되지 않아 PAYMENT_COMPLETED 상태를 유지한다..")
@@ -304,8 +304,8 @@ class OrderRepositoryTest {
         int result = orderRepository.updateOrderStatusToCancelForUser(
                 currentOrder.getOrderId(),
                 2L,
-                OrderStatus.PAYMENT_COMPLETED,
-                OrderStatus.CANCELED,
+                OrderStatus.ORDER_COMPLETED,
+                OrderStatus.ORDER_CANCELED,
                 beforeVersion,
                 nowMinusMinute
         );
@@ -315,7 +315,7 @@ class OrderRepositoryTest {
         // then
         Assertions.assertThat(result).isEqualTo(0);
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_COMPLETED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDER_COMPLETED);
     }
 
     @DisplayName("고객이 주문을 취소 상태로 변경하고자 할 때, 주문서 고객과 취소하고자 하는 고객이 다른 경우 updateOrderStatusToCancelForUser()는 0을 반환하고 상태가 변경되지 않아 PAYMENT_COMPLETED 상태를 유지한다..")
@@ -331,8 +331,8 @@ class OrderRepositoryTest {
         int result = orderRepository.updateOrderStatusToCancelForUser(
                 currentOrder.getOrderId(),
                 2L,
-                OrderStatus.PAYMENT_COMPLETED,
-                OrderStatus.CANCELED,
+                OrderStatus.ORDER_COMPLETED,
+                OrderStatus.ORDER_CANCELED,
                 beforeVersion,
                 nowMinusMinute
         );
@@ -342,7 +342,7 @@ class OrderRepositoryTest {
         // then
         Assertions.assertThat(result).isEqualTo(0);
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_COMPLETED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDER_COMPLETED);
     }
 
     @DisplayName("음식점 점주가 주문을 취소 상태로 변경하고자 할 때, 주문 상태가 PAYMENT_COMPLETED이면 'CANCEL'이 되고 1을 반환 그리고 version의 값이 1 증가한다. ")
@@ -359,8 +359,8 @@ class OrderRepositoryTest {
                 currentOrder.getOrderId(),
                 "11111111-1111-1111-1111-111111111111",
                 2L,
-                List.of(OrderStatus.PAYMENT_COMPLETED, OrderStatus.CONFIRMED),
-                OrderStatus.CANCELED,
+                List.of(OrderStatus.ORDER_COMPLETED, OrderStatus.ORDER_CONFIRMED),
+                OrderStatus.ORDER_CANCELED,
                 beforeVersion
         );
 
@@ -369,7 +369,7 @@ class OrderRepositoryTest {
         // then
         Assertions.assertThat(result).isEqualTo(1);
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCELED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDER_CANCELED);
     }
 
     @DisplayName("음식점 점주가 주문을 취소 상태로 변경하고자 할 때, 주문 상태가 CONFIRMED이면 'CANCEL'이 되고 1을 반환 그리고 version의 값이 1 증가한다. ")
@@ -386,8 +386,8 @@ class OrderRepositoryTest {
                 currentOrder.getOrderId(),
                 "11111111-1111-1111-1111-111111111111",
                 2L,
-                List.of(OrderStatus.PAYMENT_COMPLETED, OrderStatus.CONFIRMED),
-                OrderStatus.CANCELED,
+                List.of(OrderStatus.ORDER_COMPLETED, OrderStatus.ORDER_CONFIRMED),
+                OrderStatus.ORDER_CANCELED,
                 beforeVersion
         );
 
@@ -396,7 +396,7 @@ class OrderRepositoryTest {
         // then
         Assertions.assertThat(result).isEqualTo(1);
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion + 1);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.CANCELED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDER_CANCELED);
     }
 
 
@@ -415,8 +415,8 @@ class OrderRepositoryTest {
                 currentOrder.getOrderId(),
                 "11111111-1111-1111-1111-111111111110",
                 2L,
-                List.of(OrderStatus.PAYMENT_COMPLETED, OrderStatus.CONFIRMED),
-                OrderStatus.CANCELED,
+                List.of(OrderStatus.ORDER_COMPLETED, OrderStatus.ORDER_CONFIRMED),
+                OrderStatus.ORDER_CANCELED,
                 beforeVersion
         );
 
@@ -425,7 +425,7 @@ class OrderRepositoryTest {
         // then
         Assertions.assertThat(result).isEqualTo(0);
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_COMPLETED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDER_COMPLETED);
     }
 
     @DisplayName("음식점 점주가 주문을 취소 상태로 변경하고자 할 때, 음식점의 유저 정보와 요청한 유저 정보가 다른 경우 updateOrderStatusToCancelForUser()는 0을 반환하고 상태가 변경되지 않아 PAYMENT_COMPLETED 상태를 유지한다..")
@@ -442,8 +442,8 @@ class OrderRepositoryTest {
                 currentOrder.getOrderId(),
                 "11111111-1111-1111-1111-111111111111",
                 1L,
-                List.of(OrderStatus.PAYMENT_COMPLETED, OrderStatus.CONFIRMED),
-                OrderStatus.CANCELED,
+                List.of(OrderStatus.ORDER_COMPLETED, OrderStatus.ORDER_CONFIRMED),
+                OrderStatus.ORDER_CANCELED,
                 beforeVersion
         );
 
@@ -452,6 +452,6 @@ class OrderRepositoryTest {
         // then
         Assertions.assertThat(result).isEqualTo(0);
         Assertions.assertThat(nextOrder.getVersion()).isEqualTo(beforeVersion);
-        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.PAYMENT_COMPLETED);
+        Assertions.assertThat(nextOrder.getOrderStatus()).isEqualTo(OrderStatus.ORDER_COMPLETED);
     }
 }
