@@ -4,6 +4,7 @@ import com.sparta.deliverit.global.response.code.OrderResponseCode;
 import com.sparta.deliverit.menu.domain.entity.Menu;
 import com.sparta.deliverit.menu.domain.entity.MenuStatus;
 import com.sparta.deliverit.menu.domain.repository.MenuRepository;
+import com.sparta.deliverit.order.application.dto.CreateMenuCommand;
 import com.sparta.deliverit.order.application.dto.CreateOrderCommand;
 import com.sparta.deliverit.order.domain.entity.Order;
 import com.sparta.deliverit.order.domain.entity.OrderItem;
@@ -13,7 +14,6 @@ import com.sparta.deliverit.order.infrastructure.OrderItemRepository;
 import com.sparta.deliverit.order.infrastructure.OrderRepository;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForOwner;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForUser;
-import com.sparta.deliverit.order.presentation.dto.request.OrderMenuRequest;
 import com.sparta.deliverit.order.presentation.dto.response.*;
 import com.sparta.deliverit.payment.application.service.PaymentService;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
@@ -316,8 +316,8 @@ public class OrderServiceImpl implements OrderService {
 
         Map<String, Integer> quantityByMenuId = orderCommand.getMenus().stream()
                 .collect(Collectors.toMap(
-                        OrderMenuRequest::getMenuId,
-                        OrderMenuRequest::getQuantity,
+                        CreateMenuCommand::getMenuId,
+                        CreateMenuCommand::getQuantity,
                         Integer::sum
                 ));
         if (quantityByMenuId.isEmpty()) {
