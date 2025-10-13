@@ -1,8 +1,7 @@
 package com.sparta.deliverit.review.application.service;
 
 import com.sparta.deliverit.review.application.service.dto.OrderReviewCommand;
-import com.sparta.deliverit.review.entity.OrderReview;
-import com.sparta.deliverit.review.entity.Review;
+import com.sparta.deliverit.review.domain.entity.OrderReview;
 import com.sparta.deliverit.review.infrastructure.repository.OrderReviewRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

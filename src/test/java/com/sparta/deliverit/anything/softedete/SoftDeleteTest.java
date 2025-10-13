@@ -20,7 +20,8 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest(properties = {
-        "spring.jpa.hibernate.ddl-auto=create-drop"
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.sql.init.mode=never"
 })
 @EntityScan(basePackageClasses = { TestEntity.class })
 @Import({AuditingConfig.class, SoftDeleteTest.TestBoot.class})

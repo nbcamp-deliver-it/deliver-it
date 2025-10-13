@@ -1,6 +1,7 @@
 package com.sparta.deliverit.restaurant.domain.entity;
 
 import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
+import com.sparta.deliverit.restaurant.domain.vo.RestaurantRating;
 import com.sparta.deliverit.restaurant.infrastructure.api.map.Coordinates;
 import com.sparta.deliverit.restaurant.presentation.dto.RestaurantInfoRequestDto;
 import jakarta.persistence.*;
@@ -70,14 +71,8 @@ public class Restaurant {
         this.categories.addAll(categories);
     }
 
-    // 리뷰 및 별점
-//    @Column(nullable = false)
-//    @Builder.Default
-//    private Long reviewsCount = 0L;
-//
-//    @Column(nullable = false, precision = 2, scale = 1)
-//    @Builder.Default
-//    private BigDecimal starAvg = BigDecimal.ZERO;
+    @Embedded
+    private RestaurantRating rating = new RestaurantRating();
 
     // 음식점 수정 메서드
     public void update(RestaurantInfoRequestDto requestDto, Set<Category> categories, Coordinates coordinates) {

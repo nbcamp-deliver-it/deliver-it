@@ -1,5 +1,7 @@
-package com.sparta.deliverit.review.entity;
+package com.sparta.deliverit.review.domain.entity;
 
+import com.sparta.deliverit.review.domain.vo.Review;
+import com.sparta.deliverit.review.domain.vo.Star;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +14,8 @@ class OrderReviewTest {
     @Test
     @DisplayName("주문 리뷰를 생성할 수 있다")
     void createOrderReview() {
-        var review = new Review(BigDecimal.valueOf(4.5), "리뷰 내용");
+        Star star = new Star(BigDecimal.valueOf(4.5));
+        var review = new Review(star, "리뷰 내용");
         OrderReview orderReview = new OrderReview(review);
 
         assertNotNull(orderReview);
@@ -27,10 +30,12 @@ class OrderReviewTest {
     @Test
     @DisplayName("주문의 리뷰는 변경할 수 있다")
     void changeReview() {
-        var oldReview = new Review(BigDecimal.valueOf(4.5), "예전 리뷰");
+        Star star1 = new Star(BigDecimal.valueOf(4.5));
+        var oldReview = new Review(star1, "예전 리뷰");
         OrderReview orderReview = new OrderReview(oldReview);
 
-        var newReview = new Review(BigDecimal.valueOf(1.0), "새로운 리뷰");
+        Star star2 = new Star(BigDecimal.valueOf(1.0));
+        var newReview = new Review(star2, "새로운 리뷰");
         orderReview.changeReview(newReview);
 
         assertEquals(newReview, orderReview.getReview());
