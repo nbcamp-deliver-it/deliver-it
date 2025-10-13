@@ -2,9 +2,11 @@ package com.sparta.deliverit.order.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 
+@Getter
 public class CreateOrderInfo {
     @JsonProperty("orderId")
     private final String orderId;
