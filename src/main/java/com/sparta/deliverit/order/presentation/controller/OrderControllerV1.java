@@ -3,27 +3,21 @@ package com.sparta.deliverit.order.presentation.controller;
 import com.sparta.deliverit.global.response.ApiResponse;
 import com.sparta.deliverit.global.response.code.OrderResponseCode;
 import com.sparta.deliverit.order.application.OrderService;
+import com.sparta.deliverit.order.application.dto.CreateOrderCommand;
 import com.sparta.deliverit.order.presentation.dto.response.CancelOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.request.CreateOrderRequest;
-import com.sparta.deliverit.order.domain.entity.OrderStatus;
 import com.sparta.deliverit.order.presentation.dto.response.ConfirmOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.CreateOrderInfo;
-import com.sparta.deliverit.order.presentation.dto.response.MenuInfo;
 import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
 
-import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Validated
 @RestController
@@ -95,8 +89,13 @@ public class OrderControllerV1 implements OrderController {
 
     @PreAuthorize("hasRole('OWNER')")
     @PostMapping("/v1/orders")
-    public ApiResponse<CreateOrderInfo> createOrder(CreateOrderRequest request, PaymentRequestDto paymentRequest) {
-        return null;
+    public ApiResponse<CreateOrderInfo> createOrder(CreateOrderRequest request) {
+
+        // 임시 로그인
+        String userId = "1";
+
+        CreateOrderInfo orderInfo = orderService.createOrder(CreateOrderCommand.of(request), Long.valueOf(userId));
+        return ApiResponse.create(OrderResponseCode.ORDER_CREATE_SUCCESS, "주문을 정상적으로 생성했습니다.", orderInfo);
     }
 
     @PreAuthorize("hasRole('OWNER')")
