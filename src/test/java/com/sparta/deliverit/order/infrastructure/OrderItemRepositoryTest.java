@@ -30,11 +30,11 @@ class OrderItemRepositoryTest {
         Assertions.assertThat(orderItemList).size().isEqualTo(4);
         Assertions.assertThat(orderItemList.get(0).getMenu().getId()).isEqualTo("3dfebfd6-c60c-4dcf-ab76-1946b3641dc7");
         Assertions.assertThat(orderItemList.get(0).getMenuNameSnapshot()).isEqualTo("짜장면");
-        Assertions.assertThat(orderItemList.get(0).getMenuPriceSnapshop()).isEqualByComparingTo("6000");
+        Assertions.assertThat(orderItemList.get(0).getMenuPriceSnapshot()).isEqualByComparingTo("6000");
         Assertions.assertThat(orderItemList.get(0).getQuantity()).isEqualTo(2);
         Assertions.assertThat(orderItemList.get(3).getMenu().getId()).isEqualTo("3f2faf2f-ec74-4e78-b3ea-1acbaf1cbd29");
         Assertions.assertThat(orderItemList.get(3).getMenuNameSnapshot()).isEqualTo("착한 탕수육");
-        Assertions.assertThat(orderItemList.get(3).getMenuPriceSnapshop()).isEqualByComparingTo("21000");
+        Assertions.assertThat(orderItemList.get(3).getMenuPriceSnapshot()).isEqualByComparingTo("21000");
         Assertions.assertThat(orderItemList.get(3).getQuantity()).isEqualTo(2);
     }
 }

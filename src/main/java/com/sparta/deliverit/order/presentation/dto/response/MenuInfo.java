@@ -37,7 +37,7 @@ public class MenuInfo {
         return MenuInfo.builder()
                 .menuName(orderItem.getMenuNameSnapshot())
                 .quantity(orderItem.getQuantity())
-                .price(orderItem.getMenuPriceSnapshop())
+                .price(orderItem.getMenuPriceSnapshot())
                 .build();
     }
 }
