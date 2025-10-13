@@ -354,7 +354,7 @@ public class OrderServiceImpl implements OrderService {
                 totalPrice
         );
 
-        orderRepository.save(order);
+        Order persisted = orderRepository.save(order);
 
         List<OrderItem> orderItemList = quantityByMenuId.keySet().stream()
                 .map(key -> {
@@ -372,7 +372,7 @@ public class OrderServiceImpl implements OrderService {
         orderItemRepository.saveAll(orderItemList);
 
         return CreateOrderInfo.create(
-                order.getOrderId(),
+                persisted.getOrderId(),
                 userId,
                 user.getPhone(),
                 user.getName(),
