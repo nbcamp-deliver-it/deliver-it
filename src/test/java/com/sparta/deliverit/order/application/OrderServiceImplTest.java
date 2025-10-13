@@ -1,5 +1,11 @@
 package com.sparta.deliverit.order.application;
 
+import com.sparta.deliverit.menu.domain.entity.Menu;
+import com.sparta.deliverit.menu.domain.entity.MenuStatus;
+import com.sparta.deliverit.menu.domain.repository.MenuRepository;
+
+import com.sparta.deliverit.order.application.dto.CreateMenuCommand;
+import com.sparta.deliverit.order.application.dto.CreateOrderCommand;
 import com.sparta.deliverit.order.domain.entity.Order;
 import com.sparta.deliverit.order.domain.entity.OrderItem;
 import com.sparta.deliverit.order.domain.entity.OrderStatus;
@@ -10,8 +16,15 @@ import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForOwner;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForUser;
 import com.sparta.deliverit.order.presentation.dto.response.CancelOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.ConfirmOrderInfo;
+import com.sparta.deliverit.order.presentation.dto.response.CreateOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
 import com.sparta.deliverit.payment.application.service.PaymentService;
+import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
+import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
+import com.sparta.deliverit.restaurant.infrastructure.repository.RestaurantRepository;
+import com.sparta.deliverit.user.domain.entity.User;
+import com.sparta.deliverit.user.domain.entity.UserRoleEnum;
+import com.sparta.deliverit.user.domain.repository.UserRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +43,7 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -46,6 +60,15 @@ class OrderServiceImplTest {
 
     @Mock
     PaymentService paymentService;
+
+    @Mock
+    RestaurantRepository restaurantRepository;
+
+    @Mock
+    MenuRepository menuRepository;
+
+    @Mock
+    UserRepository userRepository;
 
     @InjectMocks
     OrderServiceImpl orderServiceImpl;
@@ -1470,6 +1493,438 @@ class OrderServiceImplTest {
         Assertions.assertThat(orderInfo.getPreviousStatus()).isEqualTo(OrderStatus.ORDER_CONFIRMED.toString());
         Assertions.assertThat(orderInfo.getCurrentStatus()).isEqualTo("ORDER_CANCELED");
         Assertions.assertThat(orderInfo.getCancelAt()).isEqualTo(LocalDateTime.of(2025, 10, 10, 12, 3, 0).toString());
+    }
+
+    @DisplayName("주문 생성시, 파라미터로 들어온 restaurantId에 해당하는 레스토랑 레코드가 존재하지 않으면 IllegalArgumentException 응답")
+    @Test
+    void createOrderWithIllegalArgumentException() {
+        // given
+        CreateOrderCommand stubOrderData = CreateOrderCommand.builder()
+                .restaurantId("11111111-1111-1111-1111-111111111111")
+                .menus(List.of())
+                .deliveryAddress("서울시 중구 어딘가 1-1")
+                .build();
+
+        Mockito.when(restaurantRepository.findById("11111111-1111-1111-1111-111111111111"))
+                .thenReturn(Optional.empty());
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.createOrder(stubOrderData, 2L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("음식점을 찾을 수 없습니다.");
+    }
+
+    @DisplayName("주문 생성시, 파라미터로 들어온 restaurantId에 해당하는 음식점의 상태가 OPEN이 아닌 경우 OrderCreateFailException 응답")
+    @Test
+    void createOrderWithOrderCreateFailException() {
+        // given
+        CreateOrderCommand stubOrderData = CreateOrderCommand.builder()
+                .restaurantId("11111111-1111-1111-1111-111111111111")
+                .menus(List.of())
+                .deliveryAddress("서울시 중구 어딘가 1-1")
+                .build();
+
+        Mockito.when(restaurantRepository.findById("11111111-1111-1111-1111-111111111111"))
+                .thenReturn(Optional.of(
+                        Restaurant.builder()
+                                .restaurantId("11111111-1111-1111-1111-111111111111")
+                                .name("맛있는 집")
+                                .phone("070-1234-5678")
+                                .address("서울시 중구 어딘가 2-2")
+                                .description("맛있는 음식점 입니다.")
+                                .status(RestaurantStatus.CLOSED)
+                                .build()
+                ));
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.createOrder(stubOrderData, 2L))
+                .isInstanceOf(OrderCreateFailException.class);
+    }
+
+    @DisplayName("주문 생성시, 파라미터로 들어온 userId에 해당하는 유저를 찾을 수 없는 경우 IllegalArgumentException 응답")
+    @Test
+    void createOrderWithIllegalArgumentException2() {
+        // given
+        CreateOrderCommand stubOrderData = CreateOrderCommand.builder()
+                .restaurantId("11111111-1111-1111-1111-111111111111")
+                .menus(List.of())
+                .deliveryAddress("서울시 중구 어딘가 1-1")
+                .build();
+
+        Mockito.when(restaurantRepository.findById("11111111-1111-1111-1111-111111111111"))
+                .thenReturn(Optional.of(
+                        Restaurant.builder()
+                                .restaurantId("11111111-1111-1111-1111-111111111111")
+                                .name("맛있는 집")
+                                .phone("070-1234-5678")
+                                .address("서울시 중구 어딘가 2-2")
+                                .description("맛있는 음식점 입니다.")
+                                .status(RestaurantStatus.OPEN)
+                                .build()
+                ));
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.createOrder(stubOrderData, 2L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("유저를 찾을 수 없습니다.");
+    }
+
+    @DisplayName("주문 생성시, 파라미터로 들어온 주문 메뉴가 비어있는 경우 IllegalArgumentException 응답")
+    @Test
+    void createOrderWithIllegalArgumentException3() {
+        // given
+        CreateOrderCommand stubOrderData = CreateOrderCommand.builder()
+                .restaurantId("11111111-1111-1111-1111-111111111111")
+                .menus(List.of())
+                .deliveryAddress("서울시 중구 어딘가 1-1")
+                .build();
+
+        Mockito.when(restaurantRepository.findById("11111111-1111-1111-1111-111111111111"))
+                .thenReturn(Optional.of(
+                        Restaurant.builder()
+                                .restaurantId("11111111-1111-1111-1111-111111111111")
+                                .name("맛있는 집")
+                                .phone("070-1234-5678")
+                                .address("서울시 중구 어딘가 2-2")
+                                .description("맛있는 음식점 입니다.")
+                                .status(RestaurantStatus.OPEN)
+                                .build()
+                ));
+
+        User user = new User();
+
+        Mockito.when(userRepository.findById(2L))
+                .thenReturn(Optional.of(user));
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.createOrder(stubOrderData, 2L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("주문 메뉴가 비어있습니다.");
+    }
+
+    @DisplayName("주문 생성시, 파라미터로 들어온 주문 메뉴의 menuId에 해당하는 메뉴가 존재하지 않는 경우 IllegalArgumentException 응답")
+    @Test
+    void createOrderWithIllegalArgumentException4() {
+        // given
+        CreateMenuCommand stubMenuData1 = CreateMenuCommand.builder()
+                .menuId("00000000-0000-0000-0000-000000000001")
+                .quantity(1)
+                .build();
+
+        CreateMenuCommand stubMenuData2 = CreateMenuCommand.builder()
+                .menuId("00000000-0000-0000-0000-000000000002")
+                .quantity(2)
+                .build();
+
+        CreateOrderCommand stubOrderData = CreateOrderCommand.builder()
+                .restaurantId("11111111-1111-1111-1111-111111111111")
+                .menus(List.of(stubMenuData1, stubMenuData2))
+                .deliveryAddress("서울시 중구 어딘가 1-1")
+                .build();
+
+        Restaurant restaurant = Restaurant.builder()
+                .restaurantId("11111111-1111-1111-1111-111111111111")
+                .name("맛있는 집")
+                .phone("070-1234-5678")
+                .address("서울시 중구 어딘가 2-2")
+                .description("맛있는 음식점 입니다.")
+                .status(RestaurantStatus.OPEN)
+                .build();
+
+        Mockito.when(restaurantRepository.findById("11111111-1111-1111-1111-111111111111"))
+                .thenReturn(Optional.of(
+                        Restaurant.builder()
+                                .restaurantId("11111111-1111-1111-1111-111111111111")
+                                .name("맛있는 집")
+                                .phone("070-1234-5678")
+                                .address("서울시 중구 어딘가 2-2")
+                                .description("맛있는 음식점 입니다.")
+                                .status(RestaurantStatus.OPEN)
+                                .build()
+                ));
+
+        User user = new User();
+
+        Mockito.when(userRepository.findById(2L))
+                .thenReturn(Optional.of(user));
+
+        Menu menu1 = new Menu();
+        menu1.setId("00000000-0000-0000-0000-000000000001");
+        menu1.setRestaurant(restaurant);
+        menu1.setName("찌징먄");
+        menu1.setPrice(new BigDecimal(7500));
+        menu1.setStatus(MenuStatus.SELLING);
+
+        Mockito.when(menuRepository.findByIdIn(Set.of("00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002")))
+                .thenReturn(List.of(menu1));
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.createOrder(stubOrderData, 2L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("존재하지 않는 메뉴입니다. :[00000000-0000-0000-0000-000000000002]");
+    }
+
+    @DisplayName("주문 생성시, 파라미터로 들어온 menuStatus가 SELLING가 아닌 경우 OrderCreateFailException 응답")
+    @Test
+    void createOrderWithOrderCreateFailException2() {
+        // given
+        CreateMenuCommand stubMenuData1 = CreateMenuCommand.builder()
+                .menuId("00000000-0000-0000-0000-000000000001")
+                .quantity(1)
+                .build();
+
+        CreateMenuCommand stubMenuData2 = CreateMenuCommand.builder()
+                .menuId("00000000-0000-0000-0000-000000000002")
+                .quantity(2)
+                .build();
+
+        CreateOrderCommand stubOrderData = CreateOrderCommand.builder()
+                .restaurantId("11111111-1111-1111-1111-111111111111")
+                .menus(List.of(stubMenuData1, stubMenuData2))
+                .deliveryAddress("서울시 중구 어딘가 1-1")
+                .build();
+
+        Restaurant restaurant = Restaurant.builder()
+                .restaurantId("11111111-1111-1111-1111-111111111111")
+                .name("맛있는 집")
+                .phone("070-1234-5678")
+                .address("서울시 중구 어딘가 2-2")
+                .description("맛있는 음식점 입니다.")
+                .status(RestaurantStatus.OPEN)
+                .build();
+
+        Mockito.when(restaurantRepository.findById("11111111-1111-1111-1111-111111111111"))
+                .thenReturn(Optional.of(
+                        Restaurant.builder()
+                                .restaurantId("11111111-1111-1111-1111-111111111111")
+                                .name("맛있는 집")
+                                .phone("070-1234-5678")
+                                .address("서울시 중구 어딘가 2-2")
+                                .description("맛있는 음식점 입니다.")
+                                .status(RestaurantStatus.OPEN)
+                                .build()
+                ));
+
+        User user = new User();
+
+
+        Mockito.when(userRepository.findById(2L))
+                .thenReturn(Optional.of(user));
+
+        Menu menu1 = new Menu();
+        menu1.setId("00000000-0000-0000-0000-000000000001");
+        menu1.setRestaurant(restaurant);
+        menu1.setName("짜장면");
+        menu1.setPrice(new BigDecimal(7500));
+        menu1.setStatus(MenuStatus.SELLING);
+
+        Menu menu2 = new Menu();
+        menu2.setId("00000000-0000-0000-0000-000000000002");
+        menu2.setRestaurant(restaurant);
+        menu2.setName("탕수육");
+        menu2.setPrice(new BigDecimal(21000));
+        menu2.setStatus(MenuStatus.SOLD_OUT);
+
+        Mockito.when(menuRepository.findByIdIn(Set.of("00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002")))
+                .thenReturn(List.of(menu1,menu2));
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.createOrder(stubOrderData, 2L))
+                .isInstanceOf(OrderCreateFailException.class);
+
+    }
+
+    @DisplayName("주문 생성시, 파라미터로 들어온 menu의 수량이 0인 경우 IllegalArgumentException 응답")
+    @Test
+    void createOrder() {
+        // given
+        CreateMenuCommand stubMenuData1 = CreateMenuCommand.builder()
+                .menuId("00000000-0000-0000-0000-000000000001")
+                .quantity(0)
+                .build();
+
+        CreateMenuCommand stubMenuData2 = CreateMenuCommand.builder()
+                .menuId("00000000-0000-0000-0000-000000000002")
+                .quantity(2)
+                .build();
+
+        CreateOrderCommand stubOrderData = CreateOrderCommand.builder()
+                .restaurantId("11111111-1111-1111-1111-111111111111")
+                .menus(List.of(stubMenuData1, stubMenuData2))
+                .deliveryAddress("서울시 중구 어딘가 1-1")
+                .build();
+
+        Restaurant restaurant = Restaurant.builder()
+                .restaurantId("11111111-1111-1111-1111-111111111111")
+                .name("맛있는 집")
+                .phone("070-1234-5678")
+                .address("서울시 중구 어딘가 2-2")
+                .description("맛있는 음식점 입니다.")
+                .status(RestaurantStatus.OPEN)
+                .build();
+
+        Mockito.when(restaurantRepository.findById("11111111-1111-1111-1111-111111111111"))
+                .thenReturn(Optional.of(
+                        Restaurant.builder()
+                                .restaurantId("11111111-1111-1111-1111-111111111111")
+                                .name("맛있는 집")
+                                .phone("070-1234-5678")
+                                .address("서울시 중구 어딘가 2-2")
+                                .description("맛있는 음식점 입니다.")
+                                .status(RestaurantStatus.OPEN)
+                                .build()
+                ));
+
+        User user = new User();
+
+        Mockito.when(userRepository.findById(2L))
+                .thenReturn(Optional.of(user));
+
+        Menu menu1 = new Menu();
+        menu1.setId("00000000-0000-0000-0000-000000000001");
+        menu1.setRestaurant(restaurant);
+        menu1.setName("찌징먄");
+        menu1.setPrice(new BigDecimal(7500));
+        menu1.setStatus(MenuStatus.SELLING);
+
+        Menu menu2 = new Menu();
+        menu2.setId("00000000-0000-0000-0000-000000000002");
+        menu2.setRestaurant(restaurant);
+        menu2.setName("탕수육");
+        menu2.setPrice(new BigDecimal(21000));
+        menu2.setStatus(MenuStatus.SELLING);
+
+        Mockito.when(menuRepository.findByIdIn(Set.of("00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002")))
+                .thenReturn(List.of(menu1,menu2));
+
+        // when // then
+        Assertions.assertThatThrownBy(() -> orderServiceImpl.createOrder(stubOrderData, 2L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("주문 메뉴의 수량은 0이 될 수 없습니다.");
+    }
+
+    @DisplayName("주문 생성시, 정상적으로 동작한다면 CreateOrderInfo으로 응답한다.")
+    @Test
+    void createOrderTest() {
+        // given
+        Clock fixedClock = Clock.fixed(
+                LocalDateTime.of(2025, 10, 10, 12, 3, 0)
+                        .toInstant(ZoneOffset.UTC),
+                ZoneOffset.UTC
+        );
+
+        Mockito.when(clock.instant()).thenReturn(fixedClock.instant());
+        Mockito.when(clock.getZone()).thenReturn(fixedClock.getZone());
+
+        CreateMenuCommand stubMenuData1 = CreateMenuCommand.builder()
+                .menuId("00000000-0000-0000-0000-000000000001")
+                .quantity(1)
+                .build();
+
+        CreateMenuCommand stubMenuData2 = CreateMenuCommand.builder()
+                .menuId("00000000-0000-0000-0000-000000000002")
+                .quantity(2)
+                .build();
+
+        CreateMenuCommand stubMenuData3 = CreateMenuCommand.builder()
+                .menuId("00000000-0000-0000-0000-000000000003")
+                .quantity(4)
+                .build();
+
+        CreateOrderCommand stubOrderData = CreateOrderCommand.builder()
+                .restaurantId("11111111-1111-1111-1111-111111111111")
+                .menus(List.of(stubMenuData1, stubMenuData2, stubMenuData3))
+                .deliveryAddress("서울시 강남구 어딘가 1-1")
+                .build();
+
+        Restaurant restaurant = Restaurant.builder()
+                .restaurantId("11111111-1111-1111-1111-111111111111")
+                .name("맛있는 집")
+                .phone("070-1234-5678")
+                .address("서울시 중구 어딘가 2-2")
+                .description("맛있는 음식점 입니다.")
+                .status(RestaurantStatus.OPEN)
+                .build();
+
+        Mockito.when(restaurantRepository.findById("11111111-1111-1111-1111-111111111111"))
+                .thenReturn(Optional.of(
+                        Restaurant.builder()
+                                .restaurantId("11111111-1111-1111-1111-111111111111")
+                                .name("맛있는 집")
+                                .phone("070-1234-5678")
+                                .address("서울시 중구 어딘가 2-2")
+                                .description("맛있는 음식점 입니다.")
+                                .status(RestaurantStatus.OPEN)
+                                .build()
+                ));
+
+        User user = new User();
+        user.setId(2L);
+        user.setUsername("hong1234");
+        user.setName("홍길동");
+        user.setPhone("010-1111-1111");
+        user.setRole(UserRoleEnum.CUSTOMER);
+
+        Mockito.when(userRepository.findById(2L))
+                .thenReturn(Optional.of(user));
+
+        Menu menu1 = new Menu();
+        menu1.setId("00000000-0000-0000-0000-000000000001");
+        menu1.setRestaurant(restaurant);
+        menu1.setName("찌징먄");
+        menu1.setPrice(new BigDecimal(7500));
+        menu1.setStatus(MenuStatus.SELLING);
+
+        Menu menu2 = new Menu();
+        menu2.setId("00000000-0000-0000-0000-000000000002");
+        menu2.setRestaurant(restaurant);
+        menu2.setName("탕수육");
+        menu2.setPrice(new BigDecimal(21000));
+        menu2.setStatus(MenuStatus.SELLING);
+
+        Menu menu3 = new Menu();
+        menu3.setId("00000000-0000-0000-0000-000000000003");
+        menu3.setRestaurant(restaurant);
+        menu3.setName("깐쇼새우");
+        menu3.setPrice(new BigDecimal(30000));
+        menu3.setStatus(MenuStatus.SELLING);
+
+        Mockito.when(menuRepository.findByIdIn(Set.of("00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002", "00000000-0000-0000-0000-000000000003")))
+                .thenReturn(List.of(menu1,menu2,menu3));
+
+        Order order = Order.builder()
+                .build();
+        ReflectionTestUtils.setField(order, "orderId", "8a4f0b9d-b46a-4d2a-8d5a-7f4f0b3b65a8");
+
+        Mockito.when(orderRepository.save(Mockito.any(Order.class)))
+                .thenReturn(order);
+
+        OrderItem orderItem1 = OrderItem.builder()
+                .build();
+
+        OrderItem orderItem2 = OrderItem.builder()
+                .build();
+
+        OrderItem orderItem3 = OrderItem.builder()
+                .build();
+
+        ReflectionTestUtils.setField(orderItem1, "orderItemId", "10000000-0000-0000-0000-000000000000");
+        ReflectionTestUtils.setField(orderItem1, "orderItemId", "20000000-0000-0000-0000-000000000000");
+        ReflectionTestUtils.setField(orderItem1, "orderItemId", "30000000-0000-0000-0000-000000000000");
+
+        List<OrderItem> temp = List.of(orderItem1, orderItem2, orderItem3);
+        Mockito.when(orderItemRepository.saveAll(Mockito.any()))
+                .thenReturn(temp);
+
+        // when
+        CreateOrderInfo orderInfo = orderServiceImpl.createOrder(stubOrderData, 2L);
+
+        // then
+        Assertions.assertThat(orderInfo.getOrderId()).isEqualTo("8a4f0b9d-b46a-4d2a-8d5a-7f4f0b3b65a8");
+        Assertions.assertThat(orderInfo.getUserId()).isEqualTo(2L);
+        Assertions.assertThat(orderInfo.getName()).isEqualTo("홍길동");
+        Assertions.assertThat(orderInfo.getPhone()).isEqualTo("010-1111-1111");
+        Assertions.assertThat(orderInfo.getTotalPrice()).isEqualTo(169500L);
     }
 
     private static OrderDetailForOwner getStubDetailForOwner(
