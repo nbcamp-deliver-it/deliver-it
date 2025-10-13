@@ -1,5 +1,6 @@
 package com.sparta.deliverit.payment.domain.entity;
 
+import com.sparta.deliverit.payment.enums.PayState;
 import com.sparta.deliverit.payment.enums.PayType;
 import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
 import jakarta.persistence.*;
@@ -33,6 +34,9 @@ public class Payment {
     @Enumerated(EnumType.STRING)
     private PayType payType;
 
+    @Enumerated(EnumType.STRING)
+    private PayState payState;
+
     @Builder.Default
     @Temporal(value = TemporalType.TIMESTAMP)
     @Column(name = "paid_at")
@@ -43,8 +47,14 @@ public class Payment {
                 .paymentId(UUID.randomUUID().toString().substring(0, 12))
                 .cardNum(requestDto.getCardNum())
                 .cardCompany(requestDto.getCompany())
-                .payType(PayType.valueOf(requestDto.getPayType()))
+                .payType(PayType.of(requestDto.getPayType()))
+                .payState(PayState.COMPLETED)
                 .build();
+    }
+
+    public Payment cancel() {
+        this.payState = PayState.CANCELED;
+        return this;
     }
 
 }

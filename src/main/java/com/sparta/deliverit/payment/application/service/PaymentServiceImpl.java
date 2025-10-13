@@ -1,5 +1,8 @@
 package com.sparta.deliverit.payment.application.service;
 
+import com.sparta.deliverit.global.exception.PaymentException;
+import com.sparta.deliverit.global.response.code.PaymentResponseCode;
+import com.sparta.deliverit.order.domain.entity.Order;
 import com.sparta.deliverit.payment.domain.entity.Payment;
 import com.sparta.deliverit.payment.domain.repository.PaymentRepository;
 import com.sparta.deliverit.payment.enums.Company;
@@ -13,55 +16,48 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final List<PaymentProcessor> processorList;
 
-    @Transactional
-    public PaymentResponseDto delegateRequest(String orderId, PaymentRequestDto requestDto) {
-//        verifyPaymentRequest(orderId, requestDto);
+    private final String INVALID_CARD_NUMBER = "9999-9999-9999-9999";
+    private final String LIMIT_OVER_CARD_NUMBER = "8888-8888-8888-8888";
 
-        PaymentProcessor processor = getProcessor(Company.valueOf(requestDto.getCompany()));
+    public Payment delegateRequest(PaymentRequestDto requestDto) {
+        isErrorCard(requestDto.getCardNum());
+
+        PaymentProcessor processor = getProcessor(Company.of(requestDto.getCompany()));
         Payment entity = processor.paymentRequest(requestDto);
-        Payment payment = paymentRepository.save(entity);
 
+        return paymentRepository.save(entity);
+    }
+
+    public Payment paymentCancel(Order order) {
+        Payment payment = paymentRepository.findById(order.getPayment()).orElseThrow();
+        payment.cancel();
+
+        return payment;
+    }
+
+    public PaymentResponseDto deletePayment(Order order) {
+        Payment payment = paymentRepository.findById(order.getPayment()).orElseThrow();
+        paymentRepository.delete(payment);
         return PaymentResponseDto.of(payment);
     }
-
-    @Transactional(readOnly = true)
-    public PaymentResponseDto getPayment(String orderId, String paymentId) {
-//        verifyOrder(orderId, paymentId);
-        Payment payment = paymentRepository.findById(paymentId).orElseThrow(IllegalArgumentException::new);
-        return PaymentResponseDto.of(payment);
-    }
-
-    @Transactional
-    public PaymentResponseDto deletePayment(String orderId, String paymentId) {
-        return null;
-    }
-
-//    private boolean verifyPaymentRequest(String orderId, PaymentRequestDto requestDto) {
-//        Order order = orderRepository.findById(orderId).orElseThrow(IllegalArgumentException::new);
-//        if(order.getOrderStatus() != OrderStatus.CREATED ||
-//                !order.getTotalPrice().equals(requestDto.getTotalPrice()))
-//            throw new IllegalArgumentException();
-//
-//        return true;
-//    }
-//
-//    private boolean verifyOrder(String orderId, String paymentId) {
-//        Order order = orderRepository.findById(orderId).orElseThrow(IllegalArgumentException::new);
-//        if(!order.getPayment().getPaymentId().equals(paymentId))
-//            throw new IllegalArgumentException();
-//
-//        return true;
-//    }
 
     private PaymentProcessor getProcessor(Company company) {
         return processorList.stream()
                 .filter(processor -> processor.findByCompany(company))
                 .findFirst()
-                .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(() -> new PaymentException(PaymentResponseCode.INVALID_COMPANY));
+    }
+
+    private void isErrorCard(String cardNum) {
+        if(cardNum.equals(INVALID_CARD_NUMBER))
+            throw new PaymentException(PaymentResponseCode.INVALID_CARD_NUMBER);
+        else if(cardNum.equals(LIMIT_OVER_CARD_NUMBER))
+            throw new PaymentException(PaymentResponseCode.CARD_LIMIT_EXCEEDED);
     }
 }
