@@ -24,6 +24,7 @@ public class OrderReviewService {
     private final OrderReviewRepository orderReviewRepository;
     private final UserRepository userRepository;
 
+    @Transactional
     public Long createReview(OrderReviewCommand.Create command) {
         Star star = new Star(command.star());
         Review review = new Review(star, command.description());
@@ -36,7 +37,7 @@ public class OrderReviewService {
     @Transactional(readOnly = true)
     public List<OrderReviewInfo> getOrderReviews(String orderId) {
         // FIXME: 페이지네이션 적용
-        List<OrderReview> orderReviews = orderReviewRepository.findAll();
+        List<OrderReview> orderReviews = orderReviewRepository.findAllWithUser();
         return OrderReviewInfo.fromList(orderReviews);
     }
 
