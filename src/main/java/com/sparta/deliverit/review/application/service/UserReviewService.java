@@ -22,7 +22,8 @@ public class UserReviewService {
     @Transactional(readOnly = true)
     public List<OrderReviewInfo> getUserReviews(Long userId) {
         User user = getUserByUserId(userId);
-        List<OrderReview> orderReviews = orderReviewRepository.findAllByUserIdWithUser(userId);
+        // FIXME: 페이지네이션 적용
+        List<OrderReview> orderReviews = orderReviewRepository.findAllByUserIdWithUser(user.getId());
         return OrderReviewInfo.fromList(orderReviews);
     }
 
