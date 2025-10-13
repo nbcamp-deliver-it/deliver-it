@@ -1,11 +1,15 @@
 package com.sparta.deliverit.review.application.service;
 
+import com.sparta.deliverit.global.exception.ReviewException;
+import com.sparta.deliverit.global.response.code.ReviewResponseCode;
 import com.sparta.deliverit.review.application.service.dto.OrderReviewCommand;
 import com.sparta.deliverit.review.application.service.dto.OrderReviewInfo;
 import com.sparta.deliverit.review.domain.entity.OrderReview;
 import com.sparta.deliverit.review.domain.vo.Review;
 import com.sparta.deliverit.review.domain.vo.Star;
 import com.sparta.deliverit.review.infrastructure.repository.OrderReviewRepository;
+import com.sparta.deliverit.user.domain.entity.User;
+import com.sparta.deliverit.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,11 +22,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderReviewService {
     private final OrderReviewRepository orderReviewRepository;
+    private final UserRepository userRepository;
 
     public Long createReview(OrderReviewCommand.Create command) {
         Star star = new Star(command.star());
         Review review = new Review(star, command.description());
-        OrderReview savedOrderReview = orderReviewRepository.save(new OrderReview(review));
+        User user = getUserByUserId(command.userId());
+        OrderReview savedOrderReview = orderReviewRepository.save(new OrderReview(review, user));
         // FIXME: 음식점 리뷰 계산
         return savedOrderReview.getOrderReviewId();
     }
@@ -55,9 +61,19 @@ public class OrderReviewService {
     private OrderReview getOrderReview(Long reviewId) {
         OrderReview orderReview = orderReviewRepository.findById(reviewId).orElseThrow(() -> {
             log.error("존재하지 않는 리뷰입니다. id : {}", reviewId);
-            // FIXME: 도메인 예외로 변경 필요
-            throw new IllegalArgumentException("");
+            return new ReviewException(ReviewResponseCode.NOT_FOUND_ORDER_REVIEW);
         });
         return orderReview;
+    }
+
+    private User getUserByUserId(Long userId) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.error("존재하지 않는 유저입니다. id : {}", userId);
+                    // FIXME: User 에 대한 도메인 예외
+                    return new IllegalArgumentException("");
+                });
+
+        return user;
     }
 }

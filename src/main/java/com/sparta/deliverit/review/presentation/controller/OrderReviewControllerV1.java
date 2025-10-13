@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class OrderReviewControllerV1 {
     private final OrderReviewService orderReviewService;
 
-    @GetMapping("orders/{orderId}/reviews")
+    @GetMapping("/orders/{orderId}/reviews")
     public ResponseEntity<OrderReviewListResponse> getOrderReviews(
             @PathVariable String orderId
     ) {
@@ -28,7 +28,7 @@ public class OrderReviewControllerV1 {
         return ResponseEntity.ok(OrderReviewListResponse.from(orderReviews));
     }
 
-    @PostMapping("orders/{orderId}/reviews")
+    @PostMapping("/orders/{orderId}/reviews")
     public ResponseEntity<MutateReviewResponse> create(
             @PathVariable
             String orderId,
@@ -43,7 +43,7 @@ public class OrderReviewControllerV1 {
         return ResponseEntity.ok(new MutateReviewResponse(savedReviewId));
     }
 
-    @PutMapping("order-reviews/{orderReviewId}")
+    @PutMapping("/order-reviews/{orderReviewId}")
     public ResponseEntity<MutateReviewResponse> update(
             @PathVariable Long orderReviewId,
             @RequestBody @Valid UpdateReviewRequest request
@@ -55,7 +55,7 @@ public class OrderReviewControllerV1 {
         return ResponseEntity.ok(new MutateReviewResponse(id));
     }
 
-    @DeleteMapping("order-reviews/{orderReviewId}")
+    @DeleteMapping("/order-reviews/{orderReviewId}")
     public ResponseEntity<MutateReviewResponse> delete(
             @PathVariable Long orderReviewId
     ) {
