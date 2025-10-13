@@ -58,4 +58,14 @@ public class OrderItem extends BaseEntity {
                 .quantity(quantiy)
                 .build();
     }
+
+    public static OrderItem create(Order order, Menu menu, String menuNameSnapshot, BigDecimal menuPriceSnapshot, int quantiy) {
+        return OrderItem.builder()
+                .order(order)
+                .menu(menu)
+                .menuNameSnapshot(menuNameSnapshot)
+                .menuPriceSnapshot(menuPriceSnapshot)
+                .quantity(quantiy)
+                .build();
+    }
 }

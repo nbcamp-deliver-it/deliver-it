@@ -1,6 +1,10 @@
 package com.sparta.deliverit.order.application;
 
 import com.sparta.deliverit.global.response.code.OrderResponseCode;
+import com.sparta.deliverit.menu.domain.entity.Menu;
+import com.sparta.deliverit.menu.domain.entity.MenuStatus;
+import com.sparta.deliverit.menu.domain.repository.MenuRepository;
+import com.sparta.deliverit.order.application.dto.CreateOrderCommand;
 import com.sparta.deliverit.order.domain.entity.Order;
 import com.sparta.deliverit.order.domain.entity.OrderItem;
 import com.sparta.deliverit.order.domain.entity.OrderStatus;
@@ -9,23 +13,25 @@ import com.sparta.deliverit.order.infrastructure.OrderItemRepository;
 import com.sparta.deliverit.order.infrastructure.OrderRepository;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForOwner;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForUser;
-import com.sparta.deliverit.order.presentation.dto.response.CancelOrderInfo;
-import com.sparta.deliverit.order.presentation.dto.response.ConfirmOrderInfo;
-import com.sparta.deliverit.order.presentation.dto.response.MenuInfo;
-import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
+import com.sparta.deliverit.order.presentation.dto.request.OrderMenuRequest;
+import com.sparta.deliverit.order.presentation.dto.response.*;
 import com.sparta.deliverit.payment.application.service.PaymentService;
+import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
+import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
+import com.sparta.deliverit.restaurant.infrastructure.repository.RestaurantRepository;
+import com.sparta.deliverit.user.domain.entity.User;
+import com.sparta.deliverit.user.domain.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,13 +46,19 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final RestaurantRepository restaurantRepository;
+    private final UserRepository userRepository;
+    private final MenuRepository menuRepository;
     private final PaymentService paymentService;
     private final Clock clock;
 
     @Autowired
-    public OrderServiceImpl(OrderRepository orderRepository, OrderItemRepository orderItemRepository, PaymentService paymentService, Clock clock) {
+    public OrderServiceImpl(OrderRepository orderRepository, OrderItemRepository orderItemRepository, RestaurantRepository restaurantRepository, UserRepository userRepository, MenuRepository menuRepository, PaymentService paymentService, Clock clock) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
+        this.restaurantRepository = restaurantRepository;
+        this.menuRepository = menuRepository;
+        this.userRepository = userRepository;
         this.paymentService = paymentService;
         this.clock = clock;
     }
@@ -286,5 +298,85 @@ public class OrderServiceImpl implements OrderService {
         );
 
         return CancelOrderInfo.create(nextOrder, currentStatus);
+    }
+
+    @Override
+    public CreateOrderInfo createOrder(CreateOrderCommand orderCommand, Long userId) {
+
+        Restaurant restaurant = restaurantRepository.findById(orderCommand.getRestaurantId()).orElseThrow(
+                () -> new IllegalArgumentException("음식점을 찾을 수 없습니다.")
+        );
+        if (restaurant.getStatus() != RestaurantStatus.OPEN) {
+            throw new OrderCreateFailException(OrderResponseCode.ORDER_CREATE_FAIL);
+        }
+
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new IllegalArgumentException("유저를 찾을 수 없습니다.")
+        );
+
+        Map<String, Integer> quantityByMenuId = orderCommand.getMenus().stream()
+                .collect(Collectors.toMap(
+                        OrderMenuRequest::getMenuId,
+                        OrderMenuRequest::getQuantity,
+                        Integer::sum
+                ));
+        if (quantityByMenuId.isEmpty()) {
+            throw new IllegalArgumentException("주문 메뉴가 비어있습니다.");
+        }
+
+        Map<String, Menu> menuByMenuId = menuRepository.findByIdIn(quantityByMenuId.keySet()).stream()
+                .collect(Collectors.toMap(Menu::getId, Function.identity()));
+
+        List<String> missing = quantityByMenuId.keySet().stream()
+                .filter(id -> !menuByMenuId.containsKey(id))
+                .toList();
+        if (!missing.isEmpty()) throw new IllegalArgumentException("존재하지 않는 메뉴입니다. :" + missing);
+
+        BigDecimal totalPrice = quantityByMenuId.keySet().stream()
+                .map(key -> {
+                    Menu currMenu = menuByMenuId.get(key);
+                    if (currMenu.getStatus() != MenuStatus.SELLING) throw new OrderCreateFailException(OrderResponseCode.ORDER_CREATE_FAIL);
+
+                    var quantity = quantityByMenuId.get(key);
+                    if (quantity < 1) throw new IllegalArgumentException("주문 메뉴의 수량은 0이 될 수 없습니다.");
+
+                    var price = currMenu.getPrice();
+                    return price.multiply(BigDecimal.valueOf(quantity));
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        Order order = Order.create(
+                user,
+                restaurant,
+                LocalDateTime.now(clock),
+                OrderStatus.PAYMENT_PENDING,
+                orderCommand.getDeliveryAddress(),
+                totalPrice
+        );
+
+        orderRepository.save(order);
+
+        List<OrderItem> orderItemList = quantityByMenuId.keySet().stream()
+                .map(key -> {
+                    Menu currentMenu = menuByMenuId.get(key);
+                    return OrderItem.create(
+                            order,
+                            currentMenu,
+                            currentMenu.getName(),
+                            currentMenu.getPrice(),
+                            quantityByMenuId.get(key)
+                    );
+                })
+                .toList();
+
+        orderItemRepository.saveAll(orderItemList);
+
+        return CreateOrderInfo.create(
+                order.getOrderId(),
+                userId,
+                user.getPhone(),
+                user.getName(),
+                totalPrice
+        );
     }
 }

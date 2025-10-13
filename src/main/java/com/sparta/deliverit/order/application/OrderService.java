@@ -1,7 +1,10 @@
 package com.sparta.deliverit.order.application;
 
+import com.sparta.deliverit.order.application.dto.CreateOrderCommand;
+import com.sparta.deliverit.order.application.dto.CreatePaymentCommand;
 import com.sparta.deliverit.order.presentation.dto.response.CancelOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.ConfirmOrderInfo;
+import com.sparta.deliverit.order.presentation.dto.response.CreateOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
 import org.springframework.data.domain.Page;
 
@@ -21,5 +24,7 @@ public interface OrderService {
 
     CancelOrderInfo cancelOrderForUser(String orderId, String userId);
 
-    CancelOrderInfo cancelOrderForOwner(String restaurantId, String orderId, String accessuserId);
+    CancelOrderInfo cancelOrderForOwner(String restaurantId, String orderId, String accessUserId);
+
+    CreateOrderInfo createOrder(CreateOrderCommand orderCommand, Long userId);
 }

@@ -59,4 +59,15 @@ public class Order extends BaseEntity {
         this.address = address;
         this.totalPrice = totalPrice;
     }
+
+    public static Order create(User user, Restaurant restaurant, LocalDateTime orderedAt, OrderStatus orderStatus, String address, BigDecimal totalPrice) {
+        return Order.builder()
+                .user(user)
+                .restaurant(restaurant)
+                .orderedAt(orderedAt)
+                .orderStatus(orderStatus)
+                .address(address)
+                .totalPrice(totalPrice)
+                .build();
+    }
 }

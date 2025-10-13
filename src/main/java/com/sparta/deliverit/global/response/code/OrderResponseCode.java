@@ -18,6 +18,8 @@ public enum OrderResponseCode implements ResponseCode {
 
     ORDER_SUCCESS(OK, "주문에 성공했습니다."),
 
+    ORDER_CREATE_FAIL(CONFLICT, "주문 생성에 실패했습니다."),
+
     ORDER_FAILED(BAD_REQUEST, "주문에 실패했습니다."), // 세분화 필요
     DUPLICATE_ORDER(BAD_REQUEST, "중복 주문입니다."),
     OUT_OF_STOCK(CONFLICT, "재고 부족으로 주문에 실패했습니다."),
