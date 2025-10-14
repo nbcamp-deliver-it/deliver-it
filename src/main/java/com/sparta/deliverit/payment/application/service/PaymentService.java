@@ -1,13 +1,14 @@
 package com.sparta.deliverit.payment.application.service;
 
+import com.sparta.deliverit.order.domain.entity.Order;
+import com.sparta.deliverit.payment.domain.entity.Payment;
 import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
 import com.sparta.deliverit.payment.presentation.dto.PaymentResponseDto;
 
 public interface PaymentService {
 
-    PaymentResponseDto delegateRequest(String orderId, PaymentRequestDto requestDto);
+    Payment delegateRequest(PaymentRequestDto requestDto);
 
-    PaymentResponseDto getPayment(String orderId, String paymentId);
+    Payment paymentCancel(Order order);
 
-    PaymentResponseDto deletePayment(String orderId, String paymentId);
 }
