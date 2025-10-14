@@ -1,15 +1,16 @@
 package com.sparta.deliverit.order.domain.entity;
 
 import com.sparta.deliverit.anything.entity.BaseEntity;
-import com.sparta.deliverit.payment.domain.entity.Payment;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import com.sparta.deliverit.user.domain.entity.User;
 import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
+@Getter
 @Entity
 @Table(name = "p_order")
 public class Order extends BaseEntity {
@@ -26,7 +27,7 @@ public class Order extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurant_id", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "fk_order_restaurant"))
     private Restaurant restaurant;
-
+  
     @OneToOne(fetch = FetchType.LAZY)
     private Payment payment;
 
@@ -41,12 +42,35 @@ public class Order extends BaseEntity {
     private String address;
 
     @Column(name = "total_price", nullable = false, updatable = false)
-    private int totalPrice;
+    private BigDecimal totalPrice;
 
-    @OneToMany(mappedBy = "order")
-    private List<OrderItem> orderItemList = new ArrayList<>();
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 
     protected Order() {
 
+    }
+
+    @Builder
+    private Order(String orderId, User user, Restaurant restaurant, LocalDateTime orderedAt, OrderStatus orderStatus, String address, BigDecimal totalPrice) {
+        this.orderId = orderId;
+        this.user = user;
+        this.restaurant = restaurant;
+        this.orderedAt = orderedAt;
+        this.orderStatus = orderStatus;
+        this.address = address;
+        this.totalPrice = totalPrice;
+    }
+
+    public static Order create(User user, Restaurant restaurant, LocalDateTime orderedAt, OrderStatus orderStatus, String address, BigDecimal totalPrice) {
+        return Order.builder()
+                .user(user)
+                .restaurant(restaurant)
+                .orderedAt(orderedAt)
+                .orderStatus(orderStatus)
+                .address(address)
+                .totalPrice(totalPrice)
+                .build();
     }
 }
