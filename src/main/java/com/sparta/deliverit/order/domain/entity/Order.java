@@ -27,6 +27,9 @@ public class Order extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurant_id", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "fk_order_restaurant"))
     private Restaurant restaurant;
+  
+    @OneToOne(fetch = FetchType.LAZY)
+    private Payment payment;
 
     @Column(name = "ordered_at", nullable = false, updatable = false)
     LocalDateTime orderedAt;
