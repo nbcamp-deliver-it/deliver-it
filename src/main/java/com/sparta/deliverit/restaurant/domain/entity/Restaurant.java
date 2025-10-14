@@ -5,6 +5,7 @@ import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
 import com.sparta.deliverit.restaurant.domain.vo.RestaurantRating;
 import com.sparta.deliverit.restaurant.infrastructure.api.map.Coordinates;
 import com.sparta.deliverit.restaurant.presentation.dto.RestaurantInfoRequestDto;
+import com.sparta.deliverit.user.domain.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Filter;
@@ -64,9 +65,13 @@ public class Restaurant extends BaseEntity {
     }
 
     // 사용자 - 음식점 1:N 관계
-//    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-//    @JoinColumn(name = "user_id", nullable = false)
-//    private User user;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    public void assignUser(User user) {
+        this.user = user;
+    }
 
     // 음식점 - 카테고리 N:M 관계
     @Builder.Default
