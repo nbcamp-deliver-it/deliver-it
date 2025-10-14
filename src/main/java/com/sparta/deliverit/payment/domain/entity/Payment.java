@@ -17,7 +17,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "p_payment")
 @Getter
-@Builder
+@Builder(access = AccessLevel.PRIVATE)
 @SQLDelete(sql = "UPDATE p_payment SET deleted_at = CURRENT_TIMESTAMP WHERE payment_id = ?")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
