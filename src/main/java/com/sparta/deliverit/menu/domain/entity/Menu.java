@@ -1,5 +1,6 @@
 package com.sparta.deliverit.menu.domain.entity;
 
+import com.sparta.deliverit.menu.presentation.dto.MenuUpdateRequest;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import jakarta.persistence.*;
 import lombok.*;
@@ -36,10 +37,10 @@ public class Menu {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    public void updateMenu(Menu menu) {
-        if (menu.getName() != null) this.name = menu.getName();
-        if (menu.getPrice() != null) this.price = menu.getPrice();
-        if (menu.getStatus() != null) this.status = menu.getStatus();
-        if (menu.getDescription() != null) this.description = menu.getDescription();
+    public void applyUpdate(MenuUpdateRequest req) {
+        if (req.getName() != null) this.name = req.getName();
+        if (req.getPrice() != null) this.price = req.getPrice();
+        if (req.getStatus() != null) this.status = req.getStatus();
+        if (req.getDescription() != null) this.description = req.getDescription();
     }
 }

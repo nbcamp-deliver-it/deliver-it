@@ -94,10 +94,7 @@ public class MenuService {
                 throw new MenuException(MENU_NOT_IN_RESTAURANT);
             }
 
-            if (req.getName() != null) existingMenu.setName(req.getName());
-            if (req.getPrice() != null) existingMenu.setPrice(req.getPrice());
-            if (req.getDescription() != null) existingMenu.setDescription(req.getDescription());
-            if (req.getStatus() != null) existingMenu.setStatus(req.getStatus());
+            existingMenu.applyUpdate(req);
         }
     }
 }
