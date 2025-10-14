@@ -16,7 +16,7 @@ public class MenuController {
 
     private final MenuService menuService;
 
-    @GetMapping("/v1/restaurants/{restaurantId}")
+    @GetMapping("/v1/restaurants/{restaurantId}/menu")
     public ResponseEntity<List<Menu>> getMenuByRestaurantId(@PathVariable String restaurantId) {
         List<Menu> menu = menuService.getMenuByRestaurantId(restaurantId);
 
@@ -33,7 +33,7 @@ public class MenuController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @DeleteMapping("/v1/restaurants/{restaurantId}")
+    @DeleteMapping("/v1/restaurants/{restaurantId}/menu")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteMenuItem(
             @PathVariable String restaurantId,

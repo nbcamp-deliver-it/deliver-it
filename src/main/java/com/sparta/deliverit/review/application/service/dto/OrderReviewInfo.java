@@ -1,6 +1,6 @@
 package com.sparta.deliverit.review.application.service.dto;
 
-import com.sparta.deliverit.review.entity.OrderReview;
+import com.sparta.deliverit.review.domain.entity.OrderReview;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,10 +17,12 @@ public record OrderReviewInfo(
     }
 
     public static OrderReviewInfo from(OrderReview review) {
+        var user = review.getUser();
+
         return new OrderReviewInfo(
                 review.getOrderReviewId(),
-                1L,
-                "userName",
+                user.getId(),
+                user.getName(),
                 review.getStar(),
                 review.getDescription()
         );
