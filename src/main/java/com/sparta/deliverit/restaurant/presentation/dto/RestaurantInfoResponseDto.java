@@ -6,6 +6,7 @@ import com.sparta.deliverit.restaurant.domain.model.RestaurantCategory;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -22,8 +23,8 @@ public class RestaurantInfoResponseDto {
     private String description;
     private RestaurantStatus status;
     private List<RestaurantCategory> categories;
-//    private BigDecimal starAvg;
-//    private Long reviewCount;
+    private BigDecimal starAvg;
+    private Long reviewCount;
 
     // Entity -> DTO 변환 팩토리 메서드
     public static RestaurantInfoResponseDto from(Restaurant restaurant) {
@@ -38,8 +39,8 @@ public class RestaurantInfoResponseDto {
                         .map(Category::getName)
                         .toList()
                 )
-//                .starAvg(requestDto.getStarAvg)
-//                .reviewCount(requestDto.getReviewCount)
+                .starAvg(restaurant.getRating().getStarAvg())
+                .reviewCount(restaurant.getRating().getReviewsCount())
                 .build();
     }
 }
