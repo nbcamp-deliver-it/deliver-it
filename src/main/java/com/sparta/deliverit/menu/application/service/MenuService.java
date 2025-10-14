@@ -82,8 +82,9 @@ public class MenuService {
             throw new MenuException(REQUEST_EMPTY_LIST);
         }
 
-        Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new RestaurantException(RESTAURANT_NOT_FOUND));
+        if (restaurantRepository.findById(restaurantId).isEmpty()) {
+            throw new RestaurantException(RESTAURANT_NOT_FOUND);
+        }
 
         for (MenuUpdateRequest req : menuList) {
             Menu existingMenu = menuRepository.findById(req.getId())
