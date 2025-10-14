@@ -2,6 +2,8 @@ pipeline {
   agent any
 
   environment {
+    JAVA_HOME = '/usr/lib/jvm/java-17-amazon-corretto'
+    PATH = "${JAVA_HOME}/bin:${env.PATH}"
     REPO_URL   = 'https://github.com/nbcamp-deliver-it/deliver-it.git'
     BRANCH     = 'test-deploy'
     SSH_USER   = 'ec2-user'               // 원격 접속 계정
@@ -9,6 +11,7 @@ pipeline {
     SERVICE    = 'app'                    // systemd 서비스명
     HEALTH_PORT = '8080'
     HEALTH_PATH = '/actuator/health'
+    GRADLE_OPTS = "-Dorg.gradle.java.installations.paths=/usr/lib/jvm/java-17-amazon-corretto -Dorg.gradle.java.installations.auto-detect=true"
 
     // Jenkins Credentials IDs
     GIT_CRED_ID = 'git-cred'
@@ -41,11 +44,28 @@ pipeline {
       }
     }
 
+		stage('Check Java') {
+      steps {
+        sh '''
+          echo "JAVA_HOME=$JAVA_HOME"
+          which java || true
+          java -version || true
+          which javac || true
+          javac -version || true
+        '''
+      }
+    }
+
     stage('Build (Gradle)') {
       steps {
         sh '''
-          chmod +x ./gradlew || true
-          ./gradlew clean bootJar -x test
+					export JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto
+					export PATH=$JAVA_HOME/bin:$PATH
+					chmod +x ./gradlew
+					./gradlew \
+						-Dorg.gradle.java.installations.paths=/usr/lib/jvm/java-17-amazon-corretto \
+						-Dorg.gradle.java.installations.auto-detect=true \
+						clean bootJar -x test --no-daemon
         '''
       }
     }
