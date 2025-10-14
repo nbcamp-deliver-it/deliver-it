@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 public class SamSungCardProcessor implements PaymentProcessor {
 
     @Override
-    public Payment paymentRequest(PaymentRequestDto requestDto) {
-        return Payment.of(requestDto);
+    public Payment paymentProcessing(PaymentRequestDto requestDto) {
+        return Payment.of(requestDto, Company.SAMSUNG);
     }
 
     @Override

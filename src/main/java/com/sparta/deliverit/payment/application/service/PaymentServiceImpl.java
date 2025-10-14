@@ -7,7 +7,6 @@ import com.sparta.deliverit.payment.domain.entity.Payment;
 import com.sparta.deliverit.payment.domain.repository.PaymentRepository;
 import com.sparta.deliverit.payment.enums.Company;
 import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
-import com.sparta.deliverit.payment.presentation.dto.PaymentResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,13 +28,13 @@ public class PaymentServiceImpl implements PaymentService {
         isErrorCard(requestDto.getCardNum());
 
         PaymentProcessor processor = getProcessor(Company.of(requestDto.getCompany()));
-        Payment entity = processor.paymentRequest(requestDto);
+        Payment entity = processor.paymentProcessing(requestDto);
 
         return paymentRepository.save(entity);
     }
 
     public Payment paymentCancel(Order order) {
-        Payment payment = paymentRepository.findById(order.getPayment()).orElseThrow();
+        Payment payment = paymentRepository.findById(order.getPayment().getPaymentId()).orElseThrow();
         payment.cancel();
 
         return payment;

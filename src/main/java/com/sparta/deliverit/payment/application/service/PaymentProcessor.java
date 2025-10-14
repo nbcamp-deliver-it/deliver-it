@@ -6,7 +6,7 @@ import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
 
 public interface PaymentProcessor {
 
-    Payment paymentRequest(PaymentRequestDto requestDto);
+    Payment paymentProcessing(PaymentRequestDto requestDto);
 
     boolean findByCompany(Company company);
 }

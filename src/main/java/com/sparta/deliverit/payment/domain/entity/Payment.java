@@ -1,6 +1,7 @@
 package com.sparta.deliverit.payment.domain.entity;
 
 import com.sparta.deliverit.anything.entity.BaseEntity;
+import com.sparta.deliverit.payment.enums.Company;
 import com.sparta.deliverit.payment.enums.PayState;
 import com.sparta.deliverit.payment.enums.PayType;
 import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
@@ -45,11 +46,11 @@ public class Payment extends BaseEntity {
     @Column(name = "paid_at")
     private ZonedDateTime paidAt = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
 
-    public static Payment of(PaymentRequestDto requestDto) {
+    public static Payment of(PaymentRequestDto requestDto, Company company) {
         return Payment.builder()
                 .paymentId(UUID.randomUUID().toString().substring(0, 12))
                 .cardNum(requestDto.getCardNum())
-                .cardCompany(requestDto.getCompany())
+                .cardCompany(company.getName())
                 .payType(PayType.of(requestDto.getPayType()))
                 .payState(PayState.COMPLETED)
                 .build();
