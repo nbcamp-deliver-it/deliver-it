@@ -2,7 +2,7 @@ package com.sparta.deliverit.order.presentation.controller;
 
 import com.sparta.deliverit.global.response.ApiResponse;
 import com.sparta.deliverit.global.response.code.OrderResponseCode;
-import com.sparta.deliverit.order.application.OrderService;
+import com.sparta.deliverit.order.application.service.OrderService;
 import com.sparta.deliverit.order.application.dto.CreateOrderCommand;
 import com.sparta.deliverit.order.presentation.dto.response.CancelOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.request.CreateOrderRequest;

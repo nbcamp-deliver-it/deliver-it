@@ -19,7 +19,7 @@ import java.util.UUID;
 @Getter
 @Builder(access = AccessLevel.PRIVATE)
 @SQLDelete(sql = "UPDATE p_payment SET deleted_at = CURRENT_TIMESTAMP WHERE payment_id = ?")
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Payment extends BaseEntity {
 
