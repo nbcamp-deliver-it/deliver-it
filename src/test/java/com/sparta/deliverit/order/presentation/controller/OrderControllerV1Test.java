@@ -1033,7 +1033,7 @@ class OrderControllerV1Test {
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.responseCode").value("VALIDATION_FAILED"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("메뉴의 UUID 형식이 올바르지 않습니다."));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("메뉴의 UUID 값은 필수입니다."));
     }
 
     @DisplayName("주문 생성 시 MenuId가 UUID 형식에 맞으면 정상 응답을 반환한다.")
