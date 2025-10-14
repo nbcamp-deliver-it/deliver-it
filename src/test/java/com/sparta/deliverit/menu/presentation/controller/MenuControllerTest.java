@@ -93,7 +93,7 @@ class MenuControllerTest {
 
         doNothing().when(menuService).deleteMenuItem(eq("1"), eq(menuIdList));
 
-        mockMvc.perform(post("/v1/restaurants/{restaurantId}", "1")
+        mockMvc.perform(post("/v1/restaurants/{restaurantId}/menu", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(menuList)))
                 .andExpect(status().isCreated());
@@ -114,7 +114,7 @@ class MenuControllerTest {
         doThrow(new MenuException(MENU_DUPLICATED))
                 .when(menuService).createMenuItem(anyString(), anyList());
 
-        mockMvc.perform(post("/v1/restaurants/{restaurantId}", "1")
+        mockMvc.perform(post("/v1/restaurants/{restaurantId}/menu", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(menuList)))
                 .andExpect(status().isBadRequest());
@@ -164,7 +164,7 @@ class MenuControllerTest {
 
         doNothing().when(menuService).updateMenuItem(eq("1"), any(List.class));
 
-        mockMvc.perform(patch("/v1/restaurants/{restaurantId}", "1")
+        mockMvc.perform(patch("/v1/restaurants/{restaurantId}/menu", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateList)))
                 .andExpect(status().isNoContent());
@@ -180,7 +180,7 @@ class MenuControllerTest {
         doThrow(new MenuException(REQUEST_EMPTY_LIST))
                 .when(menuService).updateMenuItem(anyString(), anyList());
 
-        mockMvc.perform(patch("/v1/restaurants/{restaurantId}", "1")
+        mockMvc.perform(patch("/v1/restaurants/{restaurantId}/menu", "1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(reqList)))
                 .andExpect(status().isBadRequest());
@@ -201,7 +201,7 @@ class MenuControllerTest {
         doThrow(new MenuException(REQUEST_EMPTY_LIST))
                 .when(menuService).updateMenuItem(anyString(), anyList());
 
-        mockMvc.perform(patch("/v1/restaurants/{restaurantId}", "1")
+        mockMvc.perform(patch("/v1/restaurants/{restaurantId}/menu", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reqList)))
                 .andExpect(status().isBadRequest());

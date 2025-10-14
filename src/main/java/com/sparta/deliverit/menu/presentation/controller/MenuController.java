@@ -24,7 +24,7 @@ public class MenuController {
         return ResponseEntity.ok(menu);
     }
 
-    @PostMapping("/v1/restaurants/{restaurantId}")
+    @PostMapping("/v1/restaurants/{restaurantId}/menu")
     public ResponseEntity<Void> createMenuItem(
             @PathVariable String restaurantId,
             @RequestBody List<Menu> menu) {
@@ -42,7 +42,7 @@ public class MenuController {
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/v1/restaurants/{restaurantId}")
+    @PatchMapping("/v1/restaurants/{restaurantId}/menu")
     public ResponseEntity<Void> updateMenuItem(
             @PathVariable String restaurantId,
             @RequestBody @Valid List<MenuUpdateRequest> menuList) {
