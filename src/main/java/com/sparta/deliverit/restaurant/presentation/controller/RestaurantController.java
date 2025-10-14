@@ -3,10 +3,7 @@ package com.sparta.deliverit.restaurant.presentation.controller;
 import com.sparta.deliverit.global.infrastructure.security.UserDetailsImpl;
 import com.sparta.deliverit.restaurant.application.service.RestaurantService;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
-import com.sparta.deliverit.restaurant.presentation.dto.RestaurantInfoRequestDto;
-import com.sparta.deliverit.restaurant.presentation.dto.RestaurantInfoResponseDto;
-import com.sparta.deliverit.restaurant.presentation.dto.RestaurantListRequestDto;
-import com.sparta.deliverit.restaurant.presentation.dto.RestaurantListResponseDto;
+import com.sparta.deliverit.restaurant.presentation.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,10 +55,10 @@ public class RestaurantController {
 
     // 음식점 단일 조회
     @GetMapping("/{restaurantId}")
-    public ResponseEntity<RestaurantInfoResponseDto> getRestaurantInfo(@PathVariable String restaurantId) throws Exception {
+    public ResponseEntity<RestaurantDetailResponseDto> getRestaurantDetail(@PathVariable String restaurantId) throws Exception {
         log.info("Controller - getRestaurantInfo 실행: restaurantId={}", restaurantId);
 
-        RestaurantInfoResponseDto restaurant = restaurantService.getRestaurantInfo(restaurantId);
+        RestaurantDetailResponseDto restaurant = restaurantService.getRestaurantDetail(restaurantId);
 
         log.info("Controller - getRestaurantInfo 종료: restaurantId={}", restaurant.getRestaurantId());
         return ResponseEntity.ok(restaurant);
