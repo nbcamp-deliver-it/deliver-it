@@ -41,12 +41,6 @@ public class PaymentServiceImpl implements PaymentService {
         return payment;
     }
 
-    public PaymentResponseDto deletePayment(Order order) {
-        Payment payment = paymentRepository.findById(order.getPayment()).orElseThrow();
-        paymentRepository.delete(payment);
-        return PaymentResponseDto.of(payment);
-    }
-
     private PaymentProcessor getProcessor(Company company) {
         return processorList.stream()
                 .filter(processor -> processor.findByCompany(company))

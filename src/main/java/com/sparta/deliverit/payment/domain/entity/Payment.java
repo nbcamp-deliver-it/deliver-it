@@ -1,11 +1,13 @@
 package com.sparta.deliverit.payment.domain.entity;
 
+import com.sparta.deliverit.anything.entity.BaseEntity;
 import com.sparta.deliverit.payment.enums.PayState;
 import com.sparta.deliverit.payment.enums.PayType;
 import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -15,9 +17,10 @@ import java.util.UUID;
 @Table(name = "p_payment")
 @Getter
 @Builder
+@SQLDelete(sql = "UPDATE p_payment SET deleted_at = CURRENT_TIMESTAMP WHERE payment_id = ?")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Payment {
+public class Payment extends BaseEntity {
 
     @Id
     @Column(name = "payment_id")

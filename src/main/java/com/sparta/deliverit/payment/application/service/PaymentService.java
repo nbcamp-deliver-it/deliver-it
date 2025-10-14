@@ -11,5 +11,4 @@ public interface PaymentService {
 
     Payment paymentCancel(Order order);
 
-    PaymentResponseDto deletePayment(Order order);
 }
