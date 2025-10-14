@@ -26,6 +26,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -35,6 +36,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 public class OrderServiceImpl implements OrderService {
 
     private static final int TIMEOUT_MINUTES = 5;
@@ -181,6 +183,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public ConfirmOrderInfo confirmOrder(String restaurantId, String orderId, String accessUserId) {
 
         OrderDetailForOwner currOrder = orderRepository.getByOrderIdForOwner(orderId).orElseThrow(
@@ -223,6 +226,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public CancelOrderInfo cancelOrderForUser(String orderId, String accessUserId) {
 
         OrderDetailForUser currOrder = orderRepository.getByOrderIdForUser(orderId).orElseThrow(
@@ -265,6 +269,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public CancelOrderInfo cancelOrderForOwner(String restaurantId, String orderId, String accessUserId) {
 
         OrderDetailForOwner currOrder = orderRepository.getByOrderIdForOwner(orderId).orElseThrow(
@@ -301,6 +306,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public CreateOrderInfo createOrder(CreateOrderCommand orderCommand, Long userId) {
 
         Restaurant restaurant = restaurantRepository.findById(orderCommand.getRestaurantId()).orElseThrow(
