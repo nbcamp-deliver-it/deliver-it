@@ -4,7 +4,7 @@ pipeline {
   environment {
     JAVA_HOME = '/usr/lib/jvm/java-17-amazon-corretto'
     REPO_URL   = 'https://github.com/nbcamp-deliver-it/deliver-it.git'
-    BRANCH     = 'test-deploy'
+    BRANCH     = 'main'
     SSH_USER   = 'ec2-user'               // 원격 접속 계정
     APP_JAR    = '/opt/app/app.jar'       // 배포 타깃 경로
     SERVICE    = 'app'                    // systemd 서비스명
