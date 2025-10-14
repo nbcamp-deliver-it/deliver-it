@@ -65,7 +65,6 @@ public class WebSecurityConfig {
                         .requestMatchers("/").permitAll() // 메인 페이지 요청 허가
                         .requestMatchers("/v1/user/login", "/v1/user/signup").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
-                        .requestMatchers("/ping").permitAll()
                         .anyRequest().authenticated() // 그 외 모든 요청 인증처리
         );
 
