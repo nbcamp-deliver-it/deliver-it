@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
+public interface RestaurantRepository extends JpaRepository<Restaurant, String>, RestaurantRepositoryCustom {
     @EntityGraph(attributePaths = "categories")
-    Optional<Restaurant> findByRestaurantIdAndDeletedFalse(String restaurantId);
+    Optional<Restaurant> findByRestaurantId(String restaurantId);
 }
