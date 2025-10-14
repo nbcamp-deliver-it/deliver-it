@@ -70,6 +70,19 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(DomainException.class)
+    public ResponseEntity<ApiResponse<?>> handleDomainException(DomainException e) {
+        log.error(e.getMessage());
+
+        return ResponseEntity.status(e.getResponseCode().getHttpStatus()).body(
+                ApiResponse.create(
+                        e.getResponseCode(),
+                        e.getResponseCode().getMessage(),
+                        null
+                )
+        );
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> handleException(Exception e) {
 
