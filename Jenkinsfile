@@ -3,7 +3,6 @@ pipeline {
 
   environment {
     JAVA_HOME = '/usr/lib/jvm/java-17-amazon-corretto'
-    PATH = "${JAVA_HOME}/bin:${env.PATH}"
     REPO_URL   = 'https://github.com/nbcamp-deliver-it/deliver-it.git'
     BRANCH     = 'test-deploy'
     SSH_USER   = 'ec2-user'               // 원격 접속 계정
@@ -83,7 +82,7 @@ pipeline {
 
     stage('Rolling Deploy') {
       steps {
-        sshagent (credentials: [SSH_CRED_ID]) {
+        sshagent (credentials: [env.SSH_CRED_ID]) {
           script {
             def hosts = env.HOSTS.split("\\s+")
             for (h in hosts) {
