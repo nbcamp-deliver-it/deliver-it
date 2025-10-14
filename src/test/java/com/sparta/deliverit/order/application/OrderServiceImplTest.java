@@ -1130,7 +1130,7 @@ class OrderServiceImplTest {
                 "맛있는집",
                 "00000000-0000-0000-0000-000000000002",
                 LocalDateTime.of(2025, 10, 8, 11, 0, 0),
-                OrderStatus.ORDER_CREATED,
+                OrderStatus.ORDER_COMPLETED,
                 "서울시 중구 어딘가 1-1",
                 new BigDecimal(35000),
                 0L
@@ -1180,7 +1180,7 @@ class OrderServiceImplTest {
 
     }
 
-    @DisplayName("고객이 주문을 취소 상태로 변경하고자 할 때, 주문 상태가 결제 완료가 아닌 경우, InvalidOrderStatusException 응답")
+    @DisplayName("고객이 주문을 취소 상태로 변경하고자 할 때, 주문 상태가 ORDER_COMPLETED가 아닌 경우, InvalidOrderStatusException 응답")
     @Test
     void cancelOrderWithInvalidOrderStatusException() {
         // given
@@ -1357,7 +1357,7 @@ class OrderServiceImplTest {
                 .isInstanceOf(AccessDeniedException.class);
     }
 
-    @DisplayName("음식점 점주가 주문을 취소 상태로 변경하고자 할 때, 주문의 상태가 PAYMENT_COMPLETED, CONFIRMED가 아닌 경우 InvalidOrderStatusException 응답")
+    @DisplayName("음식점 점주가 주문을 취소 상태로 변경하고자 할 때, 주문의 상태가 ORDER_COMPLETED, CONFIRMED가 아닌 경우 InvalidOrderStatusException 응답")
     @Test
     void cancelOrderForOwnerWithInvalidOrderStatusException() {
         // given
@@ -1383,7 +1383,7 @@ class OrderServiceImplTest {
                 .isInstanceOf(InvalidOrderStatusException.class);
     }
 
-    @DisplayName("음식점 점주가 주문을 취소 상태로 변경하고자 할 때, 주문의 상태가 PAYMENT_COMPLETED, CONFIRMED가 아닌 경우 InvalidOrderStatusException 응답")
+    @DisplayName("음식점 점주가 주문을 취소 상태로 변경하고자 할 때, 주문의 상태가 ORDER_COMPLETED, ORDER_CONFIRMED 아닌 경우 InvalidOrderStatusException 응답")
     @Test
     void cancelOrderForOwnerWithInvalidOrderStatusException2() {
         // given
