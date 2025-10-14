@@ -1,5 +1,6 @@
 package com.sparta.deliverit.restaurant.presentation.controller;
 
+import com.sparta.deliverit.global.infrastructure.security.UserDetailsImpl;
 import com.sparta.deliverit.restaurant.application.service.RestaurantService;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
 import com.sparta.deliverit.restaurant.presentation.dto.RestaurantInfoRequestDto;
@@ -16,6 +17,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -28,21 +30,21 @@ public class RestaurantController {
 
     // 음식점 등록
     @PostMapping
-//    @PreAuthorize("hasAnyRole('OWNER', 'MASTER')")
-    @PreAuthorize("hasAnyAuthority('SCOPE_OWNER', 'SCOPE_MASTER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestaurantInfoResponseDto> createRestaurant(
-            @Valid @RequestBody RestaurantInfoRequestDto requestDto
+            @Valid @RequestBody RestaurantInfoRequestDto requestDto,
+            @AuthenticationPrincipal UserDetailsImpl user
     ) {
         log.info("Controller - createRestaurant 실행: restaurantName={}", requestDto.getName());
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(restaurantService.createRestaurant(requestDto));
+                .body(restaurantService.createRestaurant(requestDto, user));
     }
 
     // 음식점 전체 목록 조회
     @GetMapping
     public ResponseEntity<Page<RestaurantListResponseDto>> getRestaurantList(
-            @Valid @RequestBody RestaurantListRequestDto requestDto,
+            @Valid @ModelAttribute RestaurantListRequestDto requestDto,
             @PageableDefault(size = 20, sort = "distance", direction = Sort.Direction.ASC) Pageable pageable
     ) {
         log.info("Controller - getAllRestaurants 실행: latitude={}, longitude={}, keyword={}, category={}",
@@ -67,15 +69,15 @@ public class RestaurantController {
 
     // 음식점 수정
     @PutMapping("/{restaurantId}")
-//    @PreAuthorize("hasAnyRole('OWNER', 'MASTER')")
-    @PreAuthorize("hasAnyAuthority('SCOPE_OWNER', 'SCOPE_MASTER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestaurantInfoResponseDto> updateRestaurant(
-            @PathVariable String restaurantId, @Valid @RequestBody RestaurantInfoRequestDto requestDto
-//            @AuthenticationPrincipal UserDetailsImpl userDetails
+            @PathVariable String restaurantId,
+            @Valid @RequestBody RestaurantInfoRequestDto requestDto,
+            @AuthenticationPrincipal UserDetailsImpl user
     ) throws Exception {
         log.info("Controller - updateRestaurant 실행: restaurantId={}, restaurantName={}", restaurantId, requestDto.getName());
 
-        RestaurantInfoResponseDto restaurant = restaurantService.updateRestaurant(restaurantId, requestDto); // + userDetails
+        RestaurantInfoResponseDto restaurant = restaurantService.updateRestaurant(restaurantId, requestDto, user); // + userDetails
 
         log.info("Controller - updateRestaurant 종료: restaurantId={}, restaurantName={}", restaurant.getRestaurantId(), restaurant.getName());
         return ResponseEntity.ok(restaurant);
@@ -83,15 +85,15 @@ public class RestaurantController {
 
     // 음식점 상태 수정
     @PatchMapping("/{restaurantId}/status")
-    //    @PreAuthorize("hasAnyRole('OWNER', 'MASTER')")
-    @PreAuthorize("hasAnyAuthority('SCOPE_OWNER', 'SCOPE_MASTER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
     public ResponseEntity<RestaurantInfoResponseDto> updateRestaurantStatus(
-            @PathVariable String restaurantId, @RequestParam RestaurantStatus status
-//            @AuthenticationPrincipal UserDetailsImpl userDetails
+            @PathVariable String restaurantId,
+            @RequestParam RestaurantStatus status,
+            @AuthenticationPrincipal UserDetailsImpl user
     ) throws Exception {
         log.info("Controller - updateRestaurantStatus 실행: restaurantId={}, status={}", restaurantId, status);
 
-        RestaurantInfoResponseDto restaurant = restaurantService.updateRestaurantStatus(restaurantId, status);
+        RestaurantInfoResponseDto restaurant = restaurantService.updateRestaurantStatus(restaurantId, status, user);
 
         log.info("Controller - updateRestaurantStatus 종료: restaurantId={}, status={}", restaurant.getRestaurantId(), restaurant.getStatus());
         return ResponseEntity.ok(restaurant);
@@ -99,14 +101,14 @@ public class RestaurantController {
 
     // 음식점 삭제
     @DeleteMapping("/{restaurantId}")
-//    @PreAuthorize("hasAnyRole('OWNER', 'MASTER')")
-    @PreAuthorize("hasAnyAuthority('SCOPE_OWNER', 'SCOPE_MASTER')")
-    public ResponseEntity<String> deleteRestaurant(@PathVariable String restaurantId
-//            @AuthenticationPrincipal UserDetailsImpl userDetails
+    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER', 'MASTER')")
+    public ResponseEntity<String> deleteRestaurant(
+            @PathVariable String restaurantId,
+            @AuthenticationPrincipal UserDetailsImpl user
     ) throws Exception {
         log.info("Controller - deleteRestaurant 실행: restaurantId={}", restaurantId);
 
-        restaurantService.deleteRestaurant(restaurantId); // + userDetails
+        restaurantService.deleteRestaurant(restaurantId, user);
         return ResponseEntity.ok("삭제가 성공적으로 완료되었습니다.");
     }
 }
