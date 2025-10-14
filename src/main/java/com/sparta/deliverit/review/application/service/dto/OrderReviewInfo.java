@@ -17,10 +17,12 @@ public record OrderReviewInfo(
     }
 
     public static OrderReviewInfo from(OrderReview review) {
+        var user = review.getUser();
+
         return new OrderReviewInfo(
                 review.getOrderReviewId(),
-                1L,
-                "userName",
+                user.getId(),
+                user.getName(),
                 review.getStar(),
                 review.getDescription()
         );

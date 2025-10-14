@@ -3,6 +3,8 @@ package com.sparta.deliverit.review.application.service;
 import com.sparta.deliverit.review.application.service.dto.OrderReviewCommand;
 import com.sparta.deliverit.review.domain.entity.OrderReview;
 import com.sparta.deliverit.review.infrastructure.repository.OrderReviewRepository;
+import com.sparta.deliverit.user.domain.entity.User;
+import com.sparta.deliverit.user.domain.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -19,6 +22,9 @@ class OrderReviewServiceTest {
 
     @Mock
     OrderReviewRepository orderReviewRepository;
+
+    @Mock
+    UserRepository userRepository;
 
     @InjectMocks
     OrderReviewService orderReviewService;
@@ -35,6 +41,8 @@ class OrderReviewServiceTest {
 
         when(orderReviewRepository.save(any(OrderReview.class)))
                 .thenAnswer(invocation -> invocation.getArguments()[0]);
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.of(new User()));
         orderReviewService.createReview(payload);
 
         verify(orderReviewRepository, times(1)).save(any(OrderReview.class));

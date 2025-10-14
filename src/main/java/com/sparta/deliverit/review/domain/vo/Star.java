@@ -13,8 +13,8 @@ import java.util.Objects;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Star {
-    private final BigDecimal MIN_VALUE = BigDecimal.valueOf(1.0);
-    private final BigDecimal MAX_VALUE = BigDecimal.valueOf(5.0);
+    private static final BigDecimal MIN_VALUE = BigDecimal.valueOf(1.0);
+    private static final BigDecimal MAX_VALUE = BigDecimal.valueOf(5.0);
     public static final int SCALE = 1;
 
     @Column(name = "star", precision = 2, scale = 1, nullable = false)
