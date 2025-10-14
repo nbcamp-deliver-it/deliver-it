@@ -2,6 +2,7 @@ package com.sparta.deliverit.menu.presentation.controller;
 
 import com.sparta.deliverit.menu.application.service.MenuService;
 import com.sparta.deliverit.menu.domain.entity.Menu;
+import com.sparta.deliverit.menu.presentation.dto.MenuUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,7 +25,6 @@ public class MenuController {
     }
 
     @PostMapping("/v1/restaurants/{restaurantId}")
-    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Void> createMenuItem(
             @PathVariable String restaurantId,
             @RequestBody List<Menu> menu) {
@@ -34,7 +34,6 @@ public class MenuController {
     }
 
     @DeleteMapping("/v1/restaurants/{restaurantId}/menu")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteMenuItem(
             @PathVariable String restaurantId,
             @RequestBody @Valid List<String> menuIdList) {
@@ -46,7 +45,7 @@ public class MenuController {
     @PatchMapping("/v1/restaurants/{restaurantId}")
     public ResponseEntity<Void> updateMenuItem(
             @PathVariable String restaurantId,
-            @RequestBody @Valid List<Menu> menuList) {
+            @RequestBody @Valid List<MenuUpdateRequest> menuList) {
         menuService.updateMenuItem(restaurantId, menuList);
 
         return ResponseEntity.noContent().build();
