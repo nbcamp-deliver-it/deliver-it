@@ -238,7 +238,7 @@ class MenuServiceTest {
     }
 
     @Test
-    @DisplayName("메뉴 수정 실패 : 존재하지 않는 식당 아이디로 요청시 예외")
+    @DisplayName("메뉴 수정 실패 : 존재하지 않는 식당 아이디로 수정시 예외")
     void failUpdateMenu_NotExistRestaurantId() {
         String invalidId = "NOT_EXIST_ID";
 
@@ -256,7 +256,7 @@ class MenuServiceTest {
     }
 
     @Test
-    @DisplayName("메뉴 수정 실패 : 다른 식당의 메뉴 수정 요청시 예외")
+    @DisplayName("메뉴 수정 실패 : 다른 식당의 메뉴 수정 수정시 예외")
     void failUpdateMenuItem_otherRestaurantMenuUpdateRequest() {
         String otherRestaurantId = "OTHER_RESTAURANT_ID";
         MenuUpdateRequest req = MenuUpdateRequest.builder()
@@ -380,7 +380,7 @@ class MenuServiceTest {
     }
 
     @Test
-    @DisplayName("메뉴 삭제 실패 : 식당은 있지만 없는 않는 메뉴 아이디로 삭제시 예외")
+    @DisplayName("메뉴 삭제 실패 : 식당은 있지만 없는 메뉴 아이디로 삭제 요청시 예외")
     void failDeleteMenu_NotExistMenuId() {
         String restaurantId = "1";
         String invalidMenuId = "NOT_EXIST_ID";
