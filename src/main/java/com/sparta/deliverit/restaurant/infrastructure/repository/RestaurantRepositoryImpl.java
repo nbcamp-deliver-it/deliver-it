@@ -1,6 +1,7 @@
 package com.sparta.deliverit.restaurant.infrastructure.repository;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
@@ -31,7 +32,9 @@ public class RestaurantRepositoryImpl implements RestaurantRepositoryCustom {
 
     // 거리순 정렬
     @Override
-    public Page<RestaurantListResponseDto> searchOrderByDistance(double latitude, double longitude, String keyword, RestaurantCategory category, Pageable pageable) {
+    public Page<RestaurantListResponseDto> searchOrderByDistance(
+            double latitude, double longitude, String keyword, RestaurantCategory category, Pageable pageable
+    ) {
         // 1. 거리 계산 및 where절 구성
         NumberExpression<Double> distance = distance(latitude, longitude);
         BooleanBuilder where = baseFilter(keyword, category);
@@ -42,7 +45,8 @@ public class RestaurantRepositoryImpl implements RestaurantRepositoryCustom {
                         restaurant.restaurantId,
                         restaurant.name,
                         restaurant.rating.starAvg,
-                        restaurant.rating.reviewsCount
+                        restaurant.rating.reviewsCount,
+                        distance
                 ))
                 .from(restaurant)
                 .where(where)
