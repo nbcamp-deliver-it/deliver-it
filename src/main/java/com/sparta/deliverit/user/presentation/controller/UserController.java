@@ -1,7 +1,7 @@
 package com.sparta.deliverit.user.presentation.controller;
 
 import com.sparta.deliverit.global.infrastructure.security.UserDetailsImpl;
-import com.sparta.deliverit.global.presentation.dto.Result;
+import com.sparta.deliverit.global.response.ApiResponse;
 import com.sparta.deliverit.global.response.code.UserResponseCode;
 import com.sparta.deliverit.user.application.service.UserService;
 import com.sparta.deliverit.user.application.service.dto.UserInfo;
@@ -47,14 +47,16 @@ public class UserController {
     }
 
     @GetMapping("/users/profile")
-    public Result<UserResponseDto> getUser(
+    public ApiResponse<UserResponseDto> getUser(
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         Long userId = userDetails.getId();
+        log.info("=== 유저 조회 userId : {} ===", userId);
         UserInfo userInfo = userService.getUserInfo(userId);
-        return Result.of(
+        log.info("=== 유저 조회 성공 ===");
+        return ApiResponse.create(
+                UserResponseCode.USER_QUERY_SUCCESS,
                 UserResponseCode.USER_QUERY_SUCCESS.getMessage(),
-                UserResponseCode.USER_QUERY_SUCCESS.name(),
                 UserResponseDto.from(userInfo)
         );
     }

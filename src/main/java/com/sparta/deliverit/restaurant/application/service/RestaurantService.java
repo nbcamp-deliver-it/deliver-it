@@ -3,6 +3,7 @@ package com.sparta.deliverit.restaurant.application.service;
 import com.sparta.deliverit.global.exception.RestaurantException;
 import com.sparta.deliverit.global.infrastructure.security.UserDetailsImpl;
 import com.sparta.deliverit.global.persistence.UseActiveRestaurantFilter;
+import com.sparta.deliverit.global.response.code.UserResponseCode;
 import com.sparta.deliverit.menu.application.service.MenuService;
 import com.sparta.deliverit.menu.presentation.dto.MenuResponseDto;
 import com.sparta.deliverit.restaurant.domain.entity.Category;
@@ -33,7 +34,7 @@ import java.util.UUID;
 
 import static com.sparta.deliverit.global.response.code.RestaurantResponseCode.RESTAURANT_FORBIDDEN;
 import static com.sparta.deliverit.global.response.code.RestaurantResponseCode.RESTAURANT_NOT_FOUND;
-import static com.sparta.deliverit.global.response.code.UserResponseCode.USER_NOT_FOUND;
+import static com.sparta.deliverit.global.response.code.UserResponseCode.*;
 import static com.sparta.deliverit.restaurant.domain.model.RestaurantStatus.SHUTDOWN;
 import static com.sparta.deliverit.restaurant.domain.model.SortType.DISTANCE;
 import static com.sparta.deliverit.restaurant.domain.model.SortType.RATING;
@@ -80,7 +81,7 @@ public class RestaurantService {
             User owner = userRepository.findByUsername(requestDto.getOwnerId())
                     .orElseThrow(() -> {
                         log.error("일치하는 사용자를 찾을 수 없습니다.: OwnerId={}", requestDto.getOwnerId());
-                        return new RestaurantException(USER_NOT_FOUND);
+                        return new RestaurantException(NOT_FOUND_USER);
                     });
 
             restaurant.assignUser(owner);
