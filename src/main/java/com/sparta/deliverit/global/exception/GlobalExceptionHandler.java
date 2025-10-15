@@ -44,32 +44,6 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(RestaurantException.class)
-    public ResponseEntity<ApiResponse<?>> handleRestaurantException(RestaurantException e) {
-        log.error(e.getMessage());
-
-        return ResponseEntity.status(e.getResponseCode().getHttpStatus()).body(
-                ApiResponse.create(
-                        e.getResponseCode(),
-                        e.getResponseCode().getMessage(),
-                        null
-                )
-        );
-    }
-
-    @ExceptionHandler(MenuException.class)
-    public ResponseEntity<ApiResponse<?>> handleMenuException(MenuException e) {
-        log.error(e.getMessage());
-
-        return ResponseEntity.status(e.getResponseCode().getHttpStatus()).body(
-                ApiResponse.create(
-                        e.getResponseCode(),
-                        e.getResponseCode().getMessage(),
-                        null
-                )
-        );
-    }
-
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<ApiResponse<?>> handleDomainException(DomainException e) {
         log.error(e.getMessage());
