@@ -1,7 +1,7 @@
 package com.sparta.deliverit.user.presentation.controller;
 
 import com.sparta.deliverit.global.infrastructure.security.UserDetailsImpl;
-import com.sparta.deliverit.global.presentation.dto.Result;
+import com.sparta.deliverit.global.response.ApiResponse;
 import com.sparta.deliverit.global.response.code.UserResponseCode;
 import com.sparta.deliverit.user.application.service.UserService;
 import com.sparta.deliverit.user.application.service.dto.UserInfo;
@@ -49,31 +49,31 @@ public class UserController {
     }
 
     @GetMapping("/users/profile")
-    public Result<UserResponseDto> getUser(
+    public ApiResponse<UserResponseDto> getUser(
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         Long userId = userDetails.getId();
         log.info("=== 회원 조회 userId : {} ===", userId);
         UserInfo userInfo = userService.getUserInfo(userId);
         log.info("=== 회원 조회 완료 ===");
-        return Result.of(
+        return ApiResponse.create(
+                USER_QUERY_SUCCESS,
                 USER_QUERY_SUCCESS.getMessage(),
-                USER_QUERY_SUCCESS.name(),
                 UserResponseDto.from(userInfo)
         );
     }
 
     @DeleteMapping("/users")
-    public Result<Long> deleteUser(
+    public ApiResponse<Long> deleteUser(
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         Long userId = userDetails.getId();
         log.info("=== 회원 삭제 userId : {} ===", userId);
         Long deletedUserId = userService.deleteUser(userId);
         log.info("=== 회원 삭제 완료 ===");
-        return Result.of(
+        return ApiResponse.create(
+                USER_DELETE_SUCCESS,
                 USER_DELETE_SUCCESS.getMessage(),
-                USER_DELETE_SUCCESS.name(),
                 deletedUserId
         );
     }

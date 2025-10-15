@@ -1,8 +1,11 @@
 package com.sparta.deliverit.order.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sparta.deliverit.order.domain.entity.OrderItem;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.math.BigDecimal;
 
 @Getter
 public class MenuInfo {
@@ -13,20 +16,28 @@ public class MenuInfo {
     private final int quantity;
 
     @JsonProperty("price")
-    private final int price;
+    private final BigDecimal price;
 
     @Builder
-    private MenuInfo(String menuName, int quantity, int price) {
+    private MenuInfo(String menuName, int quantity, BigDecimal price) {
         this.menuName = menuName;
         this.quantity = quantity;
         this.price = price;
     }
 
-    public static MenuInfo create(String menuName, int quantity, int price) {
+    public static MenuInfo create(String menuName, int quantity, BigDecimal price) {
         return MenuInfo.builder()
                 .menuName(menuName)
                 .quantity(quantity)
                 .price(price)
+                .build();
+    }
+
+    public static MenuInfo of(OrderItem orderItem) {
+        return MenuInfo.builder()
+                .menuName(orderItem.getMenuNameSnapshot())
+                .quantity(orderItem.getQuantity())
+                .price(orderItem.getMenuPriceSnapshot())
                 .build();
     }
 }
