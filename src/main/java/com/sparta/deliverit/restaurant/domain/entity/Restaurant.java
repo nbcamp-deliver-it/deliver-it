@@ -1,6 +1,7 @@
 package com.sparta.deliverit.restaurant.domain.entity;
 
 import com.sparta.deliverit.anything.entity.BaseEntity;
+import com.sparta.deliverit.restaurant.domain.model.RestaurantCategory;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
 import com.sparta.deliverit.restaurant.domain.vo.RestaurantRating;
 import com.sparta.deliverit.restaurant.infrastructure.api.map.Coordinates;
@@ -11,7 +12,7 @@ import lombok.*;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 
 import static com.sparta.deliverit.restaurant.domain.model.RestaurantStatus.SHUTDOWN;
@@ -74,17 +75,19 @@ public class Restaurant extends BaseEntity {
     }
 
     // 음식점 - 카테고리 N:M 관계
-    @Builder.Default
-    @ManyToMany
-    @JoinTable(
+    @ElementCollection(targetClass = RestaurantCategory.class, fetch = FetchType.LAZY)
+    @CollectionTable(
             name = "restaurant_category",
-            joinColumns = @JoinColumn(name = "restaurant_id"),
-            inverseJoinColumns = @JoinColumn(name = "category_id")
+            joinColumns = @JoinColumn(name = "restaurant_id")
     )
-    private Set<Category> categories = new HashSet<>();
+    @Column(name = "category", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private Set<RestaurantCategory> categories = java.util.EnumSet.noneOf(RestaurantCategory.class);
 
-    public void assignCategories(Set<Category> categories) {
-        this.categories.addAll(categories);
+    public void assignCategories(Set<RestaurantCategory> categories) {
+        this.categories.clear();
+        if (categories != null) this.categories.addAll(categories);
     }
 
     @Embedded
@@ -92,7 +95,7 @@ public class Restaurant extends BaseEntity {
     private RestaurantRating rating = new RestaurantRating();
 
     // 음식점 수정 메서드
-    public void update(RestaurantInfoRequestDto requestDto, Set<Category> categories, Coordinates coordinates) {
+    public void update(RestaurantInfoRequestDto requestDto, EnumSet<RestaurantCategory> categories, Coordinates coordinates) {
         name = requestDto.getName();
         phone = requestDto.getPhone();
         address = requestDto.getAddress();

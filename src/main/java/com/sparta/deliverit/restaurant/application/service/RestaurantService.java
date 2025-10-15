@@ -5,7 +5,6 @@ import com.sparta.deliverit.global.infrastructure.security.UserDetailsImpl;
 import com.sparta.deliverit.global.persistence.UseActiveRestaurantFilter;
 import com.sparta.deliverit.menu.application.service.MenuService;
 import com.sparta.deliverit.menu.presentation.dto.MenuResponseDto;
-import com.sparta.deliverit.restaurant.domain.entity.Category;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import com.sparta.deliverit.restaurant.domain.model.PageSize;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantCategory;
@@ -13,7 +12,6 @@ import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
 import com.sparta.deliverit.restaurant.domain.model.SortType;
 import com.sparta.deliverit.restaurant.infrastructure.api.map.Coordinates;
 import com.sparta.deliverit.restaurant.infrastructure.api.map.MapService;
-import com.sparta.deliverit.restaurant.infrastructure.repository.CategoryRepository;
 import com.sparta.deliverit.restaurant.infrastructure.repository.RestaurantRepository;
 import com.sparta.deliverit.restaurant.presentation.dto.*;
 import com.sparta.deliverit.user.domain.entity.User;
@@ -27,10 +25,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static com.sparta.deliverit.global.response.code.RestaurantResponseCode.RESTAURANT_FORBIDDEN;
 import static com.sparta.deliverit.global.response.code.RestaurantResponseCode.RESTAURANT_NOT_FOUND;
@@ -46,7 +41,6 @@ public class RestaurantService {
 
     private final MapService mapService;
     private final RestaurantRepository restaurantRepository;
-    private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final MenuService menuService;
 
@@ -59,12 +53,12 @@ public class RestaurantService {
         Restaurant restaurant = Restaurant.from(requestDto, generateRestaurantId());
         log.debug("restaurantId 생성: restaurantId={}", restaurant.getRestaurantId().substring(0, 5));
 
-        // 2. 카테고리 매핑
-        Set<Category> categories = categoryRepository.findAllByNameIn(requestDto.getCategories());
+        // 2. 카테고리 저장
+        EnumSet<RestaurantCategory> categories = EnumSet.copyOf(requestDto.getCategories());
         restaurant.assignCategories(categories);
         log.debug("카테고리 매핑: categories={}", categories);
 
-        // 3. 주소 -> 좌표 변환 후 엔티티 업데이트
+        // 3. 주소 -> 좌표 변환 및 저장
         Coordinates geocode = mapService.geocode(requestDto.getAddress());
         restaurant.updateCoordinates(geocode.getLongitude(), geocode.getLatitude());
         log.debug("주소 -> 좌표 변환: lon={}, lat={}", geocode.getLongitude(), geocode.getLatitude());
@@ -87,8 +81,9 @@ public class RestaurantService {
         }
         log.debug("음식점 소유주 저장 완료: ownerId={}", restaurant.getUser().getUsername());
 
-        // 5. DTO 반환
         restaurantRepository.save(restaurant);
+
+        // 5. DTO 반환
         log.info("Service - createRestaurant 종료: name={}", requestDto.getName());
         return RestaurantInfoResponseDto.from(restaurant);
     }
@@ -248,7 +243,7 @@ public class RestaurantService {
 
         // 4. 엔티티에 수정 사항 반영
         // 카테고리 정보 수정
-        Set<Category> categories = categoryRepository.findAllByNameIn(requestDto.getCategories());
+        EnumSet<RestaurantCategory> categories = EnumSet.copyOf(requestDto.getCategories());
         log.debug("카테고리 매핑: categories={}", categories);
 
         // 좌표 정보 수정

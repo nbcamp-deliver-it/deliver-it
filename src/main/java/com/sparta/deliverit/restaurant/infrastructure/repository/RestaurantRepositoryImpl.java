@@ -7,7 +7,6 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.sparta.deliverit.restaurant.domain.entity.QCategory;
 import com.sparta.deliverit.restaurant.domain.entity.QRestaurant;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantCategory;
 import com.sparta.deliverit.restaurant.presentation.dto.RestaurantListResponseDto;
@@ -130,12 +129,8 @@ public class RestaurantRepositoryImpl implements RestaurantRepositoryCustom {
     private BooleanBuilder baseFilter(String keyword, RestaurantCategory category) {
         BooleanBuilder where = new BooleanBuilder();
 
-        if (category != null) where.and(restaurant.categories.any().name.eq(category));
-
-        if (StringUtils.hasText(keyword)) {
-            String kw = "%" + keyword + "%";
-            where.and(restaurant.name.likeIgnoreCase(kw));
-        }
+        if (category != null) where.and(restaurant.categories.any().eq(category));
+        if (StringUtils.hasText(keyword)) where.and(restaurant.name.containsIgnoreCase(keyword));
 
         return where;
     }
