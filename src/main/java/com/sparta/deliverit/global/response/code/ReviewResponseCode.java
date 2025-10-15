@@ -5,6 +5,11 @@ import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.*;
 
 public enum ReviewResponseCode implements ResponseCode {
+    USER_REVIEW_QUERY_SUCCESS(OK, "유저의 주문 리뷰 조회에 성공하였습니다."),
+    ORDER_REVIEW_QUERY_SUCCESS(OK, "주문 리뷰 조회에 성공하였습니다."),
+    ORDER_REVIEW_CREATE_SUCCESS(OK, "주문 리뷰를 생성하였습니다."),
+    ORDER_REVIEW_UPDATE_SUCCESS(OK, "주문 리뷰를 수정하였습니다."),
+    ORDER_REVIEW_DELETE_SUCCESS(OK, "주문 리뷰를 삭제하였습니다."),
     NOT_FOUND_ORDER_REVIEW(BAD_REQUEST, "해당 주문 리뷰를 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;

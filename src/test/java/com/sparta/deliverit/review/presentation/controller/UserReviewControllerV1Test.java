@@ -50,9 +50,9 @@ class UserReviewControllerV1Test {
             mockMvc.perform(get("/v1/users/1/reviews")
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.list").isArray())
-                    .andExpect(jsonPath("$.list[0].star").isNumber())
-                    .andExpect(jsonPath("$.list[0].description").isString());
+                    .andExpect(jsonPath("$.data.list").isArray())
+                    .andExpect(jsonPath("$.data.list[0].star").isNumber())
+                    .andExpect(jsonPath("$.data.list[0].description").isString());
         }
     }
 }
