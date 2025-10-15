@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.sparta.deliverit.global.response.code.UserResponseCode.*;
+
 @Slf4j
 @Controller
 @RequiredArgsConstructor
@@ -51,11 +53,28 @@ public class UserController {
             @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         Long userId = userDetails.getId();
+        log.info("=== 회원 조회 userId : {} ===", userId);
         UserInfo userInfo = userService.getUserInfo(userId);
+        log.info("=== 회원 조회 완료 ===");
         return Result.of(
-                UserResponseCode.USER_QUERY_SUCCESS.getMessage(),
-                UserResponseCode.USER_QUERY_SUCCESS.name(),
+                USER_QUERY_SUCCESS.getMessage(),
+                USER_QUERY_SUCCESS.name(),
                 UserResponseDto.from(userInfo)
+        );
+    }
+
+    @DeleteMapping("/users")
+    public Result<Long> deleteUser(
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        Long userId = userDetails.getId();
+        log.info("=== 회원 삭제 userId : {} ===", userId);
+        Long deletedUserId = userService.deleteUser(userId);
+        log.info("=== 회원 삭제 완료 ===");
+        return Result.of(
+                USER_DELETE_SUCCESS.getMessage(),
+                USER_DELETE_SUCCESS.name(),
+                deletedUserId
         );
     }
 }
