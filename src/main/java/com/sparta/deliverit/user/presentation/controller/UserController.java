@@ -25,7 +25,16 @@ public class UserController {
             consumes = "application/json",
             produces = "text/plain; charset=UTF-8")
     @ResponseBody
-    public ResponseEntity<String> signup(@Valid @RequestBody SignupRequestDto requestDto) {
+    public ResponseEntity<String> signup(@Valid @RequestBody SignupRequestDto requestDto, BindingResult bindingResult) {
+        // Validation 예외처리
+        List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+        if(fieldErrors.size() > 0) {
+            for (FieldError fieldError : bindingResult.getFieldErrors()) {
+                log.error(fieldError.getField() + " 필드 : " + fieldError.getDefaultMessage());
+            }
+            return  ResponseEntity.badRequest().body("가입에러");
+        }
+
         userService.signup(requestDto);
 
         return ResponseEntity.ok(requestDto.getName() + "님 가입을 환영합니다.");
