@@ -1,13 +1,12 @@
 package com.sparta.deliverit.ai.application;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.deliverit.ai.domain.entity.AiMenuDescription;
 import com.sparta.deliverit.ai.domain.repository.AiMenuDescriptionRepository;
-import com.sparta.deliverit.ai.presentation.dto.GeminiRequestDto;
 import com.sparta.deliverit.global.exception.AiException;
 import com.sparta.deliverit.global.response.code.AiResponseCode;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
@@ -19,13 +18,15 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.util.List;
 
 @Service
 @Slf4j
 @Transactional
 public class GeminiMenuDescriptionServiceImpl implements AiMenuDescriptionService{
 
-    private final URI geminiURI = java.net.URI.create("dummyURL");
+    private final URI geminiURI = java.net.URI.create(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent");
     private final AiMenuDescriptionRepository aiMenuDescriptionRepository;
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
@@ -40,7 +41,7 @@ public class GeminiMenuDescriptionServiceImpl implements AiMenuDescriptionServic
 
     @Override
     public String askQuestionToAi(String question) {
-        log.info("service");
+
         GeminiRequestDto geminiRequestDto = GeminiRequestDto.of(question);
 
         RequestEntity<GeminiRequestDto> requestEntity =
@@ -55,7 +56,7 @@ public class GeminiMenuDescriptionServiceImpl implements AiMenuDescriptionServic
     }
 
     private String parseJsonToString(ResponseEntity<String> QuestionResult) {
-        log.info("parseJsonToString");
+
         JsonNode jsonNode;
         try {
             jsonNode = objectMapper.readTree(QuestionResult.getBody());
@@ -69,5 +70,32 @@ public class GeminiMenuDescriptionServiceImpl implements AiMenuDescriptionServic
         if(StringUtils.hasText(result))
             return result;
         else throw new AiException(AiResponseCode.INTERNAL_SERVER_ERROR);
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class GeminiRequestDto{
+
+        private List<Content> contents;
+
+        public static GeminiRequestDto of(String text) {
+            List<Content> contentList = List.of(
+                    new Content(
+                            List.of(new Part(text))
+                    ));
+            return new GeminiRequestDto(contentList);
+        }
+
+        @Getter
+        @AllArgsConstructor
+        public static class Content{
+            private List<Part> parts;
+
+        }
+        @Getter
+        @AllArgsConstructor
+        public static class Part{
+            private String text;
+        }
     }
 }
