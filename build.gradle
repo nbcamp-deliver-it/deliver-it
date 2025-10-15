@@ -55,6 +55,9 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    // actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
     // 내장 DB(H2) - @DataJpaTest가 자동으로 H2로 교체
     testImplementation 'com.h2database:h2'
 }
