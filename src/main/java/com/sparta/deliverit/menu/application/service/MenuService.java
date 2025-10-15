@@ -29,7 +29,7 @@ public class MenuService {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new RestaurantException(RESTAURANT_NOT_FOUND));
 
-        return menuRepository.findByRestaurant_Id(restaurant);
+        return menuRepository.findByRestaurant(restaurant);
     }
 
     public void createMenuItem(String restaurantId, List<Menu> menuList) {

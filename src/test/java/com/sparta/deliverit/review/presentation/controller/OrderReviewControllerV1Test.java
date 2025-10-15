@@ -55,12 +55,12 @@ class OrderReviewControllerV1Test {
             mockMvc.perform(get("/v1/orders/orderId/reviews")
                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.list").isArray())
-                    .andExpect(jsonPath("$.list[0].orderReviewId").isNumber())
-                    .andExpect(jsonPath("$.list[0].userId").isNumber())
-                    .andExpect(jsonPath("$.list[0].userName").isString())
-                    .andExpect(jsonPath("$.list[0].star").isNumber())
-                    .andExpect(jsonPath("$.list[0].description").isString());
+                    .andExpect(jsonPath("$.data.list").isArray())
+                    .andExpect(jsonPath("$.data.list[0].orderReviewId").isNumber())
+                    .andExpect(jsonPath("$.data.list[0].userId").isNumber())
+                    .andExpect(jsonPath("$.data.list[0].userName").isString())
+                    .andExpect(jsonPath("$.data.list[0].star").isNumber())
+                    .andExpect(jsonPath("$.data.list[0].description").isString());
         }
     }
 
@@ -81,7 +81,7 @@ class OrderReviewControllerV1Test {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.reviewId").exists());
+                    .andExpect(jsonPath("$.data.reviewId").exists());
         }
 
         @Test
@@ -130,7 +130,7 @@ class OrderReviewControllerV1Test {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.reviewId").exists());
+                    .andExpect(jsonPath("$.data.reviewId").exists());
         }
 
         @Nested
@@ -215,7 +215,7 @@ class OrderReviewControllerV1Test {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.reviewId").exists());
+                    .andExpect(jsonPath("$.data.reviewId").exists());
         }
 
         @Test
@@ -276,7 +276,7 @@ class OrderReviewControllerV1Test {
             mockMvc.perform(delete("/v1/order-reviews/{reviewId}", 1)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.reviewId").isNumber());
+                    .andExpect(jsonPath("$.data.reviewId").isNumber());
         }
     }
 }

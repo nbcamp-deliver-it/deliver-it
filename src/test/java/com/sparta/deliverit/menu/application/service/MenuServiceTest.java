@@ -78,7 +78,7 @@ class MenuServiceTest {
         given(restaurantRepository.findById(restaurant.getRestaurantId()))
                 .willReturn(Optional.of(restaurant));
 
-        given(menuRepository.findByRestaurant_Id(restaurant))
+        given(menuRepository.findByRestaurant(restaurant))
                 .willReturn(menuList);
 
         List<Menu> result = menuService.getMenuByRestaurantId(restaurant.getRestaurantId());
@@ -90,7 +90,7 @@ class MenuServiceTest {
 
         then(restaurantRepository).should(times(1))
                 .findById(restaurant.getRestaurantId());
-        then(menuRepository).should(times(1)).findByRestaurant_Id(restaurant);
+        then(menuRepository).should(times(1)).findByRestaurant(restaurant);
     }
 
     @Test
