@@ -1,6 +1,6 @@
 package com.sparta.deliverit.payment.presentation.controller;
 
-import com.sparta.deliverit.payment.application.service.PaymentService;
+import com.sparta.deliverit.payment.application.service.PaymentServiceImpl;
 import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
 import com.sparta.deliverit.payment.presentation.dto.PaymentResponseDto;
 import jakarta.validation.Valid;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class PaymentControllerV1 {
 
-    private final PaymentService service;
+    private final PaymentServiceImpl service;
 
     @PostMapping("/{orderId}/payment")
     @ResponseStatus(value = HttpStatus.CREATED)
