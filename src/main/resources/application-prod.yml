@@ -28,6 +28,12 @@ kakao:
     connect: 2s                               # KakaoProperties.Timeout.connect
     read: 3s
 
+ai:
+  authorization_header: ${AI_AUTH_HEADER:header}
+  token: ${AI_TOKEN:token}
+  connect_time: 1
+  read_time: 10
+
 management:
   endpoints:
     web:
