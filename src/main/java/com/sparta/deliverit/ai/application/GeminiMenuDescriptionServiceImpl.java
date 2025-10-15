@@ -1,5 +1,6 @@
 package com.sparta.deliverit.ai.application;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.deliverit.ai.domain.entity.AiMenuDescription;
@@ -60,7 +61,7 @@ public class GeminiMenuDescriptionServiceImpl implements AiMenuDescriptionServic
         JsonNode jsonNode;
         try {
             jsonNode = objectMapper.readTree(QuestionResult.getBody());
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             throw new AiException(AiResponseCode.INTERNAL_SERVER_ERROR);
         }
 
