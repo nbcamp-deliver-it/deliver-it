@@ -1,5 +1,7 @@
 package com.sparta.deliverit.review.presentation.controller;
 
+import com.sparta.deliverit.global.presentation.dto.Result;
+import com.sparta.deliverit.global.response.code.ReviewResponseCode;
 import com.sparta.deliverit.review.application.service.OrderReviewService;
 import com.sparta.deliverit.review.presentation.dto.request.CreateOrderReviewRequest;
 import com.sparta.deliverit.review.presentation.dto.request.UpdateReviewRequest;
@@ -11,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import static com.sparta.deliverit.global.response.code.ReviewResponseCode.*;
+
 @Slf4j
 @RestController
 @RequestMapping("/v1")
@@ -19,17 +23,21 @@ public class OrderReviewControllerV1 {
     private final OrderReviewService orderReviewService;
 
     @GetMapping("/orders/{orderId}/reviews")
-    public ResponseEntity<OrderReviewListResponse> getOrderReviews(
+    public Result<OrderReviewListResponse> getOrderReviews(
             @PathVariable String orderId
     ) {
         log.info("=== 주문 리뷰 조회 orderId : {} ===", orderId);
         var orderReviews = orderReviewService.getOrderReviews(orderId);
         log.info("=== 주문 리뷰 조회 성공 ===");
-        return ResponseEntity.ok(OrderReviewListResponse.from(orderReviews));
+        return Result.of(
+                ORDER_REVIEW_QUERY_SUCCESS.getMessage(),
+                ORDER_REVIEW_QUERY_SUCCESS.name(),
+                OrderReviewListResponse.from(orderReviews)
+        );
     }
 
     @PostMapping("/orders/{orderId}/reviews")
-    public ResponseEntity<MutateReviewResponse> create(
+    public Result<MutateReviewResponse> create(
             @PathVariable
             String orderId,
             @Valid
@@ -40,11 +48,15 @@ public class OrderReviewControllerV1 {
         var command = request.toCommand(orderId);
         Long savedReviewId = orderReviewService.createReview(command);
         log.info("=== 주문 리뷰 생성 성공 ===");
-        return ResponseEntity.ok(new MutateReviewResponse(savedReviewId));
+        return Result.of(
+                ORDER_REVIEW_CREATE_SUCCESS.getMessage(),
+                ORDER_REVIEW_CREATE_SUCCESS.name(),
+                new MutateReviewResponse(savedReviewId)
+        );
     }
 
     @PutMapping("/order-reviews/{orderReviewId}")
-    public ResponseEntity<MutateReviewResponse> update(
+    public Result<MutateReviewResponse> update(
             @PathVariable Long orderReviewId,
             @RequestBody @Valid UpdateReviewRequest request
     ) {
@@ -52,16 +64,24 @@ public class OrderReviewControllerV1 {
         var command = request.toCommand(orderReviewId);
         Long id = orderReviewService.updateReview(command);
         log.info("=== 주문 리뷰 수정 성공 ===");
-        return ResponseEntity.ok(new MutateReviewResponse(id));
+        return Result.of(
+                ORDER_REVIEW_UPDATE_SUCCESS.getMessage(),
+                ORDER_REVIEW_UPDATE_SUCCESS.name(),
+                new MutateReviewResponse(id)
+        );
     }
 
     @DeleteMapping("/order-reviews/{orderReviewId}")
-    public ResponseEntity<MutateReviewResponse> delete(
+    public Result<MutateReviewResponse> delete(
             @PathVariable Long orderReviewId
     ) {
         log.info("=== 주문 리뷰 삭제 order-reviewId : {} ===", orderReviewId);
         Long id = orderReviewService.deleteReview(orderReviewId);
         log.info("=== 주문 리뷰 삭제 성공 ===");
-        return ResponseEntity.ok(new MutateReviewResponse(id));
+        return Result.of(
+                ORDER_REVIEW_DELETE_SUCCESS.getMessage(),
+                ORDER_REVIEW_DELETE_SUCCESS.name(),
+                new MutateReviewResponse(id)
+        );
     }
 }
