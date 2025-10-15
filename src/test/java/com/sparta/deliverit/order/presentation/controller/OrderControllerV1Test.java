@@ -1,7 +1,7 @@
 package com.sparta.deliverit.order.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sparta.deliverit.order.application.OrderService;
+import com.sparta.deliverit.order.application.service.OrderService;
 import com.sparta.deliverit.order.domain.entity.OrderStatus;
 import com.sparta.deliverit.order.presentation.dto.request.CreateOrderRequest;
 import com.sparta.deliverit.order.presentation.dto.request.OrderMenuRequest;
