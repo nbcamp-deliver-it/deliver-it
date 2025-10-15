@@ -7,3 +7,4 @@ public class RestaurantException extends DomainException {
         super(responseCode);
     }
 }
+
