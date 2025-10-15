@@ -12,12 +12,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KbCardProcessor implements PaymentProcessor {
 
-    private final PaymentRepository repository;
-
     @Override
-    public Payment paymentRequest(PaymentRequestDto requestDto) {
-        Payment entity = Payment.of(requestDto);
-        return repository.save(entity);
+    public Payment paymentProcessing(PaymentRequestDto requestDto) {
+        return Payment.of(requestDto, Company.KB);
     }
 
     @Override
