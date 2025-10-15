@@ -1,11 +1,17 @@
 package com.sparta.deliverit.user.presentation.controller;
 
+import com.sparta.deliverit.global.infrastructure.security.UserDetailsImpl;
+import com.sparta.deliverit.global.presentation.dto.Result;
+import com.sparta.deliverit.global.response.code.UserResponseCode;
 import com.sparta.deliverit.user.application.service.UserService;
+import com.sparta.deliverit.user.application.service.dto.UserInfo;
 import com.sparta.deliverit.user.presentation.dto.SignupRequestDto;
+import com.sparta.deliverit.user.presentation.dto.UserResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -40,6 +46,16 @@ public class UserController {
         return ResponseEntity.ok(requestDto.getName() + "님 가입을 환영합니다.");
     }
 
-
-
+    @GetMapping("/users/profile")
+    public Result<UserResponseDto> getUser(
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        Long userId = userDetails.getId();
+        UserInfo userInfo = userService.getUserInfo(userId);
+        return Result.of(
+                UserResponseCode.USER_QUERY_SUCCESS.getMessage(),
+                UserResponseCode.USER_QUERY_SUCCESS.name(),
+                UserResponseDto.from(userInfo)
+        );
+    }
 }
