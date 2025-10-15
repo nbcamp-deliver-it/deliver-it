@@ -1,6 +1,7 @@
 package com.sparta.deliverit.order.domain.entity;
 
 import com.sparta.deliverit.anything.entity.BaseEntity;
+import com.sparta.deliverit.payment.domain.entity.Payment;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import com.sparta.deliverit.user.domain.entity.User;
 import jakarta.persistence.*;
