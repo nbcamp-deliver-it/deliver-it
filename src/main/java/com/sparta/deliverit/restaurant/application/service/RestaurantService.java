@@ -3,11 +3,11 @@ package com.sparta.deliverit.restaurant.application.service;
 import com.sparta.deliverit.global.exception.RestaurantException;
 import com.sparta.deliverit.global.infrastructure.security.UserDetailsImpl;
 import com.sparta.deliverit.global.persistence.UseActiveRestaurantFilter;
-import com.sparta.deliverit.global.response.code.UserResponseCode;
 import com.sparta.deliverit.menu.application.service.MenuService;
 import com.sparta.deliverit.menu.presentation.dto.MenuResponseDto;
 import com.sparta.deliverit.restaurant.domain.entity.Category;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
+import com.sparta.deliverit.restaurant.domain.model.PageSize;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantCategory;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
 import com.sparta.deliverit.restaurant.domain.model.SortType;
@@ -34,10 +34,9 @@ import java.util.UUID;
 
 import static com.sparta.deliverit.global.response.code.RestaurantResponseCode.RESTAURANT_FORBIDDEN;
 import static com.sparta.deliverit.global.response.code.RestaurantResponseCode.RESTAURANT_NOT_FOUND;
-import static com.sparta.deliverit.global.response.code.UserResponseCode.*;
+import static com.sparta.deliverit.global.response.code.UserResponseCode.NOT_FOUND_USER;
 import static com.sparta.deliverit.restaurant.domain.model.RestaurantStatus.SHUTDOWN;
-import static com.sparta.deliverit.restaurant.domain.model.SortType.DISTANCE;
-import static com.sparta.deliverit.restaurant.domain.model.SortType.RATING;
+import static com.sparta.deliverit.restaurant.domain.model.SortType.*;
 import static com.sparta.deliverit.user.domain.entity.UserRoleEnum.OWNER;
 
 @Slf4j
@@ -99,40 +98,46 @@ public class RestaurantService {
         return UUID.randomUUID().toString();
     }
 
-    private static final String SORT_DISTANCE = "distance";
-    private static final String SORT_RATING = "rating";
-
     // 음식점 전체 목록 조회
     @UseActiveRestaurantFilter
     @Transactional(readOnly = true)
-    public Page<RestaurantListResponseDto> getRestaurantList(
-            RestaurantListRequestDto requestDto, Pageable pageable
-    ) {
-        log.info("Service - getRestaurantList 시작: latitude={}, longitude={}, keyword={}, category={}",
-                requestDto.getLatitude(), requestDto.getLongitude(), requestDto.getKeyword(), requestDto.getCategory());
+    public Page<RestaurantListResponseDto> getRestaurantList(RestaurantListRequestDto requestDto) {
+        log.info("Service - getRestaurantList 시작: requestDto={}", requestDto.toString());
+
+        int page = Math.max(0, requestDto.getPage()); // 음수 방지
+        int size = PageSize.normalize(requestDto.getSize()); // size 제한
+        log.debug("page={}, size={}", page, size);
+
+        // enum 기반 정렬 생성
+        SortType requestType = SortType.normalize(requestDto.getSort());
+        Sort.Direction dir = requestDto.getDirection() == null ? Sort.Direction.DESC : requestDto.getDirection();
+        Sort sort = Sort.by(new Sort.Order(dir, requestType.field()));
+        Pageable pageable = PageRequest.of(page, size, sort);
 
         double latitude = requestDto.getLatitude();
         double longitude = requestDto.getLongitude();
         String keyword = requestDto.getNormalizedKeyword();
         RestaurantCategory category = requestDto.getCategory();
 
-        Pageable filtered = sanitizeSort(pageable, Set.of(SORT_DISTANCE, SORT_RATING));
+        Pageable filtered = sanitizeSort(pageable, Set.of(CREATED_AT.field(), DISTANCE.field(), RATING.field()));
         SortType type = resolveSortType(filtered);
 
         log.debug("음식점 전체 목록 조회: page={}, sort={}", pageable.getPageNumber(), type);
 
         return switch (type) {
+            case CREATED_AT -> {
+                Pageable p = keepOnlyCreatedAtOrDefault(filtered);
+                log.debug("createdAt sort={}", p.getSort());
+                yield restaurantRepository.searchByCreatedAt(keyword, category, p);
+            }
             case DISTANCE -> {
                 Pageable p = forceDistanceAscFirst(filtered);
                 log.debug("distance sort={}", p.getSort());
-
                 yield restaurantRepository.searchOrderByDistance(latitude, longitude, keyword, category, p);
             }
-
             case RATING -> {
                 Pageable p = keepOnlyRatingOrDefault(filtered);
                 log.debug("rating sort={}", p.getSort());
-
                 yield restaurantRepository.searchByRating(keyword, category, p);
             }
         };
@@ -140,15 +145,18 @@ public class RestaurantService {
 
     // pageable sort 문자열 -> enum 매핑
     private SortType resolveSortType(Pageable pageable) {
+        boolean hasCreateAt = pageable.getSort().stream()
+                .anyMatch(o -> o.getProperty().equalsIgnoreCase(CREATED_AT.field()));
         boolean hasDistance = pageable.getSort().stream()
-                .anyMatch(o -> o.getProperty().equalsIgnoreCase(SORT_DISTANCE));
+                .anyMatch(o -> o.getProperty().equalsIgnoreCase(DISTANCE.field()));
         boolean hasRating = pageable.getSort().stream()
-                .anyMatch(o -> o.getProperty().equalsIgnoreCase(SORT_RATING));
+                .anyMatch(o -> o.getProperty().equalsIgnoreCase(RATING.field()));
 
+        if (hasCreateAt) return CREATED_AT;
         if (hasDistance) return DISTANCE;
         if (hasRating) return RATING;
 
-        return DISTANCE;
+        return CREATED_AT; // 작성일순 default 설정
     }
 
     // 거리순, 별점순 정렬 외 조건 제한 및 페이지 설정
@@ -157,18 +165,31 @@ public class RestaurantService {
                 .filter(o -> whitelist.contains(o.getProperty()))
                 .toList();
 
-        Sort sort = keep.isEmpty() ? Sort.by(Sort.Order.asc(SORT_DISTANCE)) : Sort.by(keep);
+        Sort sort = keep.isEmpty()
+                ? Sort.by(Sort.Order.desc(CREATED_AT.field()))
+                : Sort.by(keep);
 
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+    }
+
+    // 생성일순(DESC(default), ASC) 정렬 페이지 설정
+    private Pageable keepOnlyCreatedAtOrDefault(Pageable pageable) {
+        List<Sort.Order> createdOnly = pageable.getSort().stream()
+                .filter(o -> o.getProperty().equalsIgnoreCase(CREATED_AT.field()))
+                .toList();
+        Sort sort = createdOnly.isEmpty()
+                ? Sort.by(Sort.Order.desc(CREATED_AT.field()))
+                : Sort.by(createdOnly);
         return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
     }
 
     // 거리순(ASC) 정렬 페이지 설정
     private Pageable forceDistanceAscFirst(Pageable pageable) {
         List<Sort.Order> orders = new ArrayList<>();
-        orders.add(Sort.Order.asc(SORT_DISTANCE));
+        orders.add(Sort.Order.asc(DISTANCE.field()));
 
         pageable.getSort().forEach(o -> {
-            if (!o.getProperty().equalsIgnoreCase(SORT_DISTANCE)) orders.add(o);
+            if (!o.getProperty().equalsIgnoreCase(DISTANCE.field())) orders.add(o);
         });
 
         return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(orders));
@@ -177,10 +198,12 @@ public class RestaurantService {
     // 별점순(DESC(default), ASC) 정렬 페이지 설정
     private Pageable keepOnlyRatingOrDefault(Pageable pageable) {
         List<Sort.Order> ratingOnly = pageable.getSort().stream()
-                .filter(o -> o.getProperty().equalsIgnoreCase(SORT_RATING))
+                .filter(o -> o.getProperty().equalsIgnoreCase(RATING.field()))
                 .toList();
 
-        Sort sort = ratingOnly.isEmpty() ? Sort.by(Sort.Order.desc(SORT_RATING)) : Sort.by(ratingOnly);
+        Sort sort = ratingOnly.isEmpty()
+                ? Sort.by(Sort.Order.desc(RATING.field()))
+                : Sort.by(ratingOnly);
 
         return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
     }
