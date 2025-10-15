@@ -5,6 +5,9 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.springframework.data.domain.Sort;
+
+import static com.sparta.deliverit.restaurant.domain.model.SortType.CREATED_AT;
 
 @Getter
 @Setter
@@ -26,6 +29,18 @@ public class RestaurantListRequestDto {
 
     private String keyword;
     private RestaurantCategory category;
+
+    @Builder.Default
+    private int page = 0;
+
+    @Builder.Default
+    private Integer size = 10;
+
+    @Builder.Default
+    private String sort = CREATED_AT.field();
+
+    @Builder.Default
+    private Sort.Direction direction = Sort.Direction.DESC;
 
     public String getNormalizedKeyword() {
         if (keyword == null) return null;
