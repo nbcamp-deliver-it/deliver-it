@@ -1,11 +1,15 @@
 package com.sparta.deliverit.user.application.service;
 
 
+import com.sparta.deliverit.global.exception.UserException;
+import com.sparta.deliverit.global.response.code.UserResponseCode;
+import com.sparta.deliverit.user.application.service.dto.UserInfo;
 import com.sparta.deliverit.user.domain.entity.User;
 import com.sparta.deliverit.user.domain.entity.UserRoleEnum;
 import com.sparta.deliverit.user.domain.repository.UserRepository;
 import com.sparta.deliverit.user.presentation.dto.SignupRequestDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +18,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -68,6 +73,18 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public UserInfo getUserInfo(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> {
+            log.error("존재하지 않는 유저입니다. userId : {}", userId);
+            return new UserException(UserResponseCode.NOT_FOUND_USER);
+        });
+
+        return new UserInfo(
+                user.getName(),
+                user.getPhone(),
+                user.getRole().name()
+        );
+    }
 
     private static Map<String, UserRoleEnum> buildRoleAliases() {
         Map<String, UserRoleEnum> roleMap = new HashMap<>();

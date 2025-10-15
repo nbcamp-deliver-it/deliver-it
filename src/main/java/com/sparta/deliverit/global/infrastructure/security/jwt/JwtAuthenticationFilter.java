@@ -2,6 +2,7 @@ package com.sparta.deliverit.global.infrastructure.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.deliverit.global.infrastructure.security.UserDetailsImpl;
+import com.sparta.deliverit.user.domain.entity.User;
 import com.sparta.deliverit.user.domain.entity.UserRoleEnum;
 import com.sparta.deliverit.user.presentation.dto.LoginRequestDto;
 import jakarta.servlet.FilterChain;
@@ -44,10 +45,12 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) {
-        String username = ((UserDetailsImpl) authResult.getPrincipal()).getUsername();
-        UserRoleEnum role = ((UserDetailsImpl) authResult.getPrincipal()).getUser().getRole();
+        UserDetailsImpl principal = (UserDetailsImpl) authResult.getPrincipal();
+        User user = principal.getUser();
+        String username = principal.getUsername();
+        UserRoleEnum role = user.getRole();
 
-        String token = jwtUtil.createToken(username, role);
+        String token = jwtUtil.createToken(user.getId(), username, role);
         response.addHeader(JwtUtil.AUTHORIZATION_HEADER, token);
 
 
