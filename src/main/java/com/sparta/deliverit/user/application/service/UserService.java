@@ -74,16 +74,19 @@ public class UserService {
     }
 
     public UserInfo getUserInfo(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> {
-            log.error("존재하지 않는 유저입니다. userId : {}", userId);
-            return new UserException(UserResponseCode.NOT_FOUND_USER);
-        });
+        User user = getUserById(userId);
 
         return new UserInfo(
                 user.getName(),
                 user.getPhone(),
                 user.getRole().name()
         );
+    }
+
+    public Long deleteUser(Long userId) {
+        User user = getUserById(userId);
+        userRepository.delete(user);
+        return userId;
     }
 
     private static Map<String, UserRoleEnum> buildRoleAliases() {
@@ -107,5 +110,12 @@ public class UserService {
             throw new IllegalArgumentException("지원하지 않는 권한입니다: " + input);
         }
         return r;
+    }
+
+    private User getUserById(Long userId) {
+        return userRepository.findById(userId).orElseThrow(() -> {
+            log.error("존재하지 않는 유저입니다. userId : {}", userId);
+            return new UserException(UserResponseCode.NOT_FOUND_USER);
+        });
     }
 }
