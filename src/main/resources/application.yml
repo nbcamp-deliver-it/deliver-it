@@ -24,3 +24,10 @@ ai:
   token: token
   connect_time: 0
   read_time: 0
+
+kakao:
+  rest-api-key: ${KAKAO_REST_API_KEY:dummy}   # KakaoProperties.restApiKey
+  base-url: https://dapi.kakao.com            # KakaoProperties.baseUrl
+  timeout:
+    connect: 2s                               # KakaoProperties.Timeout.connect
+    read: 3s                                  # KakaoProperties.Timeout.read

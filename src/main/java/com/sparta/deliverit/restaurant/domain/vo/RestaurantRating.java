@@ -15,7 +15,7 @@ import java.math.RoundingMode;
 @NoArgsConstructor
 @Getter
 public class RestaurantRating {
-    private final int CALCULATION_PRECISION_SCALE = Star.SCALE + 2;
+    private static final int CALCULATION_PRECISION_SCALE = Star.SCALE + 2;
 
     @Column(name = "star_avg", precision = 2, scale = 1, nullable = false)
     @Comment("평균 별점")
