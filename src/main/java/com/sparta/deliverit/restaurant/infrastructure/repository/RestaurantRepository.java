@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface RestaurantRepository extends JpaRepository<Restaurant, String> {
     @EntityGraph(attributePaths = "categories")
     Optional<Restaurant> findByRestaurantIdAndDeletedFalse(String restaurantId);
+    Boolean existsByRestaurantId(String restaurantId);
 }
