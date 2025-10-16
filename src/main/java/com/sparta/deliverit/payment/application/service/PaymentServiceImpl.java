@@ -6,10 +6,10 @@ import com.sparta.deliverit.global.response.code.OrderResponseCode;
 import com.sparta.deliverit.global.response.code.PaymentResponseCode;
 import com.sparta.deliverit.order.domain.entity.Order;
 import com.sparta.deliverit.order.infrastructure.OrderRepository;
+import com.sparta.deliverit.payment.application.service.dto.PaymentRequestDto;
 import com.sparta.deliverit.payment.domain.entity.Payment;
 import com.sparta.deliverit.payment.domain.repository.PaymentRepository;
 import com.sparta.deliverit.payment.enums.Company;
-import com.sparta.deliverit.payment.application.service.dto.PaymentRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +46,12 @@ public class PaymentServiceImpl implements PaymentService {
         payment.cancel();
 
         return payment;
+    }
+
+    @Transactional(readOnly = true)
+    public Payment getPayment(String paymentId) {
+        return paymentRepository.findById(paymentId).orElseThrow(
+                () -> new PaymentException(PaymentResponseCode.PAYMENT_NOT_FOUND));
     }
 
     private PaymentProcessor getProcessor(Company company) {

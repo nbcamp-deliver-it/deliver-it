@@ -10,4 +10,6 @@ public interface PaymentService {
 
     Payment paymentCancel(Order order);
 
+    Payment getPayment(String paymentId);
+
 }
