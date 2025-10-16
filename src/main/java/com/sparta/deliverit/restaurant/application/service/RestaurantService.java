@@ -192,7 +192,7 @@ public class RestaurantService {
         log.info("Service - getRestaurantInfo 실행: restaurantId={}", restaurantId);
 
         // 메뉴 조회
-        List<MenuResponseDto> menu = menuService.getMenuByRestaurantId(restaurantId).stream().map(MenuResponseDto::from).toList();
+        List<MenuResponseDto> menu = menuService.getMenuByRestaurantId(restaurantId);
 
         // DTO 반환
         return RestaurantDetailResponseDto.from(getRestaurant(restaurantId), menu);
