@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @Builder
@@ -19,7 +21,7 @@ public class MenuCreateRequestDto {
     private String name;
 
     @NotNull
-    private Integer price;
+    private BigDecimal price;
 
     @NotNull
     private MenuStatus status;

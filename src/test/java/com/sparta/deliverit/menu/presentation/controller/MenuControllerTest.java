@@ -7,7 +7,11 @@ import com.sparta.deliverit.global.exception.RestaurantException;
 import com.sparta.deliverit.menu.application.service.MenuService;
 import com.sparta.deliverit.menu.domain.entity.Menu;
 import com.sparta.deliverit.menu.domain.entity.MenuStatus;
-import com.sparta.deliverit.menu.presentation.dto.MenuUpdateRequest;
+import com.sparta.deliverit.menu.presentation.dto.MenuCreateRequestDto;
+import com.sparta.deliverit.menu.presentation.dto.MenuResponseDto;
+import com.sparta.deliverit.menu.presentation.dto.MenuUpdateRequestDto;
+import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
+import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -48,16 +52,36 @@ class MenuControllerTest {
     @Test
     @DisplayName("메뉴 조회 성공")
     void successGetMenuByRestaurantId() throws Exception {
-        List<Menu> menuList = List.of(
-                Menu.builder()
-                        .id("1")
+        Restaurant restaurant = Restaurant.builder()
+                .restaurantId("1")
+                .name("한식당")
+                .phone("010-1234-5678")
+                .address("서울시 강남구 테헤란로 10")
+                .longitude(127.123)
+                .latitude(37.456)
+                .description("테스트용 식당입니다.")
+                .status(RestaurantStatus.OPEN)
+                .deleted(false)
+                .build();
+
+        List<MenuCreateRequestDto> menuCreateRequestDtoList = List.of(
+                MenuCreateRequestDto.builder()
                         .name("파스타")
+                        .restaurant(restaurant)
                         .price(BigDecimal.valueOf(10000))
                         .status(MenuStatus.SELLING)
+                        .isAiDescGenerated(false)
+                        .prompt("파스타 소개 문구를 작성해줘")
                         .build()
         );
 
-        when(menuService.getMenuByRestaurantId("1")).thenReturn(menuList);
+        List<MenuResponseDto> menuResponseDtoList = List.of(new MenuResponseDto(
+                "파스타",
+                BigDecimal.valueOf(10000),
+                "신선한 재료로 만든 파스타입니다."
+        ));
+
+        when(menuService.getMenuByRestaurantId("1")).thenReturn(menuResponseDtoList);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/v1/restaurants/{restaurantId}/menu", "1"))
                 .andExpect(status().isOk())
@@ -73,32 +97,46 @@ class MenuControllerTest {
                 .thenThrow(new RestaurantException(RESTAURANT_NOT_FOUND));
 
         mockMvc.perform(get("/v1/restaurants/{restaurantId}/menu", "invalidId"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("존재하지 않는 식당입니다."));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("일치하는 음식점을 찾을 수 없습니다."));
     }
 
     @Test
     @DisplayName("메뉴 생성 성공")
     void successCreateMenuItem() throws Exception {
-        List<Menu> menuList = List.of(
-                Menu.builder()
-                        .id("1")
+        Restaurant restaurant = Restaurant.builder()
+                .restaurantId("1")
+                .name("한식당")
+                .phone("010-1234-5678")
+                .address("서울시 강남구 테헤란로 10")
+                .longitude(127.123)
+                .latitude(37.456)
+                .description("테스트용 식당입니다.")
+                .status(RestaurantStatus.OPEN)
+                .deleted(false)
+                .build();
+
+        List<MenuCreateRequestDto> menuResponseDtoList = List.of(
+                MenuCreateRequestDto.builder()
                         .name("파스타")
+                        .restaurant(restaurant)
                         .price(BigDecimal.valueOf(10000))
                         .status(MenuStatus.SELLING)
+                        .isAiDescGenerated(false)
+                        .prompt("파스타 소개 문구를 작성해줘")
                         .build()
         );
 
         List<String> menuIdList = List.of("1", "2");
 
-        doNothing().when(menuService).deleteMenuItem(eq("1"), eq(menuIdList));
+        doNothing().when(menuService).createMenuItem(eq("1"), anyList());
 
         mockMvc.perform(post("/v1/restaurants/{restaurantId}/menu", "1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(menuList)))
+                        .content(objectMapper.writeValueAsString(menuResponseDtoList)))
                 .andExpect(status().isCreated());
 
-        Mockito.verify(menuService).createMenuItem(eq("1"), any(List.class));
+        Mockito.verify(menuService).createMenuItem(eq("1"), anyList());
     }
 
     @Test
@@ -152,8 +190,8 @@ class MenuControllerTest {
     @Test
     @DisplayName("메뉴 수정 성공")
     void successUpdateMenuItem() throws Exception {
-        List<MenuUpdateRequest> updateList = List.of(
-                MenuUpdateRequest.builder()
+        List<MenuUpdateRequestDto> updateList = List.of(
+                MenuUpdateRequestDto.builder()
                         .id("1")
                         .name("치킨 카레")
                         .price(BigDecimal.valueOf(12000))
@@ -162,20 +200,20 @@ class MenuControllerTest {
                         .build()
         );
 
-        doNothing().when(menuService).updateMenuItem(eq("1"), any(List.class));
+        doNothing().when(menuService).updateMenuItem(eq("1"), anyList());
 
         mockMvc.perform(patch("/v1/restaurants/{restaurantId}/menu", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateList)))
                 .andExpect(status().isNoContent());
 
-        Mockito.verify(menuService).updateMenuItem(eq("1"), any(List.class));
+        Mockito.verify(menuService).updateMenuItem(eq("1"), anyList());
     }
 
     @Test
     @DisplayName("메뉴 수정 실패 : 빈 메뉴 수정 요청")
     void failUpdateMenuItem_emptyMenuUpdateRequest() throws Exception {
-        List<MenuUpdateRequest> reqList = List.of();
+        List<MenuUpdateRequestDto> reqList = List.of();
 
         doThrow(new MenuException(REQUEST_EMPTY_LIST))
                 .when(menuService).updateMenuItem(anyString(), anyList());
@@ -189,8 +227,8 @@ class MenuControllerTest {
     @Test
     @DisplayName("메뉴 수정 실패 : 잘못된 메뉴 수정 요청")
     void failUpdateMenuItem_invalidMenuUpdateRequest() throws Exception {
-        List<MenuUpdateRequest> reqList = List.of(
-                MenuUpdateRequest.builder()
+        List<MenuUpdateRequestDto> reqList = List.of(
+                MenuUpdateRequestDto.builder()
                         .id("1")
                         .name("소고기 카레")
                         .price(BigDecimal.valueOf(10000))

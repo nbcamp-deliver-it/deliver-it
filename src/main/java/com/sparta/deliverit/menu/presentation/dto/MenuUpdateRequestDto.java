@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.math.BigDecimal;
+
 @Getter
 @Builder
 public class MenuUpdateRequestDto {
@@ -16,7 +18,7 @@ public class MenuUpdateRequestDto {
     private String name;
 
     @NotNull
-    private Integer price;
+    private BigDecimal price;
 
     @NotNull
     private MenuStatus status;
