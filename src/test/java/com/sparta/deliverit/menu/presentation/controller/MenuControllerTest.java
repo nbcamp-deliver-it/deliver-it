@@ -5,7 +5,6 @@ import com.sparta.deliverit.global.exception.GlobalExceptionHandler;
 import com.sparta.deliverit.global.exception.MenuException;
 import com.sparta.deliverit.global.exception.RestaurantException;
 import com.sparta.deliverit.menu.application.service.MenuService;
-import com.sparta.deliverit.menu.domain.entity.Menu;
 import com.sparta.deliverit.menu.domain.entity.MenuStatus;
 import com.sparta.deliverit.menu.presentation.dto.MenuCreateRequestDto;
 import com.sparta.deliverit.menu.presentation.dto.MenuResponseDto;
@@ -54,18 +53,6 @@ class MenuControllerTest {
     @Test
     @DisplayName("메뉴 조회 성공")
     void successGetMenuByRestaurantId() throws Exception {
-        Restaurant restaurant = Restaurant.builder()
-                .restaurantId("1")
-                .name("한식당")
-                .phone("010-1234-5678")
-                .address("서울시 강남구 테헤란로 10")
-                .longitude(127.123)
-                .latitude(37.456)
-                .description("테스트용 식당입니다.")
-                .status(RestaurantStatus.OPEN)
-                .deleted(false)
-                .build();
-
         List<MenuResponseDto> menuResponseDtoList = List.of(new MenuResponseDto(
                 "파스타",
                 BigDecimal.valueOf(10000),
