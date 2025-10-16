@@ -157,7 +157,7 @@ public class RestaurantService {
             case CREATED_AT -> {
                 Pageable p = keepOnlyCreatedAtOrDefault(filtered);
                 log.debug("createdAt sort={}", p.getSort());
-                yield restaurantRepository.searchByCreatedAt(keyword, category, p);
+                yield restaurantRepository.searchByCreatedAt(latitude, longitude, keyword, category, p);
             }
             case DISTANCE -> {
                 Pageable p = forceDistanceAscFirst(filtered);
@@ -167,7 +167,7 @@ public class RestaurantService {
             case RATING -> {
                 Pageable p = keepOnlyRatingOrDefault(filtered);
                 log.debug("rating sort={}", p.getSort());
-                yield restaurantRepository.searchByRating(keyword, category, p);
+                yield restaurantRepository.searchByRating(latitude, longitude, keyword, category, p);
             }
         };
     }
