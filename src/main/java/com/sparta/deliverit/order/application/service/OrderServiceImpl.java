@@ -15,7 +15,7 @@ import com.sparta.deliverit.order.infrastructure.OrderRepository;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForOwner;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForUser;
 import com.sparta.deliverit.order.presentation.dto.response.*;
-import com.sparta.deliverit.payment.application.service.PaymentService;
+import com.sparta.deliverit.payment.domain.repository.PaymentRepository;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
 import com.sparta.deliverit.restaurant.infrastructure.repository.RestaurantRepository;
@@ -26,6 +26,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -51,17 +52,17 @@ public class OrderServiceImpl implements OrderService {
     private final RestaurantRepository restaurantRepository;
     private final UserRepository userRepository;
     private final MenuRepository menuRepository;
-    private final PaymentService paymentService;
+    private final PaymentRepository paymentRepository;
     private final Clock clock;
 
     @Autowired
-    public OrderServiceImpl(OrderRepository orderRepository, OrderItemRepository orderItemRepository, RestaurantRepository restaurantRepository, UserRepository userRepository, MenuRepository menuRepository, PaymentService paymentService, Clock clock) {
+    public OrderServiceImpl(OrderRepository orderRepository, OrderItemRepository orderItemRepository, RestaurantRepository restaurantRepository, UserRepository userRepository, MenuRepository menuRepository, PaymentRepository paymentRepository, Clock clock) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.restaurantRepository = restaurantRepository;
         this.menuRepository = menuRepository;
         this.userRepository = userRepository;
-        this.paymentService = paymentService;
+        this.paymentRepository = paymentRepository;
         this.clock = clock;
     }
 
@@ -383,6 +384,115 @@ public class OrderServiceImpl implements OrderService {
                 user.getPhone(),
                 user.getName(),
                 totalPrice
+        );
+    }
+
+    @Transactional
+    public Order createOrderForPayment(CreateOrderCommand orderCommand, Long userId) {
+
+        Restaurant restaurant = restaurantRepository.findById(orderCommand.getRestaurantId()).orElseThrow(
+                () -> new IllegalArgumentException("음식점을 찾을 수 없습니다.")
+        );
+        if (restaurant.getStatus() != RestaurantStatus.OPEN) {
+            throw new OrderCreateFailException(OrderResponseCode.ORDER_CREATE_FAIL);
+        }
+
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new IllegalArgumentException("유저를 찾을 수 없습니다.")
+        );
+
+        Map<String, Integer> quantityByMenuId = orderCommand.getMenus().stream()
+                .collect(Collectors.toMap(
+                        CreateMenuCommand::getMenuId,
+                        CreateMenuCommand::getQuantity,
+                        Integer::sum
+                ));
+        if (quantityByMenuId.isEmpty()) {
+            throw new IllegalArgumentException("주문 메뉴가 비어있습니다.");
+        }
+
+        Map<String, Menu> menuByMenuId = menuRepository.findByIdIn(quantityByMenuId.keySet()).stream()
+                .collect(Collectors.toMap(Menu::getId, Function.identity()));
+
+        List<String> missing = quantityByMenuId.keySet().stream()
+                .filter(id -> !menuByMenuId.containsKey(id))
+                .toList();
+        if (!missing.isEmpty()) throw new IllegalArgumentException("존재하지 않는 메뉴입니다. :" + missing);
+
+        BigDecimal totalPrice = quantityByMenuId.keySet().stream()
+                .map(key -> {
+                    Menu currMenu = menuByMenuId.get(key);
+                    if (currMenu.getStatus() != MenuStatus.SELLING) throw new OrderCreateFailException(OrderResponseCode.ORDER_CREATE_FAIL);
+
+                    var quantity = quantityByMenuId.get(key);
+                    if (quantity < 1) throw new IllegalArgumentException("주문 메뉴의 수량은 0이 될 수 없습니다.");
+
+                    var price = currMenu.getPrice();
+                    return price.multiply(BigDecimal.valueOf(quantity));
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        Order order = Order.create(
+                user,
+                restaurant,
+                LocalDateTime.now(clock),
+                OrderStatus.PAYMENT_PENDING,
+                orderCommand.getDeliveryAddress(),
+                totalPrice
+        );
+
+        Order persisted = orderRepository.save(order);
+
+        List<OrderItem> orderItemList = quantityByMenuId.keySet().stream()
+                .map(key -> {
+                    Menu currentMenu = menuByMenuId.get(key);
+                    return OrderItem.create(
+                            order,
+                            currentMenu,
+                            currentMenu.getName(),
+                            currentMenu.getPrice(),
+                            quantityByMenuId.get(key)
+                    );
+                })
+                .toList();
+
+        orderItemRepository.saveAll(orderItemList);
+
+        return persisted;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int completeIfValid(String orderId, String paymentId, Long orderVersion) {
+        return orderRepository.completeIfValid(
+                orderId,
+                paymentId,
+                orderVersion,
+                OrderStatus.PAYMENT_PENDING.name(),
+                OrderStatus.ORDER_COMPLETED.name(),
+                RestaurantStatus.OPEN.name(),
+                MenuStatus.SELLING.name(),
+                LocalDateTime.now(clock)
+        );
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int failIfValid(String orderId, Long version) {
+        return orderRepository.updateOrderStatusToFail(
+                orderId,
+                version,
+                OrderStatus.PAYMENT_PENDING.name(),
+                OrderStatus.ORDER_FAIL.name(),
+                LocalDateTime.now(clock)
+        );
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    public Order loadFresh(String orderId) {
+        return orderRepository.findById(orderId).orElseThrow(
+                () -> new NotFoundOrderException(OrderResponseCode.NOT_FOUND_ORDER)
         );
     }
 }
