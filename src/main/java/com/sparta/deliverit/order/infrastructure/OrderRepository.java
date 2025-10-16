@@ -157,4 +157,59 @@ public interface OrderRepository extends JpaRepository<Order, String> {
             AND o.version = :version
     """)
     int updateOrderStatusToCancelForOwner(@Param("orderId") String orderId, @Param("restaurantId") String restaurantId, @Param("accessUserId") Long accessUserId, @Param("currStatusList") List<OrderStatus> currStatusList, @Param("nextStatus") OrderStatus nextStatus, @Param("version") Long version);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value =
+    """
+        UPDATE p_order o
+        JOIN p_restaurant r ON r.restaurant_id = o.restaurant_id
+        SET
+          o.payment_id = :paymentId,
+          o.order_status = :nextOrderStatus,
+          o.version = o.version + 1,
+          o.ordered_at = :updateTime,
+          o.updated_at = :updateTime
+        WHERE o.order_id = :orderId
+          AND o.order_status = :currOrderStatus
+          AND o.version = :version
+          AND r.status = :expectedRestaurantStatus
+          AND NOT EXISTS (
+              SELECT 1
+              FROM p_order_item oi
+              JOIN p_menu m ON m.menu_id = oi.menu_id
+              WHERE oi.order_id = o.order_id
+                AND m.status <> :expectedMenuStatus
+        )
+    """, nativeQuery = true)
+    int completeIfValid(
+            @Param("orderId") String orderId,
+            @Param("paymentId") String paymentId,
+            @Param("version") long expectedVersion,
+            @Param("currOrderStatus") String currStatus,
+            @Param("nextOrderStatus") String nextStatus,
+            @Param("expectedRestaurantStatus") String restaurantStatus,
+            @Param("expectedMenuStatus") String menuStatus,
+            @Param("updateTime") LocalDateTime updateTime
+    );
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value =
+    """
+        UPDATE p_order o
+        JOIN p_restaurant r ON r.restaurant_id = o.restaurant_id
+        SET 
+          o.order_status = :nextStatus,
+          o.version = o.version + 1,
+          o.updated_at = :updateTime                      
+        WHERE o.order_id = :orderId
+          AND o.order_status = :currStatus      
+          AND o.order_status <> :nextStatus     
+          AND o.version = :version              
+    """, nativeQuery = true)
+    int updateOrderStatusToFail(@Param("orderId") String orderId,
+                                @Param("version") Long version,
+                                @Param("currStatus") String currStatus,
+                                @Param("nextStatus") String nextStatus,
+                                @Param("updateTime") LocalDateTime updateTime
+    );
 }
