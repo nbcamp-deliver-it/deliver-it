@@ -114,7 +114,6 @@ class MenuControllerTest {
                         .price(BigDecimal.valueOf(10000))
                         .status(MenuStatus.SELLING)
                         .isAiDescGenerated(false)
-                        .prompt("파스타 소개 문구를 작성해줘")
                         .build()
         );
 
@@ -131,10 +130,25 @@ class MenuControllerTest {
     @Test
     @DisplayName("메뉴 생성 실패 : 중복된 메뉴 요청")
     void failCreateMenuItem_duplicateMenu() throws Exception {
-        List<Menu> menuList = List.of(
-                Menu.builder()
-                        .id("1")
-                        .name("카레")
+        Restaurant restaurant = Restaurant.builder()
+                .restaurantId("1")
+                .name("한식당")
+                .phone("010-1234-5678")
+                .address("서울시 강남구 테헤란로 10")
+                .longitude(127.123)
+                .latitude(37.456)
+                .description("테스트용 식당입니다.")
+                .status(RestaurantStatus.OPEN)
+                .deleted(false)
+                .build();
+
+        List<MenuCreateRequestDto> menuCreateRequestDtoList = List.of(
+                MenuCreateRequestDto.builder()
+                        .name("파스타")
+                        .restaurant(restaurant)
+                        .price(BigDecimal.valueOf(10000))
+                        .status(MenuStatus.SELLING)
+                        .isAiDescGenerated(false)
                         .build()
         );
 
@@ -143,7 +157,7 @@ class MenuControllerTest {
 
         mockMvc.perform(post("/v1/restaurants/{restaurantId}/menu", "1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(menuList)))
+                        .content(objectMapper.writeValueAsString(menuCreateRequestDtoList)))
                 .andExpect(status().isBadRequest());
     }
 
