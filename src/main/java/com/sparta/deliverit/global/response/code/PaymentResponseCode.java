@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 public enum PaymentResponseCode implements ResponseCode {
     PAYMENT_SUCCESS(HttpStatus.CREATED, "결제에 성공했습니다."),
     PAYMENT_CANCEL_REQUEST(HttpStatus.NO_CONTENT, "결제 취소를 요청했습니다."),
+    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 결제내역 입니다"),
 
     PAYMENT_FAILED(HttpStatus.BAD_REQUEST, "결제에 실패했습니다."),
     PAYMENT_CANCEL(HttpStatus.BAD_REQUEST, "결제 중 취소했습니다."),

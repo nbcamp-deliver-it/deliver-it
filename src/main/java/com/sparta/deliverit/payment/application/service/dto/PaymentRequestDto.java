@@ -1,4 +1,4 @@
-package com.sparta.deliverit.payment.presentation.dto;
+package com.sparta.deliverit.payment.application.service.dto;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
