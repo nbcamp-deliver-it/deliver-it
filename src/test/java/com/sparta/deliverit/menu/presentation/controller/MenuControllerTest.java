@@ -48,6 +48,8 @@ class MenuControllerTest {
 
     @MockitoBean
     private MenuService menuService;
+    @Autowired
+    private MenuController menuController;
 
     @Test
     @DisplayName("메뉴 조회 성공")
@@ -63,17 +65,6 @@ class MenuControllerTest {
                 .status(RestaurantStatus.OPEN)
                 .deleted(false)
                 .build();
-
-        List<MenuCreateRequestDto> menuCreateRequestDtoList = List.of(
-                MenuCreateRequestDto.builder()
-                        .name("파스타")
-                        .restaurant(restaurant)
-                        .price(BigDecimal.valueOf(10000))
-                        .status(MenuStatus.SELLING)
-                        .isAiDescGenerated(false)
-                        .prompt("파스타 소개 문구를 작성해줘")
-                        .build()
-        );
 
         List<MenuResponseDto> menuResponseDtoList = List.of(new MenuResponseDto(
                 "파스타",
@@ -116,7 +107,7 @@ class MenuControllerTest {
                 .deleted(false)
                 .build();
 
-        List<MenuCreateRequestDto> menuResponseDtoList = List.of(
+        List<MenuCreateRequestDto> menuCreateRequestDtoList = List.of(
                 MenuCreateRequestDto.builder()
                         .name("파스타")
                         .restaurant(restaurant)
@@ -127,13 +118,11 @@ class MenuControllerTest {
                         .build()
         );
 
-        List<String> menuIdList = List.of("1", "2");
-
         doNothing().when(menuService).createMenuItem(eq("1"), anyList());
 
         mockMvc.perform(post("/v1/restaurants/{restaurantId}/menu", "1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(menuResponseDtoList)))
+                        .content(objectMapper.writeValueAsString(menuCreateRequestDtoList)))
                 .andExpect(status().isCreated());
 
         Mockito.verify(menuService).createMenuItem(eq("1"), anyList());
