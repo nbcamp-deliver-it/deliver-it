@@ -1,262 +1,303 @@
 package com.sparta.deliverit.restaurant.infrastructure.repository;
 
-import com.sparta.deliverit.anything.config.AuditingConfig;
 import com.sparta.deliverit.anything.config.QuerydslConfig;
-import com.sparta.deliverit.restaurant.domain.entity.Category;
-import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
-import com.sparta.deliverit.restaurant.domain.vo.RestaurantRating;
+import com.sparta.deliverit.restaurant.domain.model.PageSize;
+import com.sparta.deliverit.restaurant.domain.model.RestaurantCategory;
 import com.sparta.deliverit.restaurant.presentation.dto.RestaurantListResponseDto;
-import com.sparta.deliverit.review.domain.vo.Star;
 import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.context.ActiveProfiles;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.HashSet;
-import java.util.List;
-
-import static com.sparta.deliverit.restaurant.domain.model.RestaurantCategory.JAPANESE_FOOD;
 import static com.sparta.deliverit.restaurant.domain.model.RestaurantCategory.KOREAN_FOOD;
-import static com.sparta.deliverit.restaurant.domain.model.RestaurantStatus.OPEN;
+import static com.sparta.deliverit.restaurant.domain.model.SortType.CREATED_AT;
+import static com.sparta.deliverit.restaurant.domain.model.SortType.RATING;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest(showSql = true)
-@Import({QuerydslConfig.class, AuditingConfig.class})
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@ActiveProfiles("test")
-class RestaurantRepositoryImplTest {
-
-    private static final Logger log = LoggerFactory.getLogger(RestaurantRepositoryImplTest.class);
+@DataJpaTest
+@Import(QuerydslConfig.class)
+class RestaurantRepositorySliceTest {
 
     @Autowired
-    RestaurantRepository restaurantRepository;
+    private RestaurantRepository rr;
 
     @Autowired
-    CategoryRepository categoryRepository;
+    private EntityManager em;
 
-    @Autowired
-    EntityManager em;
+    private static final int PAGE_NUMBER = 0;
+    private static final int REQUEST_PAGE_SIZE = 15;
+    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final double SEOUL_CITY_HALL_LAT = 37.5665;
+    private static final double SEOUL_CITY_HALL_LON = 126.9780;
 
-    private static RestaurantRating rr(String avg, long cnt) {
-        return new RestaurantRating(new BigDecimal(avg).setScale(Star.SCALE, RoundingMode.DOWN), cnt);
-    }
-
+    // 하이버네이트 엔티티 필터 활성화
     @BeforeEach
-    void seed() {
-        // 필터 활성화
+    void enableFilter() {
         em.unwrap(Session.class)
                 .enableFilter("activeRestaurantFilter");
-
-        // 카테고리
-        Category korean = categoryRepository.save(Category.builder()
-                .name(KOREAN_FOOD)
-                .build());
-
-        Category japanese = categoryRepository.save(Category.builder()
-                .name(JAPANESE_FOOD)
-                .build());
-
-        // 정상 데이터
-        Restaurant r1 = Restaurant.builder()
-                .restaurantId("R1")
-                .name("한식집")
-                .phone("02-0000-0001")
-                .address("서울시청")
-                .longitude(126.9779)
-                .latitude(37.5663)
-                .description("시청 근처 한식집")
-                .status(OPEN)
-                .rating(rr("4.5", 12))
-                .categories(new HashSet<>(List.of(korean)))
-                .build();
-
-        Restaurant r2 = Restaurant.builder()
-                .restaurantId("R2")
-                .name("일식집")
-                .phone("02-0000-0002")
-                .address("광화문")
-                .longitude(126.9769)
-                .latitude(37.5700)
-                .description("광화문 근처 일식집")
-                .status(OPEN)
-                .rating(rr("4.2", 30))
-                .categories(new HashSet<>(List.of(japanese)))
-                .build();
-
-        Restaurant r3 = Restaurant.builder()
-                .restaurantId("R3")
-                .name("강남한식")
-                .phone("02-0000-0003")
-                .address("강남역")
-                .longitude(127.0276)
-                .latitude(37.4979)
-                .description("강남 근처 한식집")
-                .status(OPEN)
-                .rating(rr("4.9", 5))
-                .categories(new HashSet<>(List.of(korean)))
-                .build();
-
-        // 필터링 데이터
-        Restaurant r4Shutdown = Restaurant.builder()
-                .restaurantId("R4")
-                .name("폐업가게")
-                .phone("02-0000-0004")
-                .address("종로")
-                .longitude(126.9830)
-                .latitude(37.5705)
-                .description("폐업")
-                .status(OPEN)
-                .rating(rr("3.7", 50))
-                .categories(new HashSet<>(List.of(japanese)))
-                .build();
-        r4Shutdown.softDelete();
-
-        restaurantRepository.saveAll(List.of(r1, r2, r3, r4Shutdown));
-        em.flush();
-        em.clear();
     }
 
+    // 하이버네이트 엔티티 필터 비활성화
     @AfterEach
     void disableFilter() {
-        em.unwrap(Session.class).disableFilter("activeRestaurantFilter");
+        em.unwrap(Session.class)
+                .disableFilter("activeRestaurantFilter");
     }
 
     @Test
-    @DisplayName("엔티티 필터: status=SHUTDOWN 은 조회되지 않는다")
+    @DisplayName("엔티티 필터: status=SHUTDOWN은 조회되지 않는다 + 페이징: 10, 30, 50 외의 size가 들어오면 10으로 변환된다.")
     void filter_status_shutdown() {
-        var page = restaurantRepository.searchByRating(null, null, PageRequest.of(0, 20));
-        var ids = page.map(RestaurantListResponseDto::getRestaurantId).getContent();
+        // given
+        var pageable = getPageableDefault(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
 
-        assertThat(ids).doesNotContain("R4");
-        log.info("필터 결과(삭제 제외): {}", ids);
+        // when
+        var page =
+                rr.searchByCreatedAt(null, null, pageable);
+
+        var list = page.map(RestaurantListResponseDto::getRestaurantId).getContent();
+
+        // then
+        assertThatPage(page);
+
+        assertThat(list.size()).isEqualTo(9);
+        assertThat(list).doesNotContain("RES-005");
     }
 
     @Test
-    @DisplayName("검색어 미포함, 카테고리 미포함, 거리 정렬(ASC)")
-    void distance_asc_without_keyword() {
+    @DisplayName("searchByCreatedAt: 생성일 내림차순 정렬")
+    void searchByCreatedAt_createdAt_desc_and_paging() {
         // given
-        var pageable = distanceAsc();
+        var pageable = getPageableDefault(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
 
         // when
-        var page = restaurantRepository.searchOrderByDistance(
-                37.5665, 126.9780, null, null, pageable
+        var page =
+                rr.searchByCreatedAt(null, null, pageable);
+
+        var list = page.map(RestaurantListResponseDto::getRestaurantId).getContent();
+
+        // then
+        assertThatPage(page);
+
+        assertThat(list.get(0)).isEqualTo("RES-010");
+        assertThat(list).containsExactly(
+                "RES-010", "RES-009", "RES-008", "RES-007",
+                "RES-006", "RES-004", "RES-003", "RES-002", "RES-001"
         );
-        var ids = page.getContent().stream().map(RestaurantListResponseDto::getRestaurantId).toList();
-
-        // then
-        assertThat(ids).containsExactly("R1", "R2", "R3");
-
-        log.info("거리순 ids: {}", ids);
     }
 
     @Test
-    @DisplayName("검색어 미포함, 카테고리 미포함, 별점 정렬(DESC)")
-    void rating_desc_without_keyword() {
+    @DisplayName("searchByCreatedAt: 생성일 오름차순 정렬")
+    void searchByCreatedAt_createdAt_asc_and_paging() {
         // given
-        PageRequest pageable = ratingDesc();
+        var pageable = getPageableCreatedAtAsc(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
 
         // when
-        var page = restaurantRepository.searchByRating(null, null, pageable);
-        var ids = page.getContent().stream().map(RestaurantListResponseDto::getRestaurantId).toList();
+        var page =
+                rr.searchByCreatedAt(null, null, pageable);
+
+        var list = page.map(RestaurantListResponseDto::getRestaurantId).getContent();
 
         // then
-        assertThat(ids).containsExactly("R3", "R1", "R2");
+        assertThatPage(page);
 
-        log.info("별점 내림차순 ids: {}", ids);
-    }
-
-    @Test
-    @DisplayName("검색어 미포함, 카테고리 미포함, 별점 정렬(ASC)")
-    void rating_asc_without_keyword() {
-        // given
-        var pageable = ratingAsc();
-
-        // when
-        var page = restaurantRepository.searchByRating(null, null, pageable);
-        var ids = page.getContent().stream().map(RestaurantListResponseDto::getRestaurantId).toList();
-
-        // then
-        assertThat(ids).containsExactly("R2", "R1", "R3");
-
-        log.info("별점 오름차순 ids: {}", ids);
-    }
-
-    @Test
-    @DisplayName("검색어 포함, 카테고리 미포함, 거리 정렬(ASC)")
-    void distance_with_keyword() {
-        // given
-        var pageable = distanceAsc();
-
-        // when
-        var page = restaurantRepository.searchOrderByDistance(
-                37.5665, 126.9780, "한식", null, pageable
+        assertThat(list.get(0)).isEqualTo("RES-001");
+        assertThat(list).containsExactly(
+                "RES-001", "RES-002", "RES-003", "RES-004",
+                "RES-006", "RES-007", "RES-008", "RES-009", "RES-010"
         );
-        var ids = page.getContent().stream().map(RestaurantListResponseDto::getRestaurantId).toList();
-
-        // then
-        assertThat(page.getTotalElements()).isEqualTo(2);
-        assertThat(ids).containsExactly("R1", "R3");
-
-        log.info("거리순 + 키워드('한식') ids: {}", ids);
     }
 
     @Test
-    @DisplayName("검색어 포함, 카테고리 미포함, 별점 정렬(DESC)")
-    void rating_desc_with_keyword() {
+    @DisplayName("searchByCreatedAt: 이름에 '집' 키워드가 포함된 결과를 최신순으로 정렬")
+    void searchByCreatedAt_createdAt_with_keyword() {
         // given
-        var pageable = ratingDesc();
+        var pageable = getPageableDefault(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
+
+        String keyword = "집";
 
         // when
-        var page = restaurantRepository.searchByRating("한식", null, pageable);
-        var ids = page.getContent().stream().map(RestaurantListResponseDto::getRestaurantId).toList();
+        var page =
+                rr.searchByCreatedAt(keyword, null, pageable);
+
+        var list = page.getContent();
 
         // then
-        assertThat(page.getTotalElements()).isEqualTo(2);
-        assertThat(ids).containsExactly("R3", "R1");
+        assertThatPage(page);
 
-        log.info("별점 내림차순 + 키워드('한식') ids: {}", ids);
+        assertThat(list.size()).isEqualTo(3);
+        assertThat(list.get(0).getRestaurantId()).isEqualTo("RES-009");
+        assertThat(list).
+                extracting(RestaurantListResponseDto::getRestaurantId)
+                .containsExactly("RES-009", "RES-008", "RES-007");
+        assertThat(list.get(0).getName()).contains("집");
     }
 
     @Test
-    @DisplayName("검색어 포함, 카테고리 미포함, 별점 정렬(ASC)")
-    void rating_asc_with_keyword() {
+    @DisplayName("searchByCreatedAt: 카테고리가 한식인 결과를 최신순으로 정렬")
+    void searchByCreatedAt_createdAt_with_category() {
         // given
-        var pageable = ratingAsc();
+        var pageable = getPageableDefault(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
+
+        RestaurantCategory category = KOREAN_FOOD;
 
         // when
-        var page = restaurantRepository.searchByRating("한식", null, pageable);
-        var ids = page.getContent().stream().map(RestaurantListResponseDto::getRestaurantId).toList();
+        var page =
+                rr.searchByCreatedAt(null, category, pageable);
+
+        var list = page.getContent();
 
         // then
-        assertThat(page.getTotalElements()).isEqualTo(2);
-        assertThat(ids).containsExactly("R1", "R3");
+        assertThatPage(page);
 
-        log.info("별점 내림차순 + 키워드('한식') ids: {}", ids);
+        assertThat(list.size()).isEqualTo(3);
+        assertThat(list.get(0).getRestaurantId()).isEqualTo("RES-009");
+        assertThat(list).
+                extracting(RestaurantListResponseDto::getRestaurantId)
+                .containsExactly("RES-009", "RES-007", "RES-001");
     }
 
-    PageRequest distanceAsc() {
-        return PageRequest.of(0, 10, Sort.by(Sort.Order.asc("distance")));
+    @Test
+    @DisplayName("searchByCreatedAt: 카테고리가 한식이면서 이름에 '집' 키워드가 들어가는 결과를 최신순으로 정렬")
+    void searchByCreatedAt_createdAt_with_search_and_category() {
+        // given
+        var pageable = getPageableDefault(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
+
+        String keyword = "집";
+        RestaurantCategory category = KOREAN_FOOD;
+
+        // when
+        var page =
+                rr.searchByCreatedAt(keyword, category, pageable);
+
+        var list = page.getContent();
+
+        // then
+        assertThatPage(page);
+
+        assertThat(list.size()).isEqualTo(2);
+        assertThat(list.get(0).getRestaurantId()).isEqualTo("RES-009");
+        assertThat(list).
+                extracting(RestaurantListResponseDto::getRestaurantId)
+                .containsExactly("RES-009", "RES-007");
     }
 
-    PageRequest ratingDesc() {
-        return PageRequest.of(0, 10, Sort.by(Sort.Order.desc("rating")));
+    @Test
+    @DisplayName("searchOrderByDistance: 서울시청 기준 가까운순으로 정렬")
+    void searchOrderByDistance_distance_asc_and_paging() {
+        // given
+        var pageable = getPageableDefault(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
+
+        // when
+        var page =
+                rr.searchOrderByDistance(SEOUL_CITY_HALL_LAT, SEOUL_CITY_HALL_LON, null, null, pageable);
+
+        var list = page.map(RestaurantListResponseDto::getRestaurantId).getContent();
+
+        // then
+        assertThatPage(page);
+
+        assertThat(list.get(0)).isEqualTo("RES-002");
+        assertThat(list)
+                .containsExactly(
+                        "RES-002", "RES-003", "RES-004", "RES-001",
+                        "RES-010", "RES-007", "RES-008", "RES-006", "RES-009"
+                );
     }
 
-    PageRequest ratingAsc() {
-        return PageRequest.of(0, 10, Sort.by(Sort.Order.asc("rating")));
+    @Test
+    @DisplayName("searchOrderByDistance: 이름에 '집' 키워드가 포함된 결과 중 서울 시청 기준 가까운 순서으로 정렬")
+    void searchOrderByDistance_distance_with_keyword() {
+        // given
+        var pageable = getPageableDefault(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
+
+        String keyword = "집";
+
+        // when
+        var page =
+                rr.searchOrderByDistance(SEOUL_CITY_HALL_LAT, SEOUL_CITY_HALL_LON, keyword, null, pageable);
+
+        var list = page.getContent();
+
+        // then
+        assertThatPage(page);
+
+        assertThat(list.size()).isEqualTo(3);
+        assertThat(list)
+                .extracting(RestaurantListResponseDto::getRestaurantId)
+                .containsExactly("RES-007", "RES-008", "RES-009");
     }
 
+    @Test
+    @DisplayName("searchByRating: 별점 내림차순으로 정렬")
+    void searchByRating_rating_desc_and_paging() {
+        // given
+        var pageable = getPageableDefault(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
+
+        // when
+        var page =
+                rr.searchByRating(null, null, pageable);
+
+        var list = page.map(RestaurantListResponseDto::getRestaurantId).getContent();
+
+        // then
+        assertThatPage(page);
+
+        assertThat(list.get(0)).isEqualTo("RES-003");
+        assertThat(list)
+                .containsExactly(
+                        "RES-003", "RES-009", "RES-006", "RES-001",
+                        "RES-010", "RES-007", "RES-002", "RES-008", "RES-004"
+                );
+
+    }
+
+    @Test
+    @DisplayName("searchByRating: 별점 오름차순으로 정렬")
+    void searchByRating_rating_asc_and_paging() {
+        // given
+        var pageable = getPageableRatingAsc(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
+
+        // when
+        var page =
+                rr.searchByRating(null, null, pageable);
+
+        var list = page.map(RestaurantListResponseDto::getRestaurantId).getContent();
+
+        // then
+        assertThatPage(page);
+
+        assertThat(list.get(0)).isEqualTo("RES-004");
+        assertThat(list)
+                .containsExactly(
+                        "RES-004", "RES-008", "RES-002", "RES-007",
+                        "RES-010", "RES-001", "RES-006", "RES-009", "RES-003"
+                );
+    }
+
+    Pageable getPageableDefault(int pageNumber, int pageSize) {
+        return PageRequest.of(pageNumber, pageSize);
+    }
+
+    Pageable getPageableCreatedAtAsc(int pageNumber, int pageSize) {
+        return PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Order.asc(CREATED_AT.field())));
+    }
+
+    Pageable getPageableRatingAsc(int pageNumber, int pageSize) {
+        return PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Order.asc(RATING.field())));
+    }
+
+    void assertThatPage(Page<RestaurantListResponseDto> page) {
+        assertThat(page).isNotNull();
+        assertThat(page.getSize()).isEqualTo(DEFAULT_PAGE_SIZE);
+        assertThat(page.getNumber()).isZero();
+    }
 }

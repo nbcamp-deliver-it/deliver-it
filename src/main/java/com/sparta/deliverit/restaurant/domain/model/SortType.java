@@ -1,7 +1,27 @@
 package com.sparta.deliverit.restaurant.domain.model;
 
-// 추후 가격순 등의 정렬 방법이 늘어나는 것을 생각해 enum으로 정의
 public enum SortType {
-    DISTANCE,
-    RATING,
+    CREATED_AT("createdAt"),
+    DISTANCE("distance"),
+    RATING("rating"),
+    ;
+
+    private final String field;
+
+    SortType(String field) {
+        this.field = field;
+    }
+
+    public String field() {
+        return field;
+    }
+
+    public static SortType normalize(String requested) {
+        if (requested == null) return CREATED_AT; // default: sort=createAt
+        try {
+            return SortType.valueOf(requested.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return CREATED_AT;
+        }
+    }
 }

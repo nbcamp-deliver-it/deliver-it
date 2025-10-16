@@ -1,6 +1,5 @@
 package com.sparta.deliverit.restaurant.presentation.dto;
 
-import com.sparta.deliverit.restaurant.domain.entity.Category;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantCategory;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
@@ -35,10 +34,7 @@ public class RestaurantInfoResponseDto {
                 .address(restaurant.getAddress())
                 .description(restaurant.getDescription())
                 .status(restaurant.getStatus())
-                .categories(restaurant.getCategories().stream()
-                        .map(Category::getName)
-                        .toList()
-                )
+                .categories(restaurant.getCategories().stream().toList())
                 .starAvg(restaurant.getRating().getStarAvg())
                 .reviewCount(restaurant.getRating().getReviewsCount())
                 .build();
