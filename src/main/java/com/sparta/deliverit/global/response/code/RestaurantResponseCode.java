@@ -2,11 +2,12 @@ package com.sparta.deliverit.global.response.code;
 
 import org.springframework.http.HttpStatus;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.*;
 
 public enum RestaurantResponseCode implements ResponseCode{
 
-    RESTAURANT_NOT_FOUND(BAD_REQUEST, "존재하지 않는 식당입니다.");
+    RESTAURANT_NOT_FOUND(NOT_FOUND, "일치하는 음식점을 찾을 수 없습니다."),
+    RESTAURANT_FORBIDDEN(FORBIDDEN, "음식점 접근 권한이 없습니다.");
 
     private final HttpStatus httpStatus;
 
