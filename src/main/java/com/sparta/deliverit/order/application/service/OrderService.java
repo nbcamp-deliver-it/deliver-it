@@ -36,5 +36,5 @@ public interface OrderService {
 
     Order loadFresh(String orderId);
 
-    int cancelOrderOne(String orderId, Long version);
+//    int cancelOrderOne(String orderId, Long version);
 }

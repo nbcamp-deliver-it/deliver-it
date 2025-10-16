@@ -5,9 +5,9 @@ import com.sparta.deliverit.order.domain.entity.Order;
 import com.sparta.deliverit.order.presentation.dto.response.OrderPaymentResponse;
 import com.sparta.deliverit.order.presentation.dto.response.OrderResponse;
 import com.sparta.deliverit.payment.application.service.PaymentService;
+import com.sparta.deliverit.payment.application.service.dto.PaymentRequestDto;
 import com.sparta.deliverit.payment.domain.entity.Payment;
-import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
-import com.sparta.deliverit.payment.presentation.dto.PaymentResponseDto;
+import com.sparta.deliverit.payment.application.service.dto.PaymentResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -85,7 +85,7 @@ public class OrderPaymentService {
                     PaymentResponseDto.fail(
                             payment.getPaymentId(),
                             payment.getCardNum(),
-                            payment.getCardCompany(),
+                            payment.getCompany().toString(),
                             payment.getPaidAt()
                     )
             );
@@ -122,7 +122,7 @@ public class OrderPaymentService {
                     PaymentResponseDto.fail(
                             payment.getPaymentId(),
                             payment.getCardNum(),
-                            payment.getCardCompany(),
+                            payment.getCompany().toString(),
                             payment.getPaidAt()
                     )
             );
@@ -139,7 +139,7 @@ public class OrderPaymentService {
                     orderId, "",
                     "결제 취소는 완료되었으나 주문 상태는 변경되지 않았습니다.",
                     OrderResponse.of(freshOrder),
-                    PaymentResponseDto.cancel(payment.getPaymentId(), payment.getCardNum(), payment.getCardCompany(), ZonedDateTime.now(clock))
+                    PaymentResponseDto.cancel(payment.getPaymentId(), payment.getCardNum(), payment.getCompany().toString(), ZonedDateTime.now(clock))
             );
         }
 
@@ -149,7 +149,7 @@ public class OrderPaymentService {
                 orderId, "",
                 "결제 취소 및 주문 취소가 완료되었습니다.",
                 OrderResponse.of(freshOrder),
-                PaymentResponseDto.cancel(payment.getPaymentId(), payment.getCardNum(), payment.getCardCompany(), ZonedDateTime.now(clock))
+                PaymentResponseDto.cancel(payment.getPaymentId(), payment.getCardNum(), payment.getCompany().toString(), ZonedDateTime.now(clock))
         );
     }
 
@@ -175,7 +175,7 @@ public class OrderPaymentService {
                     PaymentResponseDto.fail(
                             payment.getPaymentId(),
                             payment.getCardNum(),
-                            payment.getCardCompany(),
+                            payment.getCompany().toString(),
                             payment.getPaidAt()
                     )
             );
@@ -193,7 +193,7 @@ public class OrderPaymentService {
                     orderId, "",
                     "결제 취소는 완료되었으나 주문 상태는 변경되지 않았습니다.",
                     OrderResponse.of(freshOrder),
-                    PaymentResponseDto.cancel(payment.getPaymentId(), payment.getCardNum(), payment.getCardCompany(), ZonedDateTime.now(clock))
+                    PaymentResponseDto.cancel(payment.getPaymentId(), payment.getCardNum(), payment.getCompany().toString(), ZonedDateTime.now(clock))
             );
         }
 
@@ -203,7 +203,7 @@ public class OrderPaymentService {
                 orderId, "",
                 "결제 취소 및 주문 취소가 완료되었습니다.",
                 OrderResponse.of(freshOrder),
-                PaymentResponseDto.cancel(payment.getPaymentId(), payment.getCardNum(), payment.getCardCompany(), ZonedDateTime.now(clock))
+                PaymentResponseDto.cancel(payment.getPaymentId(), payment.getCardNum(), payment.getCompany().toString(), ZonedDateTime.now(clock))
         );
     }
 }

@@ -1,4 +1,4 @@
-package com.sparta.deliverit.payment.presentation.dto;
+package com.sparta.deliverit.payment.application.service.dto;
 
 import com.sparta.deliverit.payment.domain.entity.Payment;
 import lombok.AccessLevel;
@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 
 @Getter
@@ -26,7 +25,7 @@ public class PaymentResponseDto {
         return new PaymentResponseDto(
                 payment.getPaymentId(),
                 mask(payment.getCardNum()),
-                payment.getCardCompany(),
+                payment.getCompany().getName(),
                 payment.getPaidAt().toString()
         );
     }

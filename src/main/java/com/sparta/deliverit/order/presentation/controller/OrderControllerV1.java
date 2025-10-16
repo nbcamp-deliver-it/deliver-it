@@ -9,7 +9,8 @@ import com.sparta.deliverit.order.presentation.dto.request.OrderPaymentRequest;
 import com.sparta.deliverit.order.presentation.dto.response.*;
 import com.sparta.deliverit.order.presentation.dto.request.CreateOrderRequest;
 
-import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
+
+import com.sparta.deliverit.payment.application.service.dto.PaymentRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;

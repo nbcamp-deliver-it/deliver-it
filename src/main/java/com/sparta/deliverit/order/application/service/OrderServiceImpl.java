@@ -499,18 +499,18 @@ public class OrderServiceImpl implements OrderService {
         );
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public int cancelOrderOne(String orderId, Long version) {
-        LocalDateTime now = LocalDateTime.now(clock);
-        LocalDateTime upper = now.minusMinutes(5);
-        return orderRepository.cancelOrderOne(
-                orderId,
-                OrderStatus.ORDER_COMPLETED,
-                OrderStatus.ORDER_CANCELED,
-                version,
-                now,
-                upper,
-                PayState.CANCELED
-        );
-    }
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    public int cancelOrderOne(String orderId, Long version) {
+//        LocalDateTime now = LocalDateTime.now(clock);
+//        LocalDateTime upper = now.minusMinutes(5);
+//        return orderRepository.cancelOrderOne(
+//                orderId,
+//                OrderStatus.ORDER_COMPLETED,
+//                OrderStatus.ORDER_CANCELED,
+//                version,
+//                now,
+//                upper,
+//                PayState.CANCELED
+//        );
+//    }
 }

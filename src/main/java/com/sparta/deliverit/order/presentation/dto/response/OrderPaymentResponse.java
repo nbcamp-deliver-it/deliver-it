@@ -1,7 +1,7 @@
 package com.sparta.deliverit.order.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sparta.deliverit.payment.presentation.dto.PaymentResponseDto;
+import com.sparta.deliverit.payment.application.service.dto.PaymentResponseDto;
 import lombok.Builder;
 import lombok.Getter;
 

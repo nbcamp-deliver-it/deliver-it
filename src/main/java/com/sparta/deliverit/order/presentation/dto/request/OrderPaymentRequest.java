@@ -1,7 +1,7 @@
 package com.sparta.deliverit.order.presentation.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
+import com.sparta.deliverit.payment.application.service.dto.PaymentRequestDto;
 import lombok.Builder;
 import lombok.Getter;
 
