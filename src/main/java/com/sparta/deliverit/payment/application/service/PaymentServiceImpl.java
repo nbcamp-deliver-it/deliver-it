@@ -1,8 +1,11 @@
 package com.sparta.deliverit.payment.application.service;
 
+import com.sparta.deliverit.global.exception.OrderException;
 import com.sparta.deliverit.global.exception.PaymentException;
+import com.sparta.deliverit.global.response.code.OrderResponseCode;
 import com.sparta.deliverit.global.response.code.PaymentResponseCode;
 import com.sparta.deliverit.order.domain.entity.Order;
+import com.sparta.deliverit.order.infrastructure.OrderRepository;
 import com.sparta.deliverit.payment.domain.entity.Payment;
 import com.sparta.deliverit.payment.domain.repository.PaymentRepository;
 import com.sparta.deliverit.payment.enums.Company;
@@ -19,6 +22,7 @@ import java.util.List;
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final OrderRepository orderRepository;
     private final List<PaymentProcessor> processorList;
 
     private final String INVALID_CARD_NUMBER = "9999-9999-9999-9999";
@@ -34,7 +38,11 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     public Payment paymentCancel(Order order) {
-        Payment payment = paymentRepository.findById(order.getPayment().getPaymentId()).orElseThrow();
+        Order findOrder = orderRepository.findById(order.getOrderId()).orElseThrow(
+                () -> new OrderException(OrderResponseCode.NOT_FOUND_ORDER)
+        );
+
+        Payment payment = paymentRepository.findById(findOrder.getPayment().getPaymentId()).orElseThrow();
         payment.cancel();
 
         return payment;
