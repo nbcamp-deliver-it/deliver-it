@@ -49,11 +49,12 @@ public class MenuService {
         List<Menu> menuList = requestDtoList.stream()
                 .map(dto -> {
                     if (Boolean.TRUE.equals(dto.getIsAiDescGenerated())) {
+                        String prompt = buildPrompt(dto.getName());
                         try {
-                            String aiResult = geminiMenuDescriptionService.askQuestionToAi(dto.getPrompt());
+                            String aiResult = geminiMenuDescriptionService.askQuestionToAi(prompt);
                             dto.setDescription(aiResult);
                         } catch (AiException e) {
-                            log.error("AI 설명 생성 실패 (prompt: {}): {}", dto.getPrompt(), e.getMessage());
+                            log.error("AI 설명 생성 실패 (prompt: {}): {}", prompt, e.getMessage());
                         } catch (Exception e) {
                             log.error("예상치 못한 오류 발생: {}", e.getMessage());
                         }
@@ -63,6 +64,21 @@ public class MenuService {
                 .toList();
 
         menuRepository.saveAll(menuList);
+    }
+
+    private void checkDuplicateMenuNames(String restaurantId, List<MenuCreateRequestDto> requestDtoList) {
+        for (MenuCreateRequestDto requestDto : requestDtoList) {
+            if (menuRepository.existsByRestaurantRestaurantIdAndName(restaurantId, requestDto.getName())) {
+                throw new MenuException(MENU_DUPLICATED);
+            }
+        }
+    }
+
+    private String buildPrompt(String menuName) {
+        return String.format(
+                "%s 소개 문구를 밝고 부드럽게 한 줄로 짧게 알려줘. " +
+                "마크다운이나 특수문자 없이 순수 텍스트로만 답해줘.", menuName
+        );
     }
 
     public void deleteMenuItem(String restaurantId, List<String> menuIdList) {
@@ -75,6 +91,24 @@ public class MenuService {
         validateMenuBelongsToRestaurant(restaurantId, foundMenuList);
 
         menuRepository.deleteAll(foundMenuList);
+    }
+
+    private List<Menu> findMenusOrThrow(List<String> menuIdList) {
+        List<Menu> foundMenuList = menuRepository.findAllById(menuIdList);
+
+        if (foundMenuList.size() != menuIdList.size()) {
+            throw new MenuException(MENU_NOT_FOUND);
+        }
+
+        return foundMenuList;
+    }
+
+    private static void validateMenuBelongsToRestaurant(String restaurantId, List<Menu> foundMenuList) {
+        for (Menu menu : foundMenuList) {
+            if (!menu.getRestaurant().getRestaurantId().equals(restaurantId)) {
+                throw new MenuException(MENU_NOT_FOUND);
+            }
+        }
     }
 
     public void updateMenuItem(String restaurantId, List<MenuUpdateRequestDto> menuList) {
@@ -99,35 +133,9 @@ public class MenuService {
                 .orElseThrow(() -> new RestaurantException(RESTAURANT_NOT_FOUND));
     }
 
-    private void checkDuplicateMenuNames(String restaurantId, List<MenuCreateRequestDto> requestDtoList) {
-        for (MenuCreateRequestDto requestDto : requestDtoList) {
-            if (menuRepository.existsByRestaurantIdAndName(restaurantId, requestDto.getName())) {
-                throw new MenuException(MENU_DUPLICATED);
-            }
-        }
-    }
-
     private <T> void validateNonEmptyList(List<T> list) {
         if (list == null || list.isEmpty()) {
             throw new MenuException(REQUEST_EMPTY_LIST);
         }
-    }
-
-    private static void validateMenuBelongsToRestaurant(String restaurantId, List<Menu> foundMenuList) {
-        for (Menu menu : foundMenuList) {
-            if (!menu.getRestaurant().getRestaurantId().equals(restaurantId)) {
-                throw new MenuException(MENU_NOT_FOUND);
-            }
-        }
-    }
-
-    private List<Menu> findMenusOrThrow(List<String> menuIdList) {
-        List<Menu> foundMenuList = menuRepository.findAllById(menuIdList);
-
-        if (foundMenuList.size() != menuIdList.size()) {
-            throw new MenuException(MENU_NOT_FOUND);
-        }
-
-        return foundMenuList;
     }
 }
