@@ -30,6 +30,4 @@ public class MenuCreateRequestDto {
     private Boolean isAiDescGenerated;
 
     private String description;
-
-    private String prompt;
 }
