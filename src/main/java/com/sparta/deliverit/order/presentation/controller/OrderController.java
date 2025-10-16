@@ -2,11 +2,9 @@ package com.sparta.deliverit.order.presentation.controller;
 
 import com.sparta.deliverit.global.response.ApiResponse;
 
-import com.sparta.deliverit.order.presentation.dto.response.CancelOrderInfo;
+import com.sparta.deliverit.order.presentation.dto.request.OrderPaymentRequest;
+import com.sparta.deliverit.order.presentation.dto.response.*;
 import com.sparta.deliverit.order.presentation.dto.request.CreateOrderRequest;
-import com.sparta.deliverit.order.presentation.dto.response.ConfirmOrderInfo;
-import com.sparta.deliverit.order.presentation.dto.response.CreateOrderInfo;
-import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -96,13 +94,13 @@ public interface OrderController {
             @PathVariable
             String orderId);
 
-    ApiResponse<CancelOrderInfo> cancelOrderForUser(
+    ApiResponse<OrderPaymentResponse> cancelOrderForUser(
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
                     message = "주문의 UUID 형식이 올바르지 않습니다.")
             @PathVariable
             String orderId);
 
-    ApiResponse<CancelOrderInfo> cancelOrderForOwner(
+    ApiResponse<OrderPaymentResponse> cancelOrderForOwner(
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
                     message = "음식점의 UUID 형식이 올바르지 않습니다.")
             @PathVariable
@@ -112,4 +110,6 @@ public interface OrderController {
                     message = "주문의 UUID 형식이 올바르지 않습니다.")
             @PathVariable
             String orderId);
+
+    ApiResponse<OrderPaymentResponse> orderPayment(@Valid @RequestBody OrderPaymentRequest request);
 }

@@ -15,6 +15,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 @Slf4j(topic = "로그인 및 JWT 생성")
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
@@ -22,7 +23,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
-        setFilterProcessesUrl("/v1/user/login");
+        setFilterProcessesUrl("/v1/auth/login");
     }
 
     @Override
@@ -50,11 +51,21 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String username = principal.getUsername();
         UserRoleEnum role = user.getRole();
 
-        String token = jwtUtil.createToken(user.getId(), username, role);
-        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, token);
+        String accessToken = jwtUtil.createAccessToken(user.getId(), username, role);
+        String refreshToken = jwtUtil.createRefreshToken(user.getId(), username, role);
 
+        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, accessToken);
+        response.setContentType("application/json;charset=UTF-8");
 
-
+        try {
+            var body = new HashMap<String, Object>();
+            body.put("accessToken", accessToken);
+            body.put("refreshToken", refreshToken);
+            body.put("userId", user.getId());
+            new ObjectMapper().writeValue(response.getWriter(), body);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

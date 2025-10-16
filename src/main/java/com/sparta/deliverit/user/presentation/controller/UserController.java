@@ -29,7 +29,7 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping(value = "/user/signup",
+    @PostMapping(value = "/auth/register",
             consumes = "application/json",
             produces = "text/plain; charset=UTF-8")
     @ResponseBody

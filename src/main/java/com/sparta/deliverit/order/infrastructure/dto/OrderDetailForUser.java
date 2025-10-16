@@ -17,4 +17,5 @@ public interface OrderDetailForUser {
     String getAddress();
     BigDecimal getTotalPrice();
     Long getVersion();
+    String getPaymentId();
 }

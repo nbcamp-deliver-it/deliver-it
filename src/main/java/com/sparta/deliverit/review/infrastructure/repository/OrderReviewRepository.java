@@ -1,5 +1,6 @@
 package com.sparta.deliverit.review.infrastructure.repository;
 
+import com.sparta.deliverit.order.domain.entity.Order;
 import com.sparta.deliverit.review.domain.entity.OrderReview;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,9 +13,10 @@ public interface OrderReviewRepository extends JpaRepository<OrderReview, Long> 
         SELECT r 
         FROM OrderReview r
         JOIN FETCH r.user u
+        WHERE r.order = :order
         order by r.createdAt DESC
     """)
-    List<OrderReview> findAllWithUser();
+    List<OrderReview> findAllByOrder(Order order);
 
     @Query("""
         SELECT r 

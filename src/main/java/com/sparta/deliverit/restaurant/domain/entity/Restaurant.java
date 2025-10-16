@@ -6,6 +6,7 @@ import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
 import com.sparta.deliverit.restaurant.domain.vo.RestaurantRating;
 import com.sparta.deliverit.restaurant.infrastructure.api.map.Coordinates;
 import com.sparta.deliverit.restaurant.presentation.dto.RestaurantInfoRequestDto;
+import com.sparta.deliverit.review.domain.vo.Review;
 import com.sparta.deliverit.user.domain.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -122,5 +123,17 @@ public class Restaurant extends BaseEntity {
                 .description(requestDto.getDescription())
                 .status(requestDto.getStatus())
                 .build();
+    }
+
+    public void addReview(Review review) {
+        this.rating = this.rating.addReview(review);
+    }
+
+    public void updateReview(Review oldReview, Review newReview) {
+        this.rating = this.rating.updateReview(oldReview, newReview);
+    }
+
+    public void removeReview(Review review) {
+        this.rating = this.rating.removeReview(review);
     }
 }

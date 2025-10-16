@@ -1,14 +1,18 @@
 package com.sparta.deliverit.payment.application.service;
 
+import com.sparta.deliverit.global.exception.OrderException;
 import com.sparta.deliverit.global.exception.PaymentException;
+import com.sparta.deliverit.global.response.code.OrderResponseCode;
 import com.sparta.deliverit.global.response.code.PaymentResponseCode;
 import com.sparta.deliverit.order.domain.entity.Order;
+import com.sparta.deliverit.order.infrastructure.OrderRepository;
+import com.sparta.deliverit.payment.application.service.dto.PaymentRequestDto;
 import com.sparta.deliverit.payment.domain.entity.Payment;
 import com.sparta.deliverit.payment.domain.repository.PaymentRepository;
 import com.sparta.deliverit.payment.enums.Company;
-import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -19,11 +23,13 @@ import java.util.List;
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final OrderRepository orderRepository;
     private final List<PaymentProcessor> processorList;
 
     private final String INVALID_CARD_NUMBER = "9999-9999-9999-9999";
     private final String LIMIT_OVER_CARD_NUMBER = "8888-8888-8888-8888";
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Payment delegateRequest(PaymentRequestDto requestDto) {
         isErrorCard(requestDto.getCardNum());
 
@@ -33,11 +39,22 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentRepository.save(entity);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Payment paymentCancel(Order order) {
-        Payment payment = paymentRepository.findById(order.getPayment().getPaymentId()).orElseThrow();
+        Order findOrder = orderRepository.findById(order.getOrderId()).orElseThrow(
+                () -> new OrderException(OrderResponseCode.NOT_FOUND_ORDER)
+        );
+
+        Payment payment = paymentRepository.findById(findOrder.getPayment().getPaymentId()).orElseThrow();
         payment.cancel();
 
         return payment;
+    }
+
+    @Transactional(readOnly = true)
+    public Payment getPayment(String paymentId) {
+        return paymentRepository.findById(paymentId).orElseThrow(
+                () -> new PaymentException(PaymentResponseCode.PAYMENT_NOT_FOUND));
     }
 
     private PaymentProcessor getProcessor(Company company) {

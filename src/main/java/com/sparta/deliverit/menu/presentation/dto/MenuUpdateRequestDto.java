@@ -1,6 +1,8 @@
 package com.sparta.deliverit.menu.presentation.dto;
 
 import com.sparta.deliverit.menu.domain.entity.MenuStatus;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -8,10 +10,18 @@ import java.math.BigDecimal;
 
 @Getter
 @Builder
-public class MenuUpdateRequest {
+public class MenuUpdateRequestDto {
+    @NotBlank
     private String id;
+
+    @NotBlank
     private String name;
+
+    @NotNull
     private BigDecimal price;
-    private String description;
+
+    @NotNull
     private MenuStatus status;
+
+    private String description;
 }
