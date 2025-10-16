@@ -51,11 +51,14 @@ class MenuControllerTest {
     @Test
     @DisplayName("메뉴 조회 성공")
     void successGetMenuByRestaurantId() throws Exception {
-        List<MenuResponseDto> menuResponseDtoList = List.of(new MenuResponseDto(
-                "파스타",
-                BigDecimal.valueOf(10000),
-                "신선한 재료로 만든 파스타입니다."
-        ));
+        List<MenuResponseDto> menuResponseDtoList = List.of(
+                MenuResponseDto.builder()
+                        .name("파스타")
+                        .price(BigDecimal.valueOf(10000))
+                        .description("신선한 재료로 만든 파스타입니다.")
+                        .status(MenuStatus.SELLING)
+                        .build()
+        );
 
         when(menuService.getMenuByRestaurantId("1")).thenReturn(menuResponseDtoList);
 

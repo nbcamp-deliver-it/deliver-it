@@ -61,10 +61,11 @@ public class Menu {
     }
 
     public MenuResponseDto toResponseDto() {
-        return new MenuResponseDto(
-                this.name,
-                this.price,
-                this.description
-        );
+        return MenuResponseDto.builder()
+                .name(this.name)
+                .description(this.description)
+                .price(this.price)
+                .status(this.status)
+                .build();
     }
 }
