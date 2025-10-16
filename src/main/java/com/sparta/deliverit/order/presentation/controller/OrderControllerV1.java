@@ -113,24 +113,34 @@ public class OrderControllerV1 implements OrderController {
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @PatchMapping("/v1/orders/{orderId}")
-    public ApiResponse<CancelOrderInfo> cancelOrderForUser(String orderId) {
+    public ApiResponse<OrderPaymentResponse> cancelOrderForUser(String orderId) {
         // 임시 로그인
         String userId = "2";
 
-        CancelOrderInfo cancelOrderInfo = orderService.cancelOrderForUser(orderId, userId);
+        OrderPaymentResponse orderPaymentResponse = orderPaymentService.cancelOrderPaymentForUser(orderId, userId);
 
-        return ApiResponse.create(OrderResponseCode.ORDER_CANCEL_SUCCESS,"주문 취소가 완료되었습니다.", cancelOrderInfo);
+        if (orderPaymentResponse.getMessage().equals("결제 취소 및 주문 취소가 완료되었습니다.")) {
+            return ApiResponse.create(OrderResponseCode.ORDER_CANCEL_SUCCESS, orderPaymentResponse.getMessage(), orderPaymentResponse);
+        } else {
+            return ApiResponse.create(OrderResponseCode.ORDER_CANCEL_FAIL, orderPaymentResponse.getMessage(), orderPaymentResponse);
+        }
+
+
     }
 
     @PreAuthorize("hasRole('OWNER')")
     @PatchMapping("/v1/restaurants/{restaurantId}/orders/{orderId}")
-    public ApiResponse<CancelOrderInfo> cancelOrderForOwner(String restaurantId, String orderId) {
+    public ApiResponse<OrderPaymentResponse> cancelOrderForOwner(String restaurantId, String orderId) {
         // 임시 로그인
         String userId = "2";
 
-        CancelOrderInfo cancelOrderInfo = orderService.cancelOrderForOwner(restaurantId, orderId, userId);
+        OrderPaymentResponse orderPaymentResponse = orderPaymentService.cancelOrderPaymentForOwner(restaurantId, orderId, userId);
 
-        return ApiResponse.create(OrderResponseCode.ORDER_CANCEL_SUCCESS,"주문 취소가 완료되었습니다.", cancelOrderInfo);
+        if (orderPaymentResponse.getMessage().equals("결제 취소 및 주문 취소가 완료되었습니다.")) {
+            return ApiResponse.create(OrderResponseCode.ORDER_CANCEL_SUCCESS, orderPaymentResponse.getMessage(), orderPaymentResponse);
+        } else {
+            return ApiResponse.create(OrderResponseCode.ORDER_CANCEL_FAIL, orderPaymentResponse.getMessage(), orderPaymentResponse);
+        }
     }
 
     @PostMapping("/orders/pay")
@@ -142,7 +152,6 @@ public class OrderControllerV1 implements OrderController {
         PaymentRequestDto paymentRequest = request.getPaymentRequestRequest();
 
         OrderPaymentResponse response = orderPaymentService.checkout(CreateOrderCommand.of(orderRequest), paymentRequest, Long.valueOf(userId));
-
         if (response.equals("결제에 실패했습니다.")) {
             return ApiResponse.create(OrderResponseCode.ORDER_FAILED,response.getMessage(), response);
         } else if(response.equals("결제가 완료되었습니다.")) {
