@@ -5,7 +5,9 @@ import com.sparta.deliverit.global.exception.RestaurantException;
 import com.sparta.deliverit.menu.domain.entity.Menu;
 import com.sparta.deliverit.menu.domain.entity.MenuStatus;
 import com.sparta.deliverit.menu.domain.repository.MenuRepository;
-import com.sparta.deliverit.menu.presentation.dto.MenuUpdateRequest;
+import com.sparta.deliverit.menu.presentation.dto.MenuCreateRequestDto;
+import com.sparta.deliverit.menu.presentation.dto.MenuResponseDto;
+import com.sparta.deliverit.menu.presentation.dto.MenuUpdateRequestDto;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
 import com.sparta.deliverit.restaurant.infrastructure.repository.RestaurantRepository;
@@ -81,12 +83,13 @@ class MenuServiceTest {
         given(menuRepository.findByRestaurant(restaurant))
                 .willReturn(menuList);
 
-        List<Menu> result = menuService.getMenuByRestaurantId(restaurant.getRestaurantId());
+        List<MenuResponseDto> result = menuService.getMenuByRestaurantId(restaurant.getRestaurantId());
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getName()).isEqualTo("김치찌개");
+        assertThat(result.get(0).getPrice()).isEqualTo(BigDecimal.valueOf(8000));
         assertThat(result.get(1).getName()).isEqualTo("된장찌개");
-        assertThat(result.get(0).getRestaurant().getName()).isEqualTo("한식당");
+        assertThat(result.get(1).getPrice()).isEqualTo(BigDecimal.valueOf(8500));
 
         then(restaurantRepository).should(times(1))
                 .findById(restaurant.getRestaurantId());
@@ -103,7 +106,7 @@ class MenuServiceTest {
 
         assertThatThrownBy(() -> menuService.getMenuByRestaurantId(invalidRestaurantId))
                 .isInstanceOf(RestaurantException.class)
-                .hasMessage("존재하지 않는 식당입니다.");
+                .hasMessage("일치하는 음식점을 찾을 수 없습니다.");
 
         then(restaurantRepository).should(times(1)).findById(invalidRestaurantId);
         then(menuRepository).shouldHaveNoInteractions();
@@ -124,26 +127,26 @@ class MenuServiceTest {
                 .deleted(false)
                 .build();
 
-        Menu curry = Menu.builder()
-                .name("카레")
+        MenuCreateRequestDto dto = MenuCreateRequestDto.builder()
                 .restaurant(restaurant)
+                .name("카레")
                 .price(BigDecimal.valueOf(10000))
                 .status(MenuStatus.SELLING)
-                .description("신선한 야채와 고기로 만든 카레입니다")
+                .isAiDescGenerated(false)
                 .build();
 
-        List<Menu> menuList = List.of(curry);
+        List<Menu> menuList = List.of(Menu.from(dto));
 
         given(restaurantRepository.findById("1")).willReturn(Optional.of(restaurant));
-        given(menuRepository.saveAll(menuList)).willReturn(menuList);
+        given(menuRepository.saveAll(anyList())).willReturn(anyList());
 
-        menuService.createMenuItem(restaurant.getRestaurantId(), menuList);
+        menuService.createMenuItem(restaurant.getRestaurantId(), List.of(dto));
 
         then(restaurantRepository).should(times(1))
                 .findById(restaurant.getRestaurantId());
 
         then(menuRepository).should(times(1))
-                .saveAll(menuList);
+                .saveAll(anyList());
     }
 
     @Test
@@ -161,21 +164,23 @@ class MenuServiceTest {
                 .deleted(false)
                 .build();
 
-        List<Menu> menuList = List.of(Menu.builder()
-                .name("카레")
+        MenuCreateRequestDto dto = MenuCreateRequestDto.builder()
                 .restaurant(restaurant)
+                .name("카레")
                 .price(BigDecimal.valueOf(10000))
                 .status(MenuStatus.SELLING)
-                .description("신선한 야채와 고기로 만든 카레입니다")
-                .build());
+                .isAiDescGenerated(false)
+                .build();
+
+        List<Menu> menuList = List.of(Menu.from(dto));
 
         String invalidId = "NOT_EXIST_ID";
 
         given(restaurantRepository.findById(invalidId)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> menuService.createMenuItem(invalidId, menuList))
+        assertThatThrownBy(() -> menuService.createMenuItem(invalidId, List.of(dto)))
                 .isInstanceOf(RestaurantException.class)
-                .hasMessage("존재하지 않는 식당입니다.");
+                .hasMessage("일치하는 음식점을 찾을 수 없습니다.");
 
         then(menuRepository).shouldHaveNoInteractions();
     }
@@ -213,7 +218,7 @@ class MenuServiceTest {
                 .description("신선한 야채와 고기로 만든 카레입니다")
                 .build();
 
-        MenuUpdateRequest updateReq = MenuUpdateRequest.builder()
+        MenuUpdateRequestDto updateReq = MenuUpdateRequestDto.builder()
                 .id("101")
                 .name("치킨 카레")
                 .price(BigDecimal.valueOf(12000))
@@ -242,7 +247,7 @@ class MenuServiceTest {
     void failUpdateMenu_NotExistRestaurantId() {
         String invalidId = "NOT_EXIST_ID";
 
-        MenuUpdateRequest req = MenuUpdateRequest.builder()
+        MenuUpdateRequestDto req = MenuUpdateRequestDto.builder()
                 .id("1")
                 .name("치킨 카레")
                 .build();
@@ -259,7 +264,7 @@ class MenuServiceTest {
     @DisplayName("메뉴 수정 실패 : 다른 식당의 메뉴 수정 수정시 예외")
     void failUpdateMenuItem_otherRestaurantMenuUpdateRequest() {
         String otherRestaurantId = "OTHER_RESTAURANT_ID";
-        MenuUpdateRequest req = MenuUpdateRequest.builder()
+        MenuUpdateRequestDto req = MenuUpdateRequestDto.builder()
                 .id("101")
                 .name("치킨 카레")
                 .price(BigDecimal.valueOf(12000))
@@ -294,7 +299,7 @@ class MenuServiceTest {
     @Test
     @DisplayName("메뉴 수정 실패 : 메뉴 리스트가 비어있을 경우 예외")
     void failUpdateMenuItem_emptyMenuListRequest() {
-        List<MenuUpdateRequest> req = List.of();
+        List<MenuUpdateRequestDto> req = List.of();
 
         MenuException e = assertThrows(MenuException.class,
                 () -> menuService.updateMenuItem("1", req));
@@ -310,7 +315,7 @@ class MenuServiceTest {
                 .name("한식당")
                 .build();
 
-        MenuUpdateRequest req = MenuUpdateRequest.builder()
+        MenuUpdateRequestDto req = MenuUpdateRequestDto.builder()
                 .id("999")
                 .name("없는메뉴")
                 .build();
@@ -352,12 +357,15 @@ class MenuServiceTest {
 
         when(restaurantRepository.findById(curryRestaurant.getRestaurantId()))
                 .thenReturn(Optional.of(curryRestaurant));
-        when(menuRepository.findById(curry.getId())).thenReturn(Optional.of(curry));
-        when(menuRepository.findAllById(menuIdList)).thenReturn(foundMenuList);
+
+        when(menuRepository.findAllById(menuIdList))
+                .thenReturn(foundMenuList);
 
         menuService.deleteMenuItem(curryRestaurant.getRestaurantId(), menuIdList);
 
         verify(menuRepository, times(1)).deleteAll(foundMenuList);
+        verify(restaurantRepository, times(1)).findById(curryRestaurant.getRestaurantId());
+        verify(menuRepository, times(1)).findAllById(menuIdList);
     }
 
     @Test
@@ -385,23 +393,25 @@ class MenuServiceTest {
         String restaurantId = "1";
         String invalidMenuId = "NOT_EXIST_ID";
 
-        when(restaurantRepository.findById(restaurantId))
-                .thenReturn(Optional.of(
-                        Restaurant.builder()
-                        .restaurantId(restaurantId)
-                        .name("한식당")
-                        .build()));
+        Restaurant restaurant = Restaurant.builder()
+                .restaurantId(restaurantId)
+                .name("한식당")
+                .build();
 
-        when(menuRepository.findById(invalidMenuId))
-                .thenReturn(Optional.empty());
+        when(restaurantRepository.findById(restaurantId))
+                .thenReturn(Optional.of(restaurant));
+
+        when(menuRepository.findAllById(List.of(invalidMenuId)))
+                .thenReturn(List.of());
 
         MenuException e = assertThrows(MenuException.class,
                 () -> menuService.deleteMenuItem("1", List.of(invalidMenuId))
         );
 
         assertEquals(MENU_NOT_FOUND, e.getResponseCode());
-
         verify(menuRepository, never()).deleteAll(anyList());
+        verify(menuRepository, times(1)).findAllById(List.of(invalidMenuId));
+        verify(restaurantRepository, times(1)).findById(restaurantId);
     }
 
     @Test

@@ -1,13 +1,18 @@
 package com.sparta.deliverit.menu.application.service;
 
+import com.sparta.deliverit.ai.application.GeminiMenuDescriptionServiceImpl;
+import com.sparta.deliverit.global.exception.AiException;
 import com.sparta.deliverit.global.exception.MenuException;
 import com.sparta.deliverit.global.exception.RestaurantException;
 import com.sparta.deliverit.menu.domain.entity.Menu;
 import com.sparta.deliverit.menu.domain.repository.MenuRepository;
-import com.sparta.deliverit.menu.presentation.dto.MenuUpdateRequest;
+import com.sparta.deliverit.menu.presentation.dto.MenuCreateRequestDto;
+import com.sparta.deliverit.menu.presentation.dto.MenuResponseDto;
+import com.sparta.deliverit.menu.presentation.dto.MenuUpdateRequestDto;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import com.sparta.deliverit.restaurant.infrastructure.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +21,7 @@ import java.util.List;
 import static com.sparta.deliverit.global.response.code.MenuResponseCode.*;
 import static com.sparta.deliverit.global.response.code.RestaurantResponseCode.RESTAURANT_NOT_FOUND;
 
-
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -24,69 +29,60 @@ public class MenuService {
 
     private final MenuRepository menuRepository;
     private final RestaurantRepository restaurantRepository;
+    private final GeminiMenuDescriptionServiceImpl geminiMenuDescriptionService;
 
-    public List<Menu> getMenuByRestaurantId(String restaurantId) {
-        Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new RestaurantException(RESTAURANT_NOT_FOUND));
+    public List<MenuResponseDto> getMenuByRestaurantId(String restaurantId) {
+        Restaurant restaurant = findRestaurantOrThrow(restaurantId);
 
-        return menuRepository.findByRestaurant(restaurant);
+        List<Menu> menuList = menuRepository.findByRestaurant(restaurant);
+
+        return menuList.stream().map(Menu::toResponseDto).toList();
     }
 
-    public void createMenuItem(String restaurantId, List<Menu> menuList) {
-        if (menuList == null || menuList.isEmpty()) {
-            throw new MenuException(REQUEST_EMPTY_LIST);
-        }
+    public void createMenuItem(String restaurantId, List<MenuCreateRequestDto> requestDtoList) {
+        validateNonEmptyList(requestDtoList);
 
-        Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new RestaurantException(RESTAURANT_NOT_FOUND));
+        findRestaurantOrThrow(restaurantId);
 
-        for (Menu menu : menuList) {
-            if (menuRepository.findById(menu.getId()).isPresent()) {
-                throw new MenuException(MENU_DUPLICATED);
-            }
+        checkDuplicateMenuNames(restaurantId, requestDtoList);
 
-            menu.setRestaurant(restaurant);
-        }
+        List<Menu> menuList = requestDtoList.stream()
+                .map(dto -> {
+                    if (Boolean.TRUE.equals(dto.getIsAiDescGenerated())) {
+                        try {
+                            String aiResult = geminiMenuDescriptionService.askQuestionToAi(dto.getPrompt());
+                            dto.setDescription(aiResult);
+                        } catch (AiException e) {
+                            log.error("AI 설명 생성 실패 (prompt: {}): {}", dto.getPrompt(), e.getMessage());
+                        } catch (Exception e) {
+                            log.error("예상치 못한 오류 발생: {}", e.getMessage());
+                        }
+                    }
+                    return Menu.from(dto);
+                })
+                .toList();
 
         menuRepository.saveAll(menuList);
     }
 
     public void deleteMenuItem(String restaurantId, List<String> menuIdList) {
-        if (menuIdList == null || menuIdList.isEmpty()) {
-            throw new MenuException(REQUEST_EMPTY_LIST);
-        }
+        validateNonEmptyList(menuIdList);
 
-        if (restaurantRepository.findById(restaurantId).isEmpty()) {
-            throw new MenuException(MENU_NOT_FOUND);
-        }
+        findRestaurantOrThrow(restaurantId);
 
-        for (String menuId : menuIdList) {
-            if (menuRepository.findById(menuId).isEmpty()) {
-                throw new MenuException(MENU_NOT_FOUND);
-            }
-        }
+        List<Menu> foundMenuList = findMenusOrThrow(menuIdList);
 
-        List<Menu> foundMenuList = menuRepository.findAllById(menuIdList);
-
-        for (Menu menu : foundMenuList) {
-            if (!menu.getRestaurant().getRestaurantId().equals(restaurantId)) {
-                throw new MenuException(MENU_NOT_FOUND);
-            }
-        }
+        validateMenuBelongsToRestaurant(restaurantId, foundMenuList);
 
         menuRepository.deleteAll(foundMenuList);
     }
 
-    public void updateMenuItem(String restaurantId, List<MenuUpdateRequest> menuList) {
-        if (menuList == null || menuList.isEmpty()) {
-            throw new MenuException(REQUEST_EMPTY_LIST);
-        }
+    public void updateMenuItem(String restaurantId, List<MenuUpdateRequestDto> menuList) {
+        validateNonEmptyList(menuList);
 
-        if (restaurantRepository.findById(restaurantId).isEmpty()) {
-            throw new RestaurantException(RESTAURANT_NOT_FOUND);
-        }
+        findRestaurantOrThrow(restaurantId);
 
-        for (MenuUpdateRequest req : menuList) {
+        for (MenuUpdateRequestDto req : menuList) {
             Menu existingMenu = menuRepository.findById(req.getId())
                     .orElseThrow(() -> new MenuException(MENU_NOT_FOUND)); // 메뉴 수정 중 하나라도 없으면 전체 요청 실패로 처리
 
@@ -96,5 +92,42 @@ public class MenuService {
 
             existingMenu.applyUpdate(req);
         }
+    }
+
+    private Restaurant findRestaurantOrThrow(String restaurantId) {
+        return restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new RestaurantException(RESTAURANT_NOT_FOUND));
+    }
+
+    private void checkDuplicateMenuNames(String restaurantId, List<MenuCreateRequestDto> requestDtoList) {
+        for (MenuCreateRequestDto requestDto : requestDtoList) {
+            if (menuRepository.existsByRestaurantIdAndName(restaurantId, requestDto.getName())) {
+                throw new MenuException(MENU_DUPLICATED);
+            }
+        }
+    }
+
+    private <T> void validateNonEmptyList(List<T> list) {
+        if (list == null || list.isEmpty()) {
+            throw new MenuException(REQUEST_EMPTY_LIST);
+        }
+    }
+
+    private static void validateMenuBelongsToRestaurant(String restaurantId, List<Menu> foundMenuList) {
+        for (Menu menu : foundMenuList) {
+            if (!menu.getRestaurant().getRestaurantId().equals(restaurantId)) {
+                throw new MenuException(MENU_NOT_FOUND);
+            }
+        }
+    }
+
+    private List<Menu> findMenusOrThrow(List<String> menuIdList) {
+        List<Menu> foundMenuList = menuRepository.findAllById(menuIdList);
+
+        if (foundMenuList.size() != menuIdList.size()) {
+            throw new MenuException(MENU_NOT_FOUND);
+        }
+
+        return foundMenuList;
     }
 }
