@@ -10,4 +10,5 @@ import java.util.List;
 public interface MenuRepository extends JpaRepository<Menu, String> {
     List<Menu> findByRestaurant(Restaurant restaurant);
     List<Menu> findByIdIn(Collection<String> ids);
+    boolean existsByRestaurantIdAndName(String restaurantId, String name);
 }
