@@ -1,5 +1,6 @@
 package com.sparta.deliverit.order.presentation.controller;
 
+import com.sparta.deliverit.global.infrastructure.security.UserDetailsImpl;
 import com.sparta.deliverit.global.response.ApiResponse;
 
 import com.sparta.deliverit.order.presentation.dto.request.OrderPaymentRequest;
@@ -11,6 +12,7 @@ import jakarta.validation.constraints.*;
 import org.springframework.data.domain.Page;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,13 +40,19 @@ public interface OrderController {
             @RequestParam
             @Min(value = 1, message = "페이지 크기는 1 이상의 100 이하의 양수여야 합니다.")
             @Max(value = 100, message = "페이지 크기는 1 이상의 100 이하의 양수여야 합니다.")
-            Integer pageSize
+            Integer pageSize,
+
+            @AuthenticationPrincipal
+            UserDetailsImpl userDetails
     );
 
     ApiResponse<OrderInfo> getOrderForUser(
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
                     message = "주문의 UUID 형식이 올바르지 않습니다.")
-            @PathVariable String orderId
+            @PathVariable String orderId,
+
+            @AuthenticationPrincipal
+            UserDetailsImpl userDetails
     );
 
     ApiResponse<Page<OrderInfo>> getOrderListForOwner(
@@ -70,7 +78,10 @@ public interface OrderController {
             @RequestParam
             @Min(value = 1, message = "페이지 크기는 1 이상의 100 이하의 양수여야 합니다.")
             @Max(value = 100, message = "페이지 크기는 1 이상의 100 이하의 양수여야 합니다.")
-            Integer pageSize
+            Integer pageSize,
+
+            @AuthenticationPrincipal
+            UserDetailsImpl userDetails
     );
 
     ApiResponse<OrderInfo> getOrderForOwner(
@@ -79,9 +90,20 @@ public interface OrderController {
             @PathVariable String restaurantId,
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
                     message = "주문의 UUID 형식이 올바르지 않습니다.")
-            @PathVariable String orderId);
+            @PathVariable String orderId,
 
-    ApiResponse<CreateOrderInfo> createOrder(@Valid @RequestBody CreateOrderRequest orderRequest);
+            @AuthenticationPrincipal
+            UserDetailsImpl userDetails
+    );
+
+//    ApiResponse<CreateOrderInfo> createOrder(
+//            @Valid
+//            @RequestBody
+//            CreateOrderRequest orderRequest,
+//
+//            @AuthenticationPrincipal
+//            UserDetailsImpl userDetails
+//    );
 
     ApiResponse<ConfirmOrderInfo> confirmOrder(
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
@@ -92,13 +114,21 @@ public interface OrderController {
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
                     message = "주문의 UUID 형식이 올바르지 않습니다.")
             @PathVariable
-            String orderId);
+            String orderId,
+
+            @AuthenticationPrincipal
+            UserDetailsImpl userDetails
+    );
 
     ApiResponse<OrderPaymentResponse> cancelOrderForUser(
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
                     message = "주문의 UUID 형식이 올바르지 않습니다.")
             @PathVariable
-            String orderId);
+            String orderId,
+
+            @AuthenticationPrincipal
+            UserDetailsImpl userDetails
+    );
 
     ApiResponse<OrderPaymentResponse> cancelOrderForOwner(
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
@@ -109,7 +139,20 @@ public interface OrderController {
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
                     message = "주문의 UUID 형식이 올바르지 않습니다.")
             @PathVariable
-            String orderId);
+            String orderId,
 
-    ApiResponse<OrderPaymentResponse> orderPayment(@Valid @RequestBody OrderPaymentRequest request);
+            @AuthenticationPrincipal
+            UserDetailsImpl userDetails
+
+    );
+
+    ApiResponse<OrderPaymentResponse> orderPayment(
+            @Valid
+            @RequestBody
+            OrderPaymentRequest request,
+
+            @AuthenticationPrincipal
+            UserDetailsImpl userDetails
+
+    );
 }
