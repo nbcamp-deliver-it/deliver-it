@@ -12,6 +12,7 @@ import com.sparta.deliverit.payment.domain.repository.PaymentRepository;
 import com.sparta.deliverit.payment.enums.Company;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final String INVALID_CARD_NUMBER = "9999-9999-9999-9999";
     private final String LIMIT_OVER_CARD_NUMBER = "8888-8888-8888-8888";
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Payment delegateRequest(PaymentRequestDto requestDto) {
         isErrorCard(requestDto.getCardNum());
 
@@ -37,6 +39,7 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentRepository.save(entity);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Payment paymentCancel(Order order) {
         Order findOrder = orderRepository.findById(order.getOrderId()).orElseThrow(
                 () -> new OrderException(OrderResponseCode.NOT_FOUND_ORDER)
