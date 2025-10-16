@@ -1,40 +1,115 @@
 package com.sparta.deliverit.order.presentation.controller;
 
-import com.sparta.deliverit.global.presentation.dto.Result;
+import com.sparta.deliverit.global.response.ApiResponse;
+
 import com.sparta.deliverit.order.presentation.dto.response.CancelOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.request.CreateOrderRequest;
 import com.sparta.deliverit.order.presentation.dto.response.ConfirmOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.CreateOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
+
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Pattern;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
+import jakarta.validation.constraints.*;
+import org.springframework.data.domain.Page;
 
-import java.util.List;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
+@Validated
+@RestController
 public interface OrderController {
 
-    Result<List<OrderInfo>> getOrderList(Authentication userAuthInfo);
+    ApiResponse<Page<OrderInfo>> getOrderListForUser(
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @NotNull(message = "조회 시작일(from)은 필수입니다.")
+            LocalDateTime from,
 
-    Result<OrderInfo> getOrder(
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @NotNull(message = "조회 종료일(to)은 필수입니다.")
+            LocalDateTime to,
+
+            @RequestParam
+            @PositiveOrZero(message = "페이지 숫자는 0 이상의 정수여야 합니다.")
+            Integer pageNumber,
+
+            @RequestParam
+            @Min(value = 1, message = "페이지 크기는 1 이상의 100 이하의 양수여야 합니다.")
+            @Max(value = 100, message = "페이지 크기는 1 이상의 100 이하의 양수여야 합니다.")
+            Integer pageSize
+    );
+
+    ApiResponse<OrderInfo> getOrderForUser(
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-                    message = "UUID 형식이 올바르지 않습니다.")
-            @PathVariable String orderId,
-            Authentication userAuthInfo);
+                    message = "주문의 UUID 형식이 올바르지 않습니다.")
+            @PathVariable String orderId
+    );
 
-    Result<CreateOrderInfo> createOrder(@RequestBody @Valid CreateOrderRequest request);
-
-    Result<ConfirmOrderInfo> confirmOrder(
+    ApiResponse<Page<OrderInfo>> getOrderListForOwner(
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-                    message = "UUID 형식이 올바르지 않습니다.")
+                    message = "음식점의 UUID 형식이 올바르지 않습니다.")
+            @PathVariable
+            String restaurantId,
+
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @NotNull(message = "조회 시작일(from)은 필수입니다.")
+            LocalDateTime from,
+
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @NotNull(message = "조회 종료일(to)은 필수입니다.")
+            LocalDateTime to,
+
+            @RequestParam
+            @PositiveOrZero(message = "페이지 숫자는 0 이상의 정수여야 합니다.")
+            Integer pageNumber,
+
+            @RequestParam
+            @Min(value = 1, message = "페이지 크기는 1 이상의 100 이하의 양수여야 합니다.")
+            @Max(value = 100, message = "페이지 크기는 1 이상의 100 이하의 양수여야 합니다.")
+            Integer pageSize
+    );
+
+    ApiResponse<OrderInfo> getOrderForOwner(
+            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                    message = "음식점의 UUID 형식이 올바르지 않습니다.")
+            @PathVariable String restaurantId,
+            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                    message = "주문의 UUID 형식이 올바르지 않습니다.")
+            @PathVariable String orderId);
+
+    ApiResponse<CreateOrderInfo> createOrder(@Valid @RequestBody CreateOrderRequest orderRequest);
+
+    ApiResponse<ConfirmOrderInfo> confirmOrder(
+            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                    message = "음식점의 UUID 형식이 올바르지 않습니다.")
+            @PathVariable
+            String restaurantId,
+
+            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                    message = "주문의 UUID 형식이 올바르지 않습니다.")
             @PathVariable
             String orderId);
 
-    Result<CancelOrderInfo> cancelOrder(
+    ApiResponse<CancelOrderInfo> cancelOrderForUser(
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-                    message = "UUID 형식이 올바르지 않습니다.")
+                    message = "주문의 UUID 형식이 올바르지 않습니다.")
+            @PathVariable
+            String orderId);
+
+    ApiResponse<CancelOrderInfo> cancelOrderForOwner(
+            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                    message = "음식점의 UUID 형식이 올바르지 않습니다.")
+            @PathVariable
+            String restaurantId,
+
+            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                    message = "주문의 UUID 형식이 올바르지 않습니다.")
             @PathVariable
             String orderId);
 }

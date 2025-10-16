@@ -1,7 +1,9 @@
 package com.sparta.deliverit.review.application.service;
 
 import com.sparta.deliverit.global.exception.ReviewException;
+import com.sparta.deliverit.global.exception.UserException;
 import com.sparta.deliverit.global.response.code.ReviewResponseCode;
+import com.sparta.deliverit.global.response.code.UserResponseCode;
 import com.sparta.deliverit.review.application.service.dto.OrderReviewCommand;
 import com.sparta.deliverit.review.application.service.dto.OrderReviewInfo;
 import com.sparta.deliverit.review.domain.entity.OrderReview;
@@ -71,8 +73,7 @@ public class OrderReviewService {
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> {
                     log.error("존재하지 않는 유저입니다. id : {}", userId);
-                    // FIXME: User 에 대한 도메인 예외
-                    return new IllegalArgumentException("");
+                    return new UserException(UserResponseCode.NOT_FOUND_USER);
                 });
 
         return user;

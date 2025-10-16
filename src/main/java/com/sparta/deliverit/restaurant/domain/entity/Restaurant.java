@@ -1,14 +1,20 @@
 package com.sparta.deliverit.restaurant.domain.entity;
 
+import com.sparta.deliverit.anything.entity.BaseEntity;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
 import com.sparta.deliverit.restaurant.domain.vo.RestaurantRating;
 import com.sparta.deliverit.restaurant.infrastructure.api.map.Coordinates;
 import com.sparta.deliverit.restaurant.presentation.dto.RestaurantInfoRequestDto;
+import com.sparta.deliverit.user.domain.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.sparta.deliverit.restaurant.domain.model.RestaurantStatus.SHUTDOWN;
 
 @Getter
 @NoArgsConstructor
@@ -17,7 +23,12 @@ import java.util.Set;
 @Builder
 @Entity
 @Table(name = "p_restaurant")
-public class Restaurant {
+@FilterDef(name = "activeRestaurantFilter")
+@Filter(
+        name = "activeRestaurantFilter",
+        condition = "deleted_at IS NULL and status <> 'SHUTDOWN'"
+)
+public class Restaurant extends BaseEntity {
 
     @Id
     private String restaurantId;
@@ -49,13 +60,18 @@ public class Restaurant {
     @Column(nullable = false)
     private RestaurantStatus status;
 
-    @Column(nullable = false)
-    private boolean deleted;
+    public void updateStatus(RestaurantStatus status) {
+        this.status = status;
+    }
 
     // 사용자 - 음식점 1:N 관계
-//    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-//    @JoinColumn(name = "user_id", nullable = false)
-//    private User user;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    public void assignUser(User user) {
+        this.user = user;
+    }
 
     // 음식점 - 카테고리 N:M 관계
     @Builder.Default
@@ -72,6 +88,7 @@ public class Restaurant {
     }
 
     @Embedded
+    @Builder.Default
     private RestaurantRating rating = new RestaurantRating();
 
     // 음식점 수정 메서드
@@ -89,7 +106,7 @@ public class Restaurant {
 
     // 음식점 삭제 메서드 (soft delete)
     public void softDelete() {
-        deleted = true;
+        status = SHUTDOWN;
     }
 
     // DTO -> Entity 변환 팩토리 메서드

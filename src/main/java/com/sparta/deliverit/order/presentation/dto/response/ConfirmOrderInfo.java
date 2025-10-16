@@ -1,5 +1,6 @@
 package com.sparta.deliverit.order.presentation.dto.response;
 
+import com.sparta.deliverit.order.domain.entity.Order;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -21,6 +22,14 @@ public class ConfirmOrderInfo {
                 .orderId(orderId)
                 .orderStatus(orderStatus)
                 .confirmedAt(confirmedAt)
+                .build();
+    }
+
+    public static ConfirmOrderInfo create(Order order) {
+        return ConfirmOrderInfo.builder()
+                .orderId(order.getOrderId())
+                .orderStatus(order.getOrderStatus().toString())
+                .confirmedAt(order.getUpdatedAt().toString())
                 .build();
     }
 }

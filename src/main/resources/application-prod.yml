@@ -1,0 +1,44 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:deliverIt}?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true
+
+jwt:
+  secret:
+    key: ${JWT_SECRET}
+
+kakao:
+  rest-api-key: ${KAKAO_REST_API_KEY}
+  base-url: https://dapi.kakao.com            # KakaoProperties.baseUrl
+  timeout:
+    connect: 2s                               # KakaoProperties.Timeout.connect
+    read: 3s
+
+ai:
+  authorization_header: ${AI_AUTH_HEADER:header}
+  token: ${AI_TOKEN:token}
+  connect_time: 1
+  read_time: 10
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
