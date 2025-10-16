@@ -47,8 +47,6 @@ class MenuControllerTest {
 
     @MockitoBean
     private MenuService menuService;
-    @Autowired
-    private MenuController menuController;
 
     @Test
     @DisplayName("메뉴 조회 성공")
