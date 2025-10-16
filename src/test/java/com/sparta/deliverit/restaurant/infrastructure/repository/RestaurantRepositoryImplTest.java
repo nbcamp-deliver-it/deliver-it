@@ -1,6 +1,5 @@
 package com.sparta.deliverit.restaurant.infrastructure.repository;
 
-import com.sparta.deliverit.anything.config.AuditingConfig;
 import com.sparta.deliverit.anything.config.QuerydslConfig;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import com.sparta.deliverit.restaurant.domain.model.PageSize;
@@ -10,6 +9,7 @@ import com.sparta.deliverit.restaurant.domain.vo.RestaurantRating;
 import com.sparta.deliverit.restaurant.presentation.dto.RestaurantListResponseDto;
 import com.sparta.deliverit.user.domain.entity.User;
 import com.sparta.deliverit.user.domain.repository.UserRepository;
+
 import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.junit.jupiter.api.AfterEach;
@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -107,7 +108,8 @@ class RestaurantRepositorySliceTest {
     // 하이버네이트 엔티티 필터 비활성화
     @AfterEach
     void disableFilter() {
-        em.unwrap(Session.class).disableFilter("activeRestaurantFilter");
+        em.unwrap(Session.class)
+                .disableFilter("activeRestaurantFilter");
     }
 
     @Test
@@ -134,7 +136,6 @@ class RestaurantRepositorySliceTest {
 
         // when
         var page = rr.searchByCreatedAt(GWANGHWAMUN_LAT, GWANGHWAMUN_LON, null, null, pageable);
-
         var list = page.map(RestaurantListResponseDto::getRestaurantId).getContent();
 
         // then
