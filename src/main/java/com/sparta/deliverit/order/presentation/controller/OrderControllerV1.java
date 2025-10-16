@@ -2,14 +2,14 @@ package com.sparta.deliverit.order.presentation.controller;
 
 import com.sparta.deliverit.global.response.ApiResponse;
 import com.sparta.deliverit.global.response.code.OrderResponseCode;
+import com.sparta.deliverit.order.application.service.OrderPaymentService;
 import com.sparta.deliverit.order.application.service.OrderService;
 import com.sparta.deliverit.order.application.dto.CreateOrderCommand;
-import com.sparta.deliverit.order.presentation.dto.response.CancelOrderInfo;
+import com.sparta.deliverit.order.presentation.dto.request.OrderPaymentRequest;
+import com.sparta.deliverit.order.presentation.dto.response.*;
 import com.sparta.deliverit.order.presentation.dto.request.CreateOrderRequest;
-import com.sparta.deliverit.order.presentation.dto.response.ConfirmOrderInfo;
-import com.sparta.deliverit.order.presentation.dto.response.CreateOrderInfo;
-import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
 
+import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,10 +24,12 @@ import java.time.LocalDateTime;
 public class OrderControllerV1 implements OrderController {
 
     private final OrderService orderService;
+    private final OrderPaymentService orderPaymentService;
 
     @Autowired
-    public OrderControllerV1(OrderService orderService) {
+    public OrderControllerV1(OrderService orderService, OrderPaymentService orderPaymentService) {
         this.orderService = orderService;
+        this.orderPaymentService = orderPaymentService;
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -129,5 +131,24 @@ public class OrderControllerV1 implements OrderController {
         CancelOrderInfo cancelOrderInfo = orderService.cancelOrderForOwner(restaurantId, orderId, userId);
 
         return ApiResponse.create(OrderResponseCode.ORDER_CANCEL_SUCCESS,"주문 취소가 완료되었습니다.", cancelOrderInfo);
+    }
+
+    @PostMapping("/orders/pay")
+    public ApiResponse<OrderPaymentResponse> orderPayment(OrderPaymentRequest request) {
+        // 임시 로그인
+        String userId = "2";
+
+        CreateOrderRequest orderRequest = request.getCreateOrderRequest();
+        PaymentRequestDto paymentRequest = request.getPaymentRequestRequest();
+
+        OrderPaymentResponse response = orderPaymentService.checkout(CreateOrderCommand.of(orderRequest), paymentRequest, Long.valueOf(userId));
+
+        if (response.equals("결제에 실패했습니다.")) {
+            return ApiResponse.create(OrderResponseCode.ORDER_FAILED,response.getMessage(), response);
+        } else if(response.equals("결제가 완료되었습니다.")) {
+            return ApiResponse.create(OrderResponseCode.ORDER_SUCCESS,response.getMessage(), response);
+        }
+
+        return ApiResponse.create(OrderResponseCode.ORDER_SUCCESS,response.getMessage(), response);
     }
 }
