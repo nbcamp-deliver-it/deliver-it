@@ -30,6 +30,7 @@ public class Order extends BaseEntity {
     private Restaurant restaurant;
   
     @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_id")
     private Payment payment;
 
     @Column(name = "ordered_at", nullable = false, updatable = false)
