@@ -1,5 +1,6 @@
 package com.sparta.deliverit.review.domain.entity;
 
+import com.sparta.deliverit.order.domain.entity.Order;
 import com.sparta.deliverit.review.domain.vo.Review;
 import com.sparta.deliverit.review.domain.vo.Star;
 import com.sparta.deliverit.user.domain.entity.User;
@@ -29,6 +30,22 @@ class OrderReviewTest {
     }
 
     @Test
+    @DisplayName("유저가 Null 이라면 예외가 발생한다")
+    void failWhenUserIsNull() {
+        Review review = new Review(new Star(BigDecimal.valueOf(1.0)));
+        assertThrows(IllegalArgumentException.class, () -> orderReview(review, null));
+    }
+
+    @Test
+    @DisplayName("주문이 Null 이라면 예외가 발생한다")
+    void failWhenOrderIsNull() {
+        Review review = new Review(new Star(BigDecimal.valueOf(1.0)));
+        User user = new User();
+
+        assertThrows(IllegalArgumentException.class, () -> orderReview(review, user, null));
+    }
+
+    @Test
     @DisplayName("주문의 리뷰는 변경할 수 있다")
     void changeReview() {
         Star star1 = new Star(BigDecimal.valueOf(4.5));
@@ -45,6 +62,14 @@ class OrderReviewTest {
     }
 
     private OrderReview orderReview(Review review) {
-        return new OrderReview(review, new User());
+        return new OrderReview(review, new User(), Order.builder().build());
+    }
+
+    private OrderReview orderReview(Review review, User user) {
+        return new OrderReview(review, user, Order.builder().build());
+    }
+
+    private OrderReview orderReview(Review review, User user, Order order) {
+        return new OrderReview(review, user, order);
     }
 }
