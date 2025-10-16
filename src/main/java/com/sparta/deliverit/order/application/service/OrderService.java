@@ -35,4 +35,6 @@ public interface OrderService {
     int failIfValid(String orderId, Long version);
 
     Order loadFresh(String orderId);
+
+    int cancelOrderOne(String orderId, Long version);
 }

@@ -16,6 +16,7 @@ import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForOwner;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForUser;
 import com.sparta.deliverit.order.presentation.dto.response.*;
 import com.sparta.deliverit.payment.domain.repository.PaymentRepository;
+import com.sparta.deliverit.payment.enums.PayState;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
 import com.sparta.deliverit.restaurant.infrastructure.repository.RestaurantRepository;
@@ -227,7 +228,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public CancelOrderInfo cancelOrderForUser(String orderId, String accessUserId) {
 
         OrderDetailForUser currOrder = orderRepository.getByOrderIdForUser(orderId).orElseThrow(
@@ -255,11 +256,12 @@ public class OrderServiceImpl implements OrderService {
                 OrderStatus.ORDER_COMPLETED,
                 OrderStatus.ORDER_CANCELED,
                 currOrder.getVersion(),
-                nowMinusMinute
+                nowMinusMinute,
+                PayState.CANCELED
         );
 
         if (queryResult == 0) {
-            throw new OrderCancelFailException(OrderResponseCode.ORDER_CANCEL_SUCCESS);
+            throw new OrderCancelFailException(OrderResponseCode.ORDER_CANCEL_FAIL);
         }
 
         Order nextOrder = orderRepository.findById(orderId).orElseThrow(
@@ -270,7 +272,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public CancelOrderInfo cancelOrderForOwner(String restaurantId, String orderId, String accessUserId) {
 
         OrderDetailForOwner currOrder = orderRepository.getByOrderIdForOwner(orderId).orElseThrow(
@@ -292,7 +294,8 @@ public class OrderServiceImpl implements OrderService {
                 Long.valueOf(accessUserId),
                 CANCELABLE_STATUS_LIST,
                 OrderStatus.ORDER_CANCELED,
-                currOrder.getVersion()
+                currOrder.getVersion(),
+                PayState.CANCELED
         );
 
         if (queryResult == 0) {
@@ -493,6 +496,21 @@ public class OrderServiceImpl implements OrderService {
     public Order loadFresh(String orderId) {
         return orderRepository.findById(orderId).orElseThrow(
                 () -> new NotFoundOrderException(OrderResponseCode.NOT_FOUND_ORDER)
+        );
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int cancelOrderOne(String orderId, Long version) {
+        LocalDateTime now = LocalDateTime.now(clock);
+        LocalDateTime upper = now.minusMinutes(5);
+        return orderRepository.cancelOrderOne(
+                orderId,
+                OrderStatus.ORDER_COMPLETED,
+                OrderStatus.ORDER_CANCELED,
+                version,
+                now,
+                upper,
+                PayState.CANCELED
         );
     }
 }

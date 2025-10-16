@@ -4,6 +4,7 @@ import com.sparta.deliverit.order.domain.entity.Order;
 import com.sparta.deliverit.order.domain.entity.OrderStatus;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForOwner;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForUser;
+import com.sparta.deliverit.payment.enums.PayState;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,10 +30,12 @@ public interface OrderRepository extends JpaRepository<Order, String> {
             o.orderStatus AS orderStatus,
             o.address AS address,
             o.totalPrice AS totalPrice,
-            o.version AS version
+            o.version AS version,
+            p.paymentId AS paymentId
         FROM Order o
         JOIN o.user u 
         JOIN o.restaurant r
+        LEFT JOIN o.payment p 
         WHERE o.orderId =:orderId
     """)
     Optional<OrderDetailForUser> getByOrderIdForUser(@Param("orderId") String orderId);
@@ -50,10 +53,12 @@ public interface OrderRepository extends JpaRepository<Order, String> {
             o.orderStatus AS orderStatus,
             o.address AS address,
             o.totalPrice AS totalPrice,
-            o.version AS version
+            o.version AS version,
+            p.paymentId AS paymentId
         FROM Order o
         JOIN o.user u 
         JOIN o.restaurant r
+        LEFT JOIN o.payment p
         WHERE o.orderId =:orderId 
     """)
     Optional<OrderDetailForOwner> getByOrderIdForOwner(@Param("orderId") String orderId);
@@ -130,33 +135,68 @@ public interface OrderRepository extends JpaRepository<Order, String> {
     int updateOrderStatusToConfirm(@Param("orderId") String orderId, @Param("restaurantId") String restaurantId, @Param("accessUserId") Long accessUserId, @Param("currStatus") OrderStatus currStatus, @Param("nextStatus") OrderStatus nextStatus, @Param("version") Long version, @Param("nowMinusMinute") LocalDateTime nowMinusMinute);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query(
-    """
-        UPDATE Order o
-        SET o.orderStatus = :nextStatus,
-            o.version = o.version + 1
-        WHERE o.orderId = :orderId
-            AND o.user.id = :accessUserId
-            AND o.orderStatus = :currStatus
-            AND o.version = :version
-            AND o.orderedAt > :nowMinusMinute
+    @Query("""
+    UPDATE Order o
+    SET o.orderStatus = :nextStatus,
+        o.version = o.version + 1
+    WHERE o.orderId = :orderId
+      AND o.orderStatus = :currStatus
+      AND o.version = :version
+      AND o.orderedAt > :nowMinusMinute
+      AND EXISTS (               
+            SELECT 1 FROM User u
+            WHERE u.id = :accessUserId
+              AND u.id = o.user.id
+      )
+      AND EXISTS (               
+            SELECT 1 FROM Payment p
+            WHERE p.paymentId = o.payment.paymentId
+              AND p.payState = :canceled
+      )
     """)
-    int updateOrderStatusToCancelForUser(@Param("orderId") String orderId, @Param("accessUserId") Long accessUserId, @Param("currStatus") OrderStatus currStatus, @Param("nextStatus") OrderStatus nextStatus, @Param("version") Long version, @Param("nowMinusMinute") LocalDateTime nowMinusMinute);
+    int updateOrderStatusToCancelForUser(@Param("orderId") String orderId,
+                                         @Param("accessUserId") Long accessUserId,
+                                         @Param("currStatus") OrderStatus currStatus,
+                                         @Param("nextStatus") OrderStatus nextStatus,
+                                         @Param("version") Long version,
+                                         @Param("nowMinusMinute") LocalDateTime nowMinusMinute,
+                                         @Param("canceled") PayState canceled);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query(
-    """
-        UPDATE Order o
-        SET o.orderStatus = :nextStatus,
-            o.version = o.version + 1
-        WHERE o.orderId = :orderId
-            AND o.restaurant.restaurantId = :restaurantId
-            AND o.restaurant.user.id = :accessUserId
-            AND o.orderStatus IN :currStatusList
-            AND o.orderStatus <> :nextStatus
-            AND o.version = :version
+    @Query("""
+    UPDATE Order o
+    SET o.orderStatus = :nextStatus,
+        o.version = o.version + 1
+    WHERE o.orderId = :orderId
+      AND o.orderStatus IN :currStatusList
+      AND o.orderStatus <> :nextStatus
+      AND o.version = :version
+      AND EXISTS (               
+            SELECT 1 FROM Restaurant r
+            WHERE r.restaurantId = o.restaurant.restaurantId
+              AND r.restaurantId = :restaurantId
+      )
+      AND EXISTS (               
+            SELECT 1 FROM User u
+            WHERE u.id = :accessUserId
+              AND u.id IN (
+                    SELECT r2.user.id FROM Restaurant r2
+                    WHERE r2.restaurantId = o.restaurant.restaurantId
+              )
+      )
+      AND EXISTS (               
+            SELECT 1 FROM Payment p
+            WHERE p.paymentId = o.payment.paymentId
+              AND p.payState = :canceled
+      )
     """)
-    int updateOrderStatusToCancelForOwner(@Param("orderId") String orderId, @Param("restaurantId") String restaurantId, @Param("accessUserId") Long accessUserId, @Param("currStatusList") List<OrderStatus> currStatusList, @Param("nextStatus") OrderStatus nextStatus, @Param("version") Long version);
+    int updateOrderStatusToCancelForOwner(@Param("orderId") String orderId,
+                                          @Param("restaurantId") String restaurantId,
+                                          @Param("accessUserId") Long accessUserId,
+                                          @Param("currStatusList") List<OrderStatus> currStatusList,
+                                          @Param("nextStatus") OrderStatus nextStatus,
+                                          @Param("version") Long version,
+                                          @Param("canceled") PayState canceled);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value =
