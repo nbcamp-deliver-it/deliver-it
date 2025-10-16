@@ -3,7 +3,6 @@ package com.sparta.deliverit.restaurant.application.service;
 import com.sparta.deliverit.global.exception.RestaurantException;
 import com.sparta.deliverit.global.infrastructure.security.UserDetailsImpl;
 import com.sparta.deliverit.global.persistence.UseActiveRestaurantFilter;
-import com.sparta.deliverit.global.response.code.UserResponseCode;
 import com.sparta.deliverit.menu.application.service.MenuService;
 import com.sparta.deliverit.menu.presentation.dto.MenuResponseDto;
 import com.sparta.deliverit.restaurant.domain.entity.Category;
