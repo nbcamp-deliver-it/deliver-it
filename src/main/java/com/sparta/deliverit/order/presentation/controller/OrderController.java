@@ -94,13 +94,13 @@ public interface OrderController {
             @PathVariable
             String orderId);
 
-    ApiResponse<CancelOrderInfo> cancelOrderForUser(
+    ApiResponse<OrderPaymentResponse> cancelOrderForUser(
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
                     message = "주문의 UUID 형식이 올바르지 않습니다.")
             @PathVariable
             String orderId);
 
-    ApiResponse<CancelOrderInfo> cancelOrderForOwner(
+    ApiResponse<OrderPaymentResponse> cancelOrderForOwner(
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
                     message = "음식점의 UUID 형식이 올바르지 않습니다.")
             @PathVariable
