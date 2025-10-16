@@ -19,3 +19,15 @@ jwt:
   secret:
     key: 7Iqk7YyM66W07YOA7L2U65Sp7YG065+9U3ByaW5n6rCV7J2Y7Yqc7YSw7LWc7JuQ67mI7J6F64uI64ukLg==
 
+ai:
+  authorization_header: header
+  token: token
+  connect_time: 0
+  read_time: 0
+
+kakao:
+  rest-api-key: ${KAKAO_REST_API_KEY:dummy}   # KakaoProperties.restApiKey
+  base-url: https://dapi.kakao.com            # KakaoProperties.baseUrl
+  timeout:
+    connect: 2s                               # KakaoProperties.Timeout.connect
+    read: 3s                                  # KakaoProperties.Timeout.read

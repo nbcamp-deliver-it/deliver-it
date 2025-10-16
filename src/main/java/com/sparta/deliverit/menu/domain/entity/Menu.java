@@ -1,26 +1,31 @@
 package com.sparta.deliverit.menu.domain.entity;
 
+import com.sparta.deliverit.menu.presentation.dto.MenuCreateRequestDto;
+import com.sparta.deliverit.menu.presentation.dto.MenuResponseDto;
+import com.sparta.deliverit.menu.presentation.dto.MenuUpdateRequestDto;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Entity
 @Setter
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "p_menu")
 public class Menu {
 
     @Id
     @Column(name = "menu_id")
-//    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id; // UUID, String 중 타입 정하기
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "restaurant_id")
-//    private Restaurant restaurant;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "restaurant_id")
+    private Restaurant restaurant;
 
     @Column(nullable = false)
     private String name;
@@ -31,13 +36,36 @@ public class Menu {
     @Enumerated(EnumType.STRING)
     private MenuStatus status;
 
+    @Column(nullable = false)
+    private Boolean isAiDescGenerated;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    public void updateMenu(Menu menu) {
-        if (menu.getName() != null) this.name = menu.getName();
-        if (menu.getPrice() != null) this.price = menu.getPrice();
-        if (menu.getStatus() != null) this.status = menu.getStatus();
-        if (menu.getDescription() != null) this.description = menu.getDescription();
+    public void applyUpdate(MenuUpdateRequestDto requestDto) {
+        if (requestDto.getName() != null) this.name = requestDto.getName();
+        if (requestDto.getPrice() != null) this.price = requestDto.getPrice();
+        if (requestDto.getStatus() != null) this.status = requestDto.getStatus();
+        if (requestDto.getDescription() != null) this.description = requestDto.getDescription();
+    }
+
+    public static Menu from(MenuCreateRequestDto dto) {
+        return Menu.builder()
+                .restaurant(dto.getRestaurant())
+                .name(dto.getName())
+                .price(dto.getPrice())
+                .status(dto.getStatus())
+                .isAiDescGenerated(dto.getIsAiDescGenerated() != null && dto.getIsAiDescGenerated())
+                .description(dto.getIsAiDescGenerated() ? dto.getDescription() : null)
+                .build();
+    }
+
+    public MenuResponseDto toResponseDto() {
+        return MenuResponseDto.builder()
+                .name(this.name)
+                .description(this.description)
+                .price(this.price)
+                .status(this.status)
+                .build();
     }
 }
