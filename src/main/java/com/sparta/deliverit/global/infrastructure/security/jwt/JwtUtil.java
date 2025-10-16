@@ -24,10 +24,14 @@ public class JwtUtil {
     public static final String AUTHORIZATION_KEY = "auth";
     // 사용자 ID 값의 KEY
     public static final String USER_ID = "userId";
+    // Token Type
+    public static final String TOKEN_TYPE = "typ";
     // Token 식별자
     public static final String BEARER_PREFIX = "Bearer ";
+
     // 토큰 만료시간
-    private final long TOKEN_TIME = 60 * 60 * 1000L; // 60분
+    private final long ACCESS_TOKEN_TTL = 15 * 60 * 1000L; // 15분
+    private final long REFRESH_TOKEN_TTL = 12 * 60 * 60 * 1000; // 12시간
 
     @Value("${jwt.secret.key}") // Base64 Encode 한 SecretKey
     private String secretKey;
@@ -40,8 +44,16 @@ public class JwtUtil {
         key = Keys.hmacShaKeyFor(bytes);
     }
 
+    public String createAccessToken(Long userId, String username, UserRoleEnum role) {
+        return createToken(userId, username, role, "access", ACCESS_TOKEN_TTL);
+    }
+
+    public String createRefreshToken(Long userId, String username, UserRoleEnum role) {
+        return createToken(userId, username, role, "refresh", REFRESH_TOKEN_TTL);
+    }
+
     // 토큰 생성
-    public String createToken(Long userId, String username, UserRoleEnum role) {
+    public String createToken(Long userId, String username, UserRoleEnum role, String type, long ttl) {
         Date date = new Date();
 
         return BEARER_PREFIX +
@@ -49,7 +61,8 @@ public class JwtUtil {
                         .setSubject(username) // 사용자 식별자값(ID)
                         .claim(AUTHORIZATION_KEY, role) // 사용자 권한
                         .claim(USER_ID, userId)
-                        .setExpiration(new Date(date.getTime() + TOKEN_TIME)) // 만료 시간
+                        .claim(TOKEN_TYPE, type)
+                        .setExpiration(new Date(date.getTime() + ttl)) // 만료 시간
                         .setIssuedAt(date) // 발급일
                         .signWith(key, signatureAlgorithm) // 암호화 알고리즘
                         .compact();
