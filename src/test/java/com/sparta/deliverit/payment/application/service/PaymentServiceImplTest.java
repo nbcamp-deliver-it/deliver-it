@@ -2,12 +2,14 @@ package com.sparta.deliverit.payment.application.service;
 
 import com.sparta.deliverit.global.exception.PaymentException;
 import com.sparta.deliverit.global.response.code.PaymentResponseCode;
+import com.sparta.deliverit.order.domain.entity.Order;
 import com.sparta.deliverit.payment.application.service.card.KbCardProcessor;
 import com.sparta.deliverit.payment.application.service.card.SamSungCardProcessor;
 import com.sparta.deliverit.payment.domain.entity.Payment;
 import com.sparta.deliverit.payment.domain.repository.PaymentRepository;
 import com.sparta.deliverit.payment.enums.Company;
-import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
+import com.sparta.deliverit.payment.application.service.dto.PaymentRequestDto;
+import com.sparta.deliverit.payment.enums.PayState;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +21,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -54,7 +57,7 @@ class PaymentServiceImplTest {
 
         //then
         assertThat(payment.getPaymentId()).isEqualTo(result.getPaymentId());
-        assertThat(payment.getCardCompany()).isEqualTo(result.getCardCompany());
+        assertThat(payment.getCompany()).isEqualTo(result.getCompany());
     }
 
     @Test
@@ -89,20 +92,21 @@ class PaymentServiceImplTest {
 
     }
 
-//    @Test
-//    @DisplayName("결제취소시, Payment객체의 상태변화 성공")
-//    void paymentCancel() {
-//        //given
-//        PaymentRequestDto requestDto = new PaymentRequestDto
-//                ("카드", "삼성", "1111-1111-1111-1111", 10000);
-//        Payment payment = Payment.of(requestDto, Company.SAMSUNG);
-//        given(paymentRepository.findById(any())).willReturn(Optional.of(payment));
-//
-//        //when
-//        Payment result = service.paymentCancel(new Order());
-//
-//        //then
-//        assertThat(payment.getPayState() == PayState.COMPLETED);
-//        assertThat(payment.getPayState() != result.getPayState());
-//    }
+    @Test
+    @DisplayName("결제취소시, Payment객체의 상태변화 성공")
+    void paymentCancel() {
+        //given
+        PaymentRequestDto requestDto = new PaymentRequestDto
+                ("카드", "삼성", "1111-1111-1111-1111", 10000);
+        Payment payment = Payment.of(requestDto, Company.SAMSUNG);
+        given(paymentRepository.findById(any())).willReturn(Optional.of(payment));
+
+        //when
+        Payment result = service.paymentCancel(Order.builder()
+                .payment(payment).build());
+
+        //then
+        assertThat(result.getPayState() == PayState.COMPLETED);
+        assertThat(payment.getPayState() != result.getPayState());
+    }
 }

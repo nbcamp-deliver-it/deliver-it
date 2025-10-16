@@ -4,9 +4,10 @@ import com.sparta.deliverit.anything.entity.BaseEntity;
 import com.sparta.deliverit.payment.enums.Company;
 import com.sparta.deliverit.payment.enums.PayState;
 import com.sparta.deliverit.payment.enums.PayType;
-import com.sparta.deliverit.payment.presentation.dto.PaymentRequestDto;
+import com.sparta.deliverit.payment.application.service.dto.PaymentRequestDto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 
@@ -32,12 +33,19 @@ public class Payment extends BaseEntity {
     private String cardNum;
 
     @NotEmpty
+    @Enumerated(EnumType.STRING)
     @Column(name = "card_company")
-    private String cardCompany;
+    private Company company;
 
+    @NotEmpty
+    @PositiveOrZero
+    private Integer price;
+
+    @NotEmpty
     @Enumerated(EnumType.STRING)
     private PayType payType;
 
+    @NotEmpty
     @Enumerated(EnumType.STRING)
     private PayState payState;
 
@@ -50,7 +58,8 @@ public class Payment extends BaseEntity {
         return Payment.builder()
                 .paymentId(UUID.randomUUID().toString().substring(0, 12))
                 .cardNum(requestDto.getCardNum())
-                .cardCompany(company.getName())
+                .company(company)
+                .price(requestDto.getTotalPrice())
                 .payType(PayType.of(requestDto.getPayType()))
                 .payState(PayState.COMPLETED)
                 .build();
