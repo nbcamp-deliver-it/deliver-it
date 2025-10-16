@@ -3,6 +3,7 @@ package com.sparta.deliverit.payment.application.service;
 import com.sparta.deliverit.global.exception.PaymentException;
 import com.sparta.deliverit.global.response.code.PaymentResponseCode;
 import com.sparta.deliverit.order.domain.entity.Order;
+import com.sparta.deliverit.order.infrastructure.OrderRepository;
 import com.sparta.deliverit.payment.application.service.card.KbCardProcessor;
 import com.sparta.deliverit.payment.application.service.card.SamSungCardProcessor;
 import com.sparta.deliverit.payment.domain.entity.Payment;
@@ -25,6 +26,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.given;
 
@@ -33,6 +35,9 @@ class PaymentServiceImplTest {
 
     @Mock
     private PaymentRepository paymentRepository;
+
+    @Mock
+    private OrderRepository orderRepository;
 
     @InjectMocks
     private PaymentServiceImpl service;
@@ -99,11 +104,13 @@ class PaymentServiceImplTest {
         PaymentRequestDto requestDto = new PaymentRequestDto
                 ("카드", "삼성", "1111-1111-1111-1111", 10000);
         Payment payment = Payment.of(requestDto, Company.SAMSUNG);
+        Order order = Order.builder().payment(payment).build();
+
         given(paymentRepository.findById(any())).willReturn(Optional.of(payment));
+        given(orderRepository.findById(anyString())).willReturn(Optional.of(order));
 
         //when
-        Payment result = service.paymentCancel(Order.builder()
-                .payment(payment).build());
+        Payment result = service.paymentCancel(order);
 
         //then
         assertThat(result.getPayState() == PayState.COMPLETED);
