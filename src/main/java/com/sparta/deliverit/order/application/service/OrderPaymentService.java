@@ -100,4 +100,110 @@ public class OrderPaymentService {
                 PaymentResponseDto.of(payment));
     }
 
+    public OrderPaymentResponse cancelOrderPaymentForUser(String orderId, String userId) {
+
+        Order order = orderService.loadFresh(orderId);
+
+        // 결제 취소 요청을 먼저 전송
+        try {
+            // 결제 취소
+            paymentService.paymentCancel(order);
+
+        } catch (Exception pse) {
+            log.error("paymentCancel failed, orderId={}, msg={}", orderId, pse.getMessage(), pse);
+
+            // FIXME : payment 정보를 가져오는 기능이 필요함
+            Payment payment = null; //paymentService.getPayment(order.getPayment().getPaymentId());
+            return OrderPaymentResponse.create(
+                    orderId,
+                    "",
+                    "결제 취소에 실패했습니다.",
+                    OrderResponse.of(order),
+                    PaymentResponseDto.fail(
+                            payment.getPaymentId(),
+                            payment.getCardNum(),
+                            payment.getCardCompany(),
+                            payment.getPaidAt()
+                    )
+            );
+        }
+        Payment payment = null; //paymentService.getPayment(order.getPayment().getPaymentId());
+        // 주문 취소
+        try {
+            orderService.cancelOrderForUser(orderId, userId);
+        } catch (Exception ocfe) {
+            log.error("cancelOrderForUser failed, orderId={}, msg={}", orderId, ocfe.getMessage(), ocfe);
+
+            Order freshOrder = orderService.loadFresh(orderId);
+            return OrderPaymentResponse.create(
+                    orderId, "",
+                    "결제 취소는 완료되었으나 주문 상태는 변경되지 않았습니다.",
+                    OrderResponse.of(freshOrder),
+                    PaymentResponseDto.cancel(payment.getPaymentId(), payment.getCardNum(), payment.getCardCompany(), ZonedDateTime.now(clock))
+            );
+        }
+
+        // 응답용 최신 스냅샷
+        Order freshOrder = orderService.loadFresh(orderId);
+        return OrderPaymentResponse.create(
+                orderId, "",
+                "결제 취소 및 주문 취소가 완료되었습니다.",
+                OrderResponse.of(freshOrder),
+                PaymentResponseDto.cancel(payment.getPaymentId(), payment.getCardNum(), payment.getCardCompany(), ZonedDateTime.now(clock))
+        );
+    }
+
+    public OrderPaymentResponse cancelOrderPaymentForOwner( String restaurantId, String orderId, String accessUserId) {
+
+        Order order = orderService.loadFresh(orderId);
+
+        // 결제 취소 요청을 먼저 전송
+        try {
+            // 결제 취소
+            paymentService.paymentCancel(order);
+
+        } catch (Exception pse) {
+            log.error("paymentCancel failed, orderId={}, msg={}", orderId, pse.getMessage(), pse);
+
+            // FIXME : payment 정보를 가져오는 기능이 필요함
+            Payment payment = null; //paymentService.getPayment(order.getPayment().getPaymentId());
+            return OrderPaymentResponse.create(
+                    orderId,
+                    "",
+                    "결제 취소에 실패했습니다.",
+                    OrderResponse.of(order),
+                    PaymentResponseDto.fail(
+                            payment.getPaymentId(),
+                            payment.getCardNum(),
+                            payment.getCardCompany(),
+                            payment.getPaidAt()
+                    )
+            );
+        }
+
+        Payment payment = null; //paymentService.getPayment(order.getPayment().getPaymentId());
+        // 주문 취소
+        try {
+            orderService.cancelOrderForOwner(restaurantId, orderId,  accessUserId);
+        } catch (Exception ocfe) {
+            log.error("cancelOrderForOwner failed, orderId={}, msg={}", orderId, ocfe.getMessage(), ocfe);
+
+            Order freshOrder = orderService.loadFresh(orderId);
+            return OrderPaymentResponse.create(
+                    orderId, "",
+                    "결제 취소는 완료되었으나 주문 상태는 변경되지 않았습니다.",
+                    OrderResponse.of(freshOrder),
+                    PaymentResponseDto.cancel(payment.getPaymentId(), payment.getCardNum(), payment.getCardCompany(), ZonedDateTime.now(clock))
+            );
+        }
+
+        // 응답용 최신 스냅샷
+        Order freshOrder = orderService.loadFresh(orderId);
+        return OrderPaymentResponse.create(
+                orderId, "",
+                "결제 취소 및 주문 취소가 완료되었습니다.",
+                OrderResponse.of(freshOrder),
+                PaymentResponseDto.cancel(payment.getPaymentId(), payment.getCardNum(), payment.getCardCompany(), ZonedDateTime.now(clock))
+        );
+    }
 }
