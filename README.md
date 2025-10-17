@@ -33,6 +33,23 @@
 
 ## Architecture
 
+![architecture](./img/architecture.png)
+
+- AWS 환경 구성 (VPC, Security Group)
+- 리버스 프록시 (nginx) 구성 
+  - 무중단 배포를 위해 서버 앞단에 배치
+- 서버 인스턴스 2대 (EC2 / t3.small)
+  - 2 CPU / 2 GB
+
+</br>
+
+### CI/CD 구성 
+
+![ci_cd_architecture](./img/cicd-architecture.png)
+
+- github webhook push event 구독 
+- nginx 를 통해 git 접근 및 jenkins 접근 
+- 서버 인스턴스 각각 롤링 배포 방식으로 배포 
 
 </br>
 
