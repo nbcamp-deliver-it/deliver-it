@@ -31,15 +31,19 @@ public class RestaurantRepositoryImpl implements RestaurantRepositoryCustom {
     private static final QRestaurant restaurant = QRestaurant.restaurant;
 
     @Override
-    public Page<RestaurantListResponseDto> searchByCreatedAt(String keyword, RestaurantCategory category, Pageable pageable) {
+    public Page<RestaurantListResponseDto> searchByCreatedAt(
+            double latitude, double longitude, String keyword, RestaurantCategory category, Pageable pageable
+    ) {
         BooleanBuilder where = baseFilter(keyword, category);
+        NumberExpression<Double> distance = applyDistanceFilter(where, latitude, longitude, keyword, category);
 
         List<RestaurantListResponseDto> content = query
                 .select(Projections.constructor(RestaurantListResponseDto.class,
                         restaurant.restaurantId,
                         restaurant.name,
                         restaurant.rating.starAvg,
-                        restaurant.rating.reviewsCount
+                        restaurant.rating.reviewsCount,
+                        distance
                 ))
                 .from(restaurant)
                 .where(where)
@@ -63,8 +67,8 @@ public class RestaurantRepositoryImpl implements RestaurantRepositoryCustom {
             double latitude, double longitude, String keyword, RestaurantCategory category, Pageable pageable
     ) {
         // 1. 거리 계산 및 where절 구성
-        NumberExpression<Double> distance = distance(latitude, longitude);
         BooleanBuilder where = baseFilter(keyword, category);
+        NumberExpression<Double> distance = applyDistanceFilter(where, latitude, longitude, keyword, category);
 
         // 2. 필요한 필드 -> DTO 생성자 매핑
         List<RestaurantListResponseDto> content = query
@@ -95,10 +99,11 @@ public class RestaurantRepositoryImpl implements RestaurantRepositoryCustom {
     // 별점순 정렬
     @Override
     public Page<RestaurantListResponseDto> searchByRating(
-            String keyword, RestaurantCategory category, Pageable pageable
+            double latitude, double longitude, String keyword, RestaurantCategory category, Pageable pageable
     ) {
         // 1. where절 구성
         BooleanBuilder where = baseFilter(keyword, category);
+        NumberExpression<Double> distance = applyDistanceFilter(where, latitude, longitude, keyword, category);
 
         // 2. 필요한 필드 -> DTO 생성자 매핑
         List<RestaurantListResponseDto> content = query
@@ -106,7 +111,8 @@ public class RestaurantRepositoryImpl implements RestaurantRepositoryCustom {
                         restaurant.restaurantId,
                         restaurant.name,
                         restaurant.rating.starAvg,
-                        restaurant.rating.reviewsCount
+                        restaurant.rating.reviewsCount,
+                        distance
                 ))
                 .from(restaurant)
                 .where(where)
@@ -130,12 +136,25 @@ public class RestaurantRepositoryImpl implements RestaurantRepositoryCustom {
         BooleanBuilder where = new BooleanBuilder();
 
         if (category != null) where.and(restaurant.categories.any().eq(category));
-        if (StringUtils.hasText(keyword)) where.and(restaurant.name.containsIgnoreCase(keyword));
+        if (StringUtils.hasText(keyword)) {
+            where.and(restaurant.name.contains(keyword));
+        }
 
         return where;
     }
 
     private static final double EARTH_RADIUS_M = 6371000d; // 지구 반지름(미터)
+    private static final int DEFAULT_MAX_DISTANCE_M = 3000; // 제한 거리(미터, 3Km)
+
+    // 거리 계산 및 where절 구현(제한 거리 필터링)
+    private NumberExpression<Double> applyDistanceFilter(
+            BooleanBuilder where, double latitude, double longitude, String keyword, RestaurantCategory category
+    ) {
+        NumberExpression<Double> distance = distance(latitude, longitude);
+        where.and(distance.loe(DEFAULT_MAX_DISTANCE_M));
+
+        return distance;
+    }
 
     // DB 공통 하버사인 거리(미터) 계산식
     private NumberExpression<Double> distance(double latitude, double longitude) {
