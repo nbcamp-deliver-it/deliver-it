@@ -1,7 +1,7 @@
 package com.sparta.deliverit.user.presentation.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,8 +16,11 @@ public class UserEditRequestDto {
     private String phone;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Size(min = 8, max = 15)
-    private String newPassword; // 최소 8자 이상, 15자 이하이며 알파벳 대소문자(a~z, A~Z), 숫자(0~9), 특수문자
+    @Pattern(
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-={}\\[\\]:;\"'<>,.?/~`|\\\\]).{8,15}$",
+            message = "비밀번호는 8~15자이며, 알파벳 대소문자, 숫자, 특수문자를 모두 포함해야 합니다."
+    )
+    private String newPassword;
 
     private String currentPassword;
 }
