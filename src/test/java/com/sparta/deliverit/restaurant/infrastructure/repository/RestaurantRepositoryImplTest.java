@@ -1,5 +1,6 @@
 package com.sparta.deliverit.restaurant.infrastructure.repository;
 
+import com.sparta.deliverit.anything.config.AuditingConfig;
 import com.sparta.deliverit.anything.config.QuerydslConfig;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import com.sparta.deliverit.restaurant.domain.model.PageSize;
