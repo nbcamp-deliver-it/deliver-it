@@ -2,11 +2,13 @@ package com.sparta.deliverit.order.application.service;
 
 import com.sparta.deliverit.order.application.dto.CreateOrderCommand;
 import com.sparta.deliverit.order.domain.entity.Order;
+import com.sparta.deliverit.order.infrastructure.dto.OrderIdVersion;
 import com.sparta.deliverit.order.presentation.dto.response.CancelOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.ConfirmOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.CreateOrderInfo;
 import com.sparta.deliverit.order.presentation.dto.response.OrderInfo;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 
@@ -36,5 +38,7 @@ public interface OrderService {
 
     Order loadFresh(String orderId);
 
-//    int cancelOrderOne(String orderId, Long version);
+    int cancelOrderOne(String orderId, Long version);
+
+    Page<OrderIdVersion> findExpiredOrderIds(LocalDateTime cutoffTime, LocalDateTime sinceTime, Pageable pageable);
 }

@@ -14,6 +14,7 @@ import com.sparta.deliverit.order.infrastructure.OrderItemRepository;
 import com.sparta.deliverit.order.infrastructure.OrderRepository;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForOwner;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForUser;
+import com.sparta.deliverit.order.infrastructure.dto.OrderIdVersion;
 import com.sparta.deliverit.order.presentation.dto.response.*;
 import com.sparta.deliverit.payment.domain.repository.PaymentRepository;
 import com.sparta.deliverit.payment.enums.PayState;
@@ -25,6 +26,7 @@ import com.sparta.deliverit.user.domain.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -499,18 +501,26 @@ public class OrderServiceImpl implements OrderService {
         );
     }
 
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
-//    public int cancelOrderOne(String orderId, Long version) {
-//        LocalDateTime now = LocalDateTime.now(clock);
-//        LocalDateTime upper = now.minusMinutes(5);
-//        return orderRepository.cancelOrderOne(
-//                orderId,
-//                OrderStatus.ORDER_COMPLETED,
-//                OrderStatus.ORDER_CANCELED,
-//                version,
-//                now,
-//                upper,
-//                PayState.CANCELED
-//        );
-//    }
+    @Override
+    public Page<OrderIdVersion> findExpiredOrderIds(LocalDateTime cutoffTime, LocalDateTime sinceTime, Pageable pageable) {
+        return orderRepository.findExpiredOrderIds(
+                OrderStatus.ORDER_COMPLETED,
+                cutoffTime,
+                sinceTime,
+                pageable
+        );
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int cancelOrderOne(String orderId, Long version) {
+        LocalDateTime now = LocalDateTime.now(clock);
+        return orderRepository.cancelOneWithVersion(
+                orderId,
+                OrderStatus.ORDER_COMPLETED,
+                OrderStatus.ORDER_CANCELED,
+                version,
+                now,
+                PayState.CANCELED
+        );
+    }
 }
