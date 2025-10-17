@@ -1,6 +1,5 @@
 package com.sparta.deliverit.order.presentation.controller;
 
-import com.sparta.deliverit.global.infrastructure.security.UserDetailsImpl;
 import com.sparta.deliverit.global.response.ApiResponse;
 import com.sparta.deliverit.global.response.code.OrderResponseCode;
 import com.sparta.deliverit.order.application.service.OrderPaymentService;
@@ -14,7 +13,6 @@ import com.sparta.deliverit.payment.application.service.dto.PaymentRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 
 import org.springframework.web.bind.annotation.*;
@@ -36,9 +34,9 @@ public class OrderControllerV1 implements OrderController {
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/v1/orders")
-    public ApiResponse<Page<OrderInfo>> getOrderListForUser(LocalDateTime from, LocalDateTime to, Integer pageNumber, Integer pageSize, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-
-        String userId = userDetails.getId().toString();
+    public ApiResponse<Page<OrderInfo>> getOrderListForUser(LocalDateTime from, LocalDateTime to, Integer pageNumber, Integer pageSize) {
+        // 임시 로그인
+        String userId = "1";
 
         Page<OrderInfo> orderInfoList = orderService.getOrderListForUser(
                 userId,
@@ -52,9 +50,9 @@ public class OrderControllerV1 implements OrderController {
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/v1/orders/{orderId}")
-    public ApiResponse<OrderInfo> getOrderForUser(String orderId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-
-        String userId = userDetails.getId().toString();
+    public ApiResponse<OrderInfo> getOrderForUser(String orderId) {
+        // 임시 로그인
+        String userId = "1";
 
         OrderInfo orderInfo = orderService.getOrderDetailForUser(orderId, userId);
 
@@ -64,9 +62,9 @@ public class OrderControllerV1 implements OrderController {
 
     @PreAuthorize("hasRole('OWNER')")
     @GetMapping("/v1/restaurants/{restaurantId}/orders")
-    public ApiResponse<Page<OrderInfo>> getOrderListForOwner(String restaurantId, LocalDateTime from, LocalDateTime to, Integer pageNumber, Integer pageSize, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-
-        String userId = userDetails.getId().toString();
+    public ApiResponse<Page<OrderInfo>> getOrderListForOwner(String restaurantId, LocalDateTime from, LocalDateTime to, Integer pageNumber, Integer pageSize) {
+        // 임시 로그인
+        String userId = "1";
 
         Page<OrderInfo> orderInfoList = orderService.getOrderListForOwner(
                 userId,
@@ -82,31 +80,31 @@ public class OrderControllerV1 implements OrderController {
 
     @PreAuthorize("hasRole('OWNER')")
     @GetMapping("/v1/restaurants/{restaurantId}/orders/{orderId}")
-    public ApiResponse<OrderInfo> getOrderForOwner(String restaurantId, String orderId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-
-        String userId = userDetails.getId().toString();
+    public ApiResponse<OrderInfo> getOrderForOwner(String restaurantId, String orderId) {
+        // 임시 로그인
+        String userId = "1";
 
         OrderInfo orderInfo = orderService.getOrderDetailForOwner(orderId, userId);
 
         return ApiResponse.create(OrderResponseCode.ORDER_DETAIL_SUCCESS,"음식점이 주문을 조회했습니다.", orderInfo);
     }
 
-//    @PreAuthorize("hasRole('OWNER')")
-//    @PostMapping("/v1/orders")
-//    public ApiResponse<CreateOrderInfo> createOrder(CreateOrderRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-//
-//        // 임시 로그인
-//        String userId = "1";
-//
-//        CreateOrderInfo orderInfo = orderService.createOrder(CreateOrderCommand.of(request), Long.valueOf(userId));
-//        return ApiResponse.create(OrderResponseCode.ORDER_CREATE_SUCCESS, "주문을 정상적으로 생성했습니다.", orderInfo);
-//    }
+    @PreAuthorize("hasRole('OWNER')")
+    @PostMapping("/v1/orders")
+    public ApiResponse<CreateOrderInfo> createOrder(CreateOrderRequest request) {
+
+        // 임시 로그인
+        String userId = "1";
+
+        CreateOrderInfo orderInfo = orderService.createOrder(CreateOrderCommand.of(request), Long.valueOf(userId));
+        return ApiResponse.create(OrderResponseCode.ORDER_CREATE_SUCCESS, "주문을 정상적으로 생성했습니다.", orderInfo);
+    }
 
     @PreAuthorize("hasRole('OWNER')")
     @PostMapping("/v1/restaurants/{restaurantId}/orders/{orderId}/confirm")
-    public ApiResponse<ConfirmOrderInfo> confirmOrder(String restaurantId, String orderId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-
-        String userId = userDetails.getId().toString();
+    public ApiResponse<ConfirmOrderInfo> confirmOrder(String restaurantId, String orderId) {
+        // 임시 로그인
+        String userId = "2";
 
         ConfirmOrderInfo orderInfo = orderService.confirmOrder(restaurantId, orderId, userId);
 
@@ -115,9 +113,9 @@ public class OrderControllerV1 implements OrderController {
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @PatchMapping("/v1/orders/{orderId}")
-    public ApiResponse<OrderPaymentResponse> cancelOrderForUser(String orderId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-
-        String userId = userDetails.getId().toString();
+    public ApiResponse<OrderPaymentResponse> cancelOrderForUser(String orderId) {
+        // 임시 로그인
+        String userId = "2";
 
         OrderPaymentResponse orderPaymentResponse = orderPaymentService.cancelOrderPaymentForUser(orderId, userId);
 
@@ -132,9 +130,9 @@ public class OrderControllerV1 implements OrderController {
 
     @PreAuthorize("hasRole('OWNER')")
     @PatchMapping("/v1/restaurants/{restaurantId}/orders/{orderId}")
-    public ApiResponse<OrderPaymentResponse> cancelOrderForOwner(String restaurantId, String orderId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-
-        String userId = userDetails.getId().toString();
+    public ApiResponse<OrderPaymentResponse> cancelOrderForOwner(String restaurantId, String orderId) {
+        // 임시 로그인
+        String userId = "2";
 
         OrderPaymentResponse orderPaymentResponse = orderPaymentService.cancelOrderPaymentForOwner(restaurantId, orderId, userId);
 
@@ -146,9 +144,9 @@ public class OrderControllerV1 implements OrderController {
     }
 
     @PostMapping("/orders/pay")
-    public ApiResponse<OrderPaymentResponse> orderPayment(OrderPaymentRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-
-        String userId = userDetails.getId().toString();
+    public ApiResponse<OrderPaymentResponse> orderPayment(OrderPaymentRequest request) {
+        // 임시 로그인
+        String userId = "2";
 
         CreateOrderRequest orderRequest = request.getCreateOrderRequest();
         PaymentRequestDto paymentRequest = request.getPaymentRequestRequest();

@@ -2,7 +2,6 @@ package com.sparta.deliverit.order.application.service;
 
 import com.sparta.deliverit.order.application.dto.CreateOrderCommand;
 import com.sparta.deliverit.order.domain.entity.Order;
-import com.sparta.deliverit.order.infrastructure.dto.OrderIdVersion;
 import com.sparta.deliverit.order.presentation.dto.response.OrderPaymentResponse;
 import com.sparta.deliverit.order.presentation.dto.response.OrderResponse;
 import com.sparta.deliverit.payment.application.service.PaymentService;
@@ -11,21 +10,14 @@ import com.sparta.deliverit.payment.domain.entity.Payment;
 import com.sparta.deliverit.payment.application.service.dto.PaymentResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 
 @Slf4j(topic = "orderPaymentService")
 @Service
 public class OrderPaymentService {
-
-    private final int ORDER_CANCEL_SUCCESS = 1;
-    private final int ORDER_CANCEL_FAIL = 0;
-    private final int PAYMENT_CANCEL_FAIL = -1;
 
     private final OrderService orderService;
     private final PaymentService paymentService;
@@ -120,7 +112,8 @@ public class OrderPaymentService {
         } catch (Exception pse) {
             log.error("paymentCancel failed, orderId={}, msg={}", orderId, pse.getMessage(), pse);
 
-            Payment payment = paymentService.getPayment(order.getPayment().getPaymentId());
+            // FIXME : payment 정보를 가져오는 기능이 필요함
+            Payment payment = null; //paymentService.getPayment(order.getPayment().getPaymentId());
             return OrderPaymentResponse.create(
                     orderId,
                     "",
@@ -134,7 +127,7 @@ public class OrderPaymentService {
                     )
             );
         }
-        Payment payment = paymentService.getPayment(order.getPayment().getPaymentId());
+        Payment payment = null; //paymentService.getPayment(order.getPayment().getPaymentId());
         // 주문 취소
         try {
             orderService.cancelOrderForUser(orderId, userId);
@@ -172,7 +165,8 @@ public class OrderPaymentService {
         } catch (Exception pse) {
             log.error("paymentCancel failed, orderId={}, msg={}", orderId, pse.getMessage(), pse);
 
-            Payment payment = paymentService.getPayment(order.getPayment().getPaymentId());
+            // FIXME : payment 정보를 가져오는 기능이 필요함
+            Payment payment = null; //paymentService.getPayment(order.getPayment().getPaymentId());
             return OrderPaymentResponse.create(
                     orderId,
                     "",
@@ -187,7 +181,7 @@ public class OrderPaymentService {
             );
         }
 
-        Payment payment = paymentService.getPayment(order.getPayment().getPaymentId());
+        Payment payment = null; //paymentService.getPayment(order.getPayment().getPaymentId());
         // 주문 취소
         try {
             orderService.cancelOrderForOwner(restaurantId, orderId,  accessUserId);
@@ -211,34 +205,5 @@ public class OrderPaymentService {
                 OrderResponse.of(freshOrder),
                 PaymentResponseDto.cancel(payment.getPaymentId(), payment.getCardNum(), payment.getCompany().toString(), ZonedDateTime.now(clock))
         );
-    }
-
-    public Page<OrderIdVersion> findExpiredOrderIds(LocalDateTime cutoffTime, LocalDateTime sinceTime, Pageable pageable) {
-        return orderService.findExpiredOrderIds(
-                cutoffTime,
-                sinceTime,
-                pageable
-        );
-    }
-
-    public int cancelOrderPayment(String orderId) {
-
-        Order order = orderService.loadFresh(orderId);
-        Long version = order.getVersion();
-
-
-        // 결제 취소 요청을 먼저 전송
-        try {
-            // 결제 취소
-            paymentService.paymentCancel(order);
-
-        } catch (Exception pse) {
-            log.error("paymentCancel failed, orderId={}, msg={}", orderId, pse.getMessage(), pse);
-            return PAYMENT_CANCEL_FAIL;
-        }
-
-        // 주문 취소
-        int updated = orderService.cancelOrderOne(orderId, version);
-        return (updated > 0) ? ORDER_CANCEL_SUCCESS : ORDER_CANCEL_FAIL; // 1 : 0
     }
 }
