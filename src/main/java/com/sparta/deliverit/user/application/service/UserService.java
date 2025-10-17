@@ -8,7 +8,6 @@ import com.sparta.deliverit.user.domain.entity.User;
 import com.sparta.deliverit.user.domain.entity.UserRoleEnum;
 import com.sparta.deliverit.user.domain.repository.UserRepository;
 import com.sparta.deliverit.user.presentation.dto.SignupRequestDto;
-import com.sparta.deliverit.user.presentation.dto.UserEditRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,8 +17,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-
-import static com.sparta.deliverit.global.response.code.UserResponseCode.UNAUTHORIZED_USER;
 
 @Slf4j
 @Service
@@ -32,6 +29,9 @@ public class UserService {
     // ADMIN_TOKEN
     private final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
     private static final Map<String, UserRoleEnum> ROLE_ALIASES = buildRoleAliases();
+
+
+
 
     public void signup(SignupRequestDto requestDto) {
         String username = requestDto.getUsername();
@@ -117,27 +117,5 @@ public class UserService {
             log.error("존재하지 않는 유저입니다. userId : {}", userId);
             return new UserException(UserResponseCode.NOT_FOUND_USER);
         });
-    }
-
-    public void editUser(Long userId, UserEditRequestDto requestDto) {
-        User user = getUserById(userId);
-
-        if (!user.getId().equals(userId)) {
-            log.error("[UserService.editUser] 인증되지 않은 유저 접근입니다. userId : {}", userId);
-
-            throw new UserException(UNAUTHORIZED_USER);
-        }
-
-        if (!passwordEncoder.matches(requestDto.getCurrentPassword(), user.getPassword())) {
-            log.error("[UserService.editUser] 유저 정보 변경 중 비밀번호가 일치하지 않습니다.");
-
-            throw new UserException(UserResponseCode.PASSWORD_MISMATCH);
-        }
-
-        user.changePassword(passwordEncoder.encode(requestDto.getNewPassword()));
-
-        user.updateProfile(requestDto);
-
-        userRepository.save(user);
     }
 }
