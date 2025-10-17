@@ -4,7 +4,6 @@ import com.sparta.deliverit.order.domain.entity.Order;
 import com.sparta.deliverit.order.domain.entity.OrderStatus;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForOwner;
 import com.sparta.deliverit.order.infrastructure.dto.OrderDetailForUser;
-import com.sparta.deliverit.order.infrastructure.dto.OrderIdVersion;
 import com.sparta.deliverit.payment.enums.PayState;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -253,44 +252,4 @@ public interface OrderRepository extends JpaRepository<Order, String> {
                                 @Param("nextStatus") String nextStatus,
                                 @Param("updateTime") LocalDateTime updateTime
     );
-
-    @Query(
-    """
-        SELECT o.orderId AS orderId,
-               o.version AS version,
-               o.orderedAt AS orderedAt
-        FROM Order o
-        WHERE o.orderStatus = :statusCompleted
-          AND o.orderedAt <= :cutoffTime    
-          AND o.orderedAt >= :sinceTime    
-        ORDER BY o.orderedAt ASC, o.orderId ASC
-    """)
-    Page<OrderIdVersion> findExpiredOrderIds(@Param("statusCompleted") OrderStatus statusCompleted,
-                                             @Param("cutoffTime") LocalDateTime cutoffTime,
-                                             @Param("sinceTime") LocalDateTime sinceTime,
-                                             Pageable pageable);
-
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query(
-    """
-        UPDATE Order o
-        SET o.orderStatus = :nextStatus,
-            o.version = o.version + 1,
-            o.updatedAt = :updateTime
-        WHERE o.orderId = :orderId
-          AND o.orderStatus = :currStatus
-          AND o.version = :version
-          AND EXISTS (
-                SELECT 1
-                FROM Payment p
-                WHERE p.paymentId = o.payment.paymentId  
-                  AND p.payState = :payState          
-          ) 
-    """)
-    int cancelOneWithVersion(@Param("orderId") String orderId,
-                             @Param("currStatus") OrderStatus currStatus,
-                             @Param("nextStatus") OrderStatus nextStatus,
-                             @Param("version") Long version,
-                             @Param("updateTime") LocalDateTime updateTime,
-                             @Param("payState") PayState payState);
 }
