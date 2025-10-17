@@ -6,6 +6,7 @@ import com.sparta.deliverit.global.response.code.UserResponseCode;
 import com.sparta.deliverit.user.application.service.UserService;
 import com.sparta.deliverit.user.application.service.dto.UserInfo;
 import com.sparta.deliverit.user.presentation.dto.SignupRequestDto;
+import com.sparta.deliverit.user.presentation.dto.UserEditRequestDto;
 import com.sparta.deliverit.user.presentation.dto.UserResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -66,6 +67,20 @@ public class UserController {
                 USER_DELETE_SUCCESS,
                 USER_DELETE_SUCCESS.getMessage(),
                 deletedUserId
+        );
+    }
+
+    @PutMapping("/users")
+    public ApiResponse<Void> editUser(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @Valid @RequestBody UserEditRequestDto userEditRequest
+    ) {
+        userService.editUser(userDetails.getId(), userEditRequest);
+
+        return ApiResponse.create(
+                USER_EDIT_SUCCESS,
+                USER_EDIT_SUCCESS.getMessage(),
+                null
         );
     }
 }
