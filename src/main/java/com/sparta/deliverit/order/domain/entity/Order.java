@@ -1,6 +1,6 @@
 package com.sparta.deliverit.order.domain.entity;
 
-import com.sparta.deliverit.anything.entity.BaseEntity;
+import com.sparta.deliverit.global.entity.BaseEntity;
 import com.sparta.deliverit.payment.domain.entity.Payment;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
 import com.sparta.deliverit.user.domain.entity.User;
@@ -28,7 +28,7 @@ public class Order extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurant_id", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "fk_order_restaurant"))
     private Restaurant restaurant;
-  
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id")
     private Payment payment;

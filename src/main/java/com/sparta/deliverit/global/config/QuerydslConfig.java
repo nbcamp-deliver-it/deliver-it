@@ -1,4 +1,4 @@
-package com.sparta.deliverit.anything.config;
+package com.sparta.deliverit.global.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

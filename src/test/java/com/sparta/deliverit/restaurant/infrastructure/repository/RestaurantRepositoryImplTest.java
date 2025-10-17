@@ -1,262 +1,300 @@
 package com.sparta.deliverit.restaurant.infrastructure.repository;
 
-import com.sparta.deliverit.anything.config.AuditingConfig;
-import com.sparta.deliverit.anything.config.QuerydslConfig;
-import com.sparta.deliverit.restaurant.domain.entity.Category;
+import com.sparta.deliverit.global.config.AuditingConfig;
+import com.sparta.deliverit.global.config.QuerydslConfig;
 import com.sparta.deliverit.restaurant.domain.entity.Restaurant;
+import com.sparta.deliverit.restaurant.domain.model.PageSize;
+import com.sparta.deliverit.restaurant.domain.model.RestaurantCategory;
+import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
 import com.sparta.deliverit.restaurant.domain.vo.RestaurantRating;
 import com.sparta.deliverit.restaurant.presentation.dto.RestaurantListResponseDto;
-import com.sparta.deliverit.review.domain.vo.Star;
+import com.sparta.deliverit.user.domain.entity.User;
+import com.sparta.deliverit.user.domain.repository.UserRepository;
+
 import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.HashSet;
-import java.util.List;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Set;
 
-import static com.sparta.deliverit.restaurant.domain.model.RestaurantCategory.JAPANESE_FOOD;
-import static com.sparta.deliverit.restaurant.domain.model.RestaurantCategory.KOREAN_FOOD;
-import static com.sparta.deliverit.restaurant.domain.model.RestaurantStatus.OPEN;
+import static com.sparta.deliverit.restaurant.domain.model.RestaurantCategory.*;
+import static com.sparta.deliverit.restaurant.domain.model.RestaurantStatus.*;
+import static com.sparta.deliverit.restaurant.domain.model.SortType.CREATED_AT;
+import static com.sparta.deliverit.restaurant.domain.model.SortType.RATING;
+import static com.sparta.deliverit.user.domain.entity.UserRoleEnum.OWNER;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest(showSql = true)
+@DataJpaTest
 @Import({QuerydslConfig.class, AuditingConfig.class})
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@ActiveProfiles("test")
-class RestaurantRepositoryImplTest {
-
-    private static final Logger log = LoggerFactory.getLogger(RestaurantRepositoryImplTest.class);
+class RestaurantRepositorySliceTest {
 
     @Autowired
-    RestaurantRepository restaurantRepository;
+    private RestaurantRepository rr;
 
     @Autowired
-    CategoryRepository categoryRepository;
+    private UserRepository ur;
 
     @Autowired
-    EntityManager em;
+    private EntityManager em;
 
-    private static RestaurantRating rr(String avg, long cnt) {
-        return new RestaurantRating(new BigDecimal(avg).setScale(Star.SCALE, RoundingMode.DOWN), cnt);
+    private static final int PAGE_NUMBER = 0;
+    private static final int REQUEST_PAGE_SIZE = 15;
+    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final double GWANGHWAMUN_LAT = 37.5759;
+    private static final double GWANGHWAMUN_LON = 126.9768;
+    private static final String KEYWORD = "식당";
+    private static final RestaurantCategory CATEGORY = KOREAN_FOOD;
+
+
+    private void save(
+            User user, String id, String name, double longitude, double latitude,
+            RestaurantStatus status, double starAvg, Long reviewsCount, Set<RestaurantCategory> categories
+    ) throws InterruptedException {
+        Restaurant restaurant = Restaurant.builder()
+                .restaurantId(id)
+                .name(name)
+                .address("테스트 주소").phone("00-000-0000")
+                .description("테스트용 더미 데이터")
+                .longitude(longitude)
+                .latitude(latitude)
+                .status(status)
+                .categories(categories)
+                .user(user)
+                .rating(new RestaurantRating(new BigDecimal(starAvg), reviewsCount))
+                .build();
+
+        em.persist(restaurant);
+        Thread.sleep(200);
     }
 
+    @SafeVarargs
+    private static Set<RestaurantCategory> cats(RestaurantCategory... cs) {
+        return cs.length == 0 ? EnumSet.noneOf(RestaurantCategory.class) : EnumSet.copyOf(Arrays.asList(cs));
+    }
+
+    // 하이버네이트 엔티티 필터 활성화 및 시드 데이터 생성
     @BeforeEach
-    void seed() {
-        // 필터 활성화
-        em.unwrap(Session.class)
-                .enableFilter("activeRestaurantFilter");
+    void seed() throws InterruptedException {
+        em.unwrap(Session.class).enableFilter("activeRestaurantFilter");
 
-        // 카테고리
-        Category korean = categoryRepository.save(Category.builder()
-                .name(KOREAN_FOOD)
-                .build());
+        User owner = ur.save(new User("owner1", "encoded-password", "김오너", "010-0000-0000", OWNER));
 
-        Category japanese = categoryRepository.save(Category.builder()
-                .name(JAPANESE_FOOD)
-                .build());
+        // 제한 거리 외
+        save(owner, "R01", "광화문 한식당", 126.9768, 37.5759, OPEN, 4.4, 1435L, cats(KOREAN_FOOD));
+        save(owner, "R02", "청계천 중식당", 126.9865, 37.5697, CLOSED, 4.2, 624L, cats(CHINESE_FOOD));
+        save(owner, "R03", "경복궁 스시집", 126.9770, 37.5796, SHUTDOWN, 3.8, 154L, cats(JAPANESE_FOOD));
+        save(owner, "R04", "세종로 치킨집", 126.9756, 37.5724, OPEN, 4.7, 1245L, cats(KOREAN_FOOD, CHICKEN));
+        save(owner, "R05", "시청 일식당", 126.9779, 37.5663, OPEN, 4.5, 346L, cats(JAPANESE_FOOD));
+        // 제한 거리 외
+        save(owner, "R06", "홍대 떡볶이집", 126.9230, 37.5500, SHUTDOWN, 2.7, 834L, cats(KOREAN_FOOD, STREET_FOOD));
+        save(owner, "R07", "강남 고기집", 127.0280, 37.4979, OPEN, 4.3, 765L, cats(KOREAN_FOOD, MEAT));
 
-        // 정상 데이터
-        Restaurant r1 = Restaurant.builder()
-                .restaurantId("R1")
-                .name("한식집")
-                .phone("02-0000-0001")
-                .address("서울시청")
-                .longitude(126.9779)
-                .latitude(37.5663)
-                .description("시청 근처 한식집")
-                .status(OPEN)
-                .rating(rr("4.5", 12))
-                .categories(new HashSet<>(List.of(korean)))
-                .build();
-
-        Restaurant r2 = Restaurant.builder()
-                .restaurantId("R2")
-                .name("일식집")
-                .phone("02-0000-0002")
-                .address("광화문")
-                .longitude(126.9769)
-                .latitude(37.5700)
-                .description("광화문 근처 일식집")
-                .status(OPEN)
-                .rating(rr("4.2", 30))
-                .categories(new HashSet<>(List.of(japanese)))
-                .build();
-
-        Restaurant r3 = Restaurant.builder()
-                .restaurantId("R3")
-                .name("강남한식")
-                .phone("02-0000-0003")
-                .address("강남역")
-                .longitude(127.0276)
-                .latitude(37.4979)
-                .description("강남 근처 한식집")
-                .status(OPEN)
-                .rating(rr("4.9", 5))
-                .categories(new HashSet<>(List.of(korean)))
-                .build();
-
-        // 필터링 데이터
-        Restaurant r4Shutdown = Restaurant.builder()
-                .restaurantId("R4")
-                .name("폐업가게")
-                .phone("02-0000-0004")
-                .address("종로")
-                .longitude(126.9830)
-                .latitude(37.5705)
-                .description("폐업")
-                .status(OPEN)
-                .rating(rr("3.7", 50))
-                .categories(new HashSet<>(List.of(japanese)))
-                .build();
-        r4Shutdown.softDelete();
-
-        restaurantRepository.saveAll(List.of(r1, r2, r3, r4Shutdown));
         em.flush();
         em.clear();
     }
 
+    // 하이버네이트 엔티티 필터 비활성화
     @AfterEach
     void disableFilter() {
-        em.unwrap(Session.class).disableFilter("activeRestaurantFilter");
+        em.unwrap(Session.class)
+                .disableFilter("activeRestaurantFilter");
     }
 
     @Test
-    @DisplayName("엔티티 필터: status=SHUTDOWN 은 조회되지 않는다")
-    void filter_status_shutdown() {
-        var page = restaurantRepository.searchByRating(null, null, PageRequest.of(0, 20));
-        var ids = page.map(RestaurantListResponseDto::getRestaurantId).getContent();
-
-        assertThat(ids).doesNotContain("R4");
-        log.info("필터 결과(삭제 제외): {}", ids);
-    }
-
-    @Test
-    @DisplayName("검색어 미포함, 카테고리 미포함, 거리 정렬(ASC)")
-    void distance_asc_without_keyword() {
+    @DisplayName("제한 거리 밖의 가게와 폐업한 가게는 조회되지 않는다.")
+    void exclude_closed_and_out_of_range_restaurants() {
         // given
-        var pageable = distanceAsc();
+        var pageable = getPageableDefault(PAGE_NUMBER, DEFAULT_PAGE_SIZE);
 
         // when
-        var page = restaurantRepository.searchOrderByDistance(
-                37.5665, 126.9780, null, null, pageable
-        );
-        var ids = page.getContent().stream().map(RestaurantListResponseDto::getRestaurantId).toList();
+        var page = rr.searchByCreatedAt(GWANGHWAMUN_LAT, GWANGHWAMUN_LON, null, null, pageable);
+
+        var list = page.map(RestaurantListResponseDto::getRestaurantId).getContent();
 
         // then
-        assertThat(ids).containsExactly("R1", "R2", "R3");
-
-        log.info("거리순 ids: {}", ids);
+        assertThat(list.size()).isEqualTo(4);
+        assertThat(list).doesNotContain("R03", "R06");
     }
 
     @Test
-    @DisplayName("검색어 미포함, 카테고리 미포함, 별점 정렬(DESC)")
-    void rating_desc_without_keyword() {
+    @DisplayName("page 기본 값은 0이며, size에 10, 30, 50외의 값이 들어오면 10으로 변환된다.")
+    void page_default_zero_and_invalid_size_normalized_to_ten() {
         // given
-        PageRequest pageable = ratingDesc();
+        var pageable = getPageableDefault(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
 
         // when
-        var page = restaurantRepository.searchByRating(null, null, pageable);
-        var ids = page.getContent().stream().map(RestaurantListResponseDto::getRestaurantId).toList();
+        var page = rr.searchByCreatedAt(GWANGHWAMUN_LAT, GWANGHWAMUN_LON, null, null, pageable);
+        var list = page.map(RestaurantListResponseDto::getRestaurantId).getContent();
 
         // then
-        assertThat(ids).containsExactly("R3", "R1", "R2");
-
-        log.info("별점 내림차순 ids: {}", ids);
+        assertThat(page).isNotNull();
+        assertThat(page.getSize()).isEqualTo(DEFAULT_PAGE_SIZE);
+        assertThat(page.getNumber()).isZero();
     }
 
     @Test
-    @DisplayName("검색어 미포함, 카테고리 미포함, 별점 정렬(ASC)")
-    void rating_asc_without_keyword() {
+    @DisplayName("searchByCreatedAt: 생성일 내림차순 정렬")
+    void search_by_created_at_desc() {
         // given
-        var pageable = ratingAsc();
+        var pageable = getPageableDefault(PAGE_NUMBER, DEFAULT_PAGE_SIZE);
 
         // when
-        var page = restaurantRepository.searchByRating(null, null, pageable);
-        var ids = page.getContent().stream().map(RestaurantListResponseDto::getRestaurantId).toList();
+        var page = rr.searchByCreatedAt(GWANGHWAMUN_LAT, GWANGHWAMUN_LON, null, null, pageable);
+
+        var list = page.map(RestaurantListResponseDto::getRestaurantId).getContent();
 
         // then
-        assertThat(ids).containsExactly("R2", "R1", "R3");
-
-        log.info("별점 오름차순 ids: {}", ids);
+        assertThat(list).containsExactly("R05", "R04", "R02", "R01");
     }
 
     @Test
-    @DisplayName("검색어 포함, 카테고리 미포함, 거리 정렬(ASC)")
-    void distance_with_keyword() {
+    @DisplayName("searchByCreatedAt: 생성일 오름차순 정렬")
+    void search_by_created_at_asc() {
         // given
-        var pageable = distanceAsc();
+        var pageable = getPageableCreatedAtAsc(PAGE_NUMBER, DEFAULT_PAGE_SIZE);
 
         // when
-        var page = restaurantRepository.searchOrderByDistance(
-                37.5665, 126.9780, "한식", null, pageable
-        );
-        var ids = page.getContent().stream().map(RestaurantListResponseDto::getRestaurantId).toList();
+        var page = rr.searchByCreatedAt(GWANGHWAMUN_LAT, GWANGHWAMUN_LON, null, null, pageable);
+        var list = page.map(RestaurantListResponseDto::getRestaurantId).getContent();
 
         // then
-        assertThat(page.getTotalElements()).isEqualTo(2);
-        assertThat(ids).containsExactly("R1", "R3");
-
-        log.info("거리순 + 키워드('한식') ids: {}", ids);
+        assertThat(list).containsExactly("R01", "R02", "R04", "R05");
     }
 
     @Test
-    @DisplayName("검색어 포함, 카테고리 미포함, 별점 정렬(DESC)")
-    void rating_desc_with_keyword() {
+    @DisplayName("searchByCreatedAt: 이름에 '식당' 키워드가 포함된 결과를 최신순으로 정렬")
+    void search_by_created_at_with_keyword_desc() {
         // given
-        var pageable = ratingDesc();
+        var pageable = getPageableDefault(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
 
         // when
-        var page = restaurantRepository.searchByRating("한식", null, pageable);
-        var ids = page.getContent().stream().map(RestaurantListResponseDto::getRestaurantId).toList();
+        var page = rr.searchByCreatedAt(GWANGHWAMUN_LAT, GWANGHWAMUN_LON, KEYWORD, null, pageable);
+        var list = page.getContent();
 
         // then
-        assertThat(page.getTotalElements()).isEqualTo(2);
-        assertThat(ids).containsExactly("R3", "R1");
-
-        log.info("별점 내림차순 + 키워드('한식') ids: {}", ids);
+        assertThat(list.size()).isEqualTo(3);
+        assertThat(list)
+                .allMatch(dto -> dto.getName().contains(KEYWORD));
+        assertThat(list).extracting(RestaurantListResponseDto::getRestaurantId)
+                .containsExactly("R05", "R02", "R01");
     }
 
     @Test
-    @DisplayName("검색어 포함, 카테고리 미포함, 별점 정렬(ASC)")
-    void rating_asc_with_keyword() {
+    @DisplayName("searchByCreatedAt: 카테고리가 한식인 결과를 최신순으로 정렬")
+    void search_by_created_at_with_category_desc() {
         // given
-        var pageable = ratingAsc();
+        var pageable = getPageableDefault(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
 
         // when
-        var page = restaurantRepository.searchByRating("한식", null, pageable);
-        var ids = page.getContent().stream().map(RestaurantListResponseDto::getRestaurantId).toList();
+        var page = rr.searchByCreatedAt(GWANGHWAMUN_LAT, GWANGHWAMUN_LON, null, CATEGORY, pageable);
+        var list = page.getContent();
 
         // then
-        assertThat(page.getTotalElements()).isEqualTo(2);
-        assertThat(ids).containsExactly("R1", "R3");
-
-        log.info("별점 내림차순 + 키워드('한식') ids: {}", ids);
+        assertThat(list.size()).isEqualTo(2);
+        assertThat(list).extracting(RestaurantListResponseDto::getRestaurantId)
+                .containsExactly("R04", "R01");
     }
 
-    PageRequest distanceAsc() {
-        return PageRequest.of(0, 10, Sort.by(Sort.Order.asc("distance")));
+    @Test
+    @DisplayName("searchByCreatedAt: 카테고리가 한식이면서 이름에 '식당' 키워드가 들어가는 결과를 최신순으로 정렬")
+    void search_by_created_at_with_keyword_and_category_desc() {
+        // given
+        var pageable = getPageableDefault(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
+
+        // when
+        var page = rr.searchByCreatedAt(GWANGHWAMUN_LAT, GWANGHWAMUN_LON, KEYWORD, CATEGORY, pageable);
+        var list = page.getContent();
+
+        // then
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(list)
+                .allMatch(dto -> dto.getName().contains(KEYWORD));
+        assertThat(list).extracting(RestaurantListResponseDto::getRestaurantId)
+                .containsExactly("R01");
     }
 
-    PageRequest ratingDesc() {
-        return PageRequest.of(0, 10, Sort.by(Sort.Order.desc("rating")));
+    @Test
+    @DisplayName("searchOrderByDistance: 강화문 기준 가까운순으로 정렬")
+    void search_by_distance_asc() {
+        // given
+        var pageable = getPageableDefault(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
+
+        // when
+        var page = rr.searchOrderByDistance(GWANGHWAMUN_LAT, GWANGHWAMUN_LON, null, null, pageable);
+        var list = page.map(RestaurantListResponseDto::getRestaurantId).getContent();
+
+        // then
+        assertThat(list).containsExactly("R01", "R04", "R05", "R02");
     }
 
-    PageRequest ratingAsc() {
-        return PageRequest.of(0, 10, Sort.by(Sort.Order.asc("rating")));
+    @Test
+    @DisplayName("searchOrderByDistance: 이름에 '식당' 키워드가 포함된 결과 중 강화문 기준 가까운순으로 정렬")
+    void search_by_distance_with_search_asc() {
+        // given
+        var pageable = getPageableDefault(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
+
+        // when
+        var page = rr.searchOrderByDistance(GWANGHWAMUN_LAT, GWANGHWAMUN_LON, KEYWORD, null, pageable);
+        var list = page.getContent();
+
+        // then
+        assertThat(list.size()).isEqualTo(3);
+        assertThat(list)
+                .allMatch(dto -> dto.getName().contains(KEYWORD));
+        assertThat(list).extracting(RestaurantListResponseDto::getRestaurantId)
+                .containsExactly("R01", "R05", "R02");
     }
 
+    @Test
+    @DisplayName("searchByRating: 별점 내림차순으로 정렬")
+    void search_by_rating_desc() {
+        // given
+        var pageable = getPageableDefault(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
+
+        // when
+        var page = rr.searchByRating(GWANGHWAMUN_LAT, GWANGHWAMUN_LON, null, null, pageable);
+        var list = page.map(RestaurantListResponseDto::getRestaurantId).getContent();
+
+        // then
+        assertThat(list).containsExactly("R04", "R05", "R01", "R02");
+    }
+
+    @Test
+    @DisplayName("searchByRating: 별점 오름차순으로 정렬")
+    void search_by_rating_asc() {
+        // given
+        var pageable = getPageableRatingAsc(PAGE_NUMBER, PageSize.normalize(REQUEST_PAGE_SIZE));
+
+        // when
+        var page = rr.searchByRating(GWANGHWAMUN_LAT, GWANGHWAMUN_LON, null, null, pageable);
+
+        var list = page.map(RestaurantListResponseDto::getRestaurantId).getContent();
+
+        // then
+        assertThat(list).containsExactly("R02", "R01", "R05", "R04");
+    }
+
+    Pageable getPageableDefault(int pageNumber, int pageSize) {
+        return PageRequest.of(pageNumber, pageSize);
+    }
+
+    Pageable getPageableCreatedAtAsc(int pageNumber, int pageSize) {
+        return PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Order.asc(CREATED_AT.field())));
+    }
+
+    Pageable getPageableRatingAsc(int pageNumber, int pageSize) {
+        return PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Order.asc(RATING.field())));
+    }
 }

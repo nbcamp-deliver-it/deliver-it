@@ -1,4 +1,4 @@
-package com.sparta.deliverit.anything.config;
+package com.sparta.deliverit.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

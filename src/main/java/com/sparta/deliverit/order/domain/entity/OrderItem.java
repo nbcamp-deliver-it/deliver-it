@@ -1,6 +1,6 @@
 package com.sparta.deliverit.order.domain.entity;
 
-import com.sparta.deliverit.anything.entity.BaseEntity;
+import com.sparta.deliverit.global.entity.BaseEntity;
 import com.sparta.deliverit.menu.domain.entity.Menu;
 import jakarta.persistence.*;
 import lombok.Builder;

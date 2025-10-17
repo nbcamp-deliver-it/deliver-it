@@ -1,15 +1,13 @@
 package com.sparta.deliverit.user.domain.entity;
 
-import com.sparta.deliverit.anything.entity.BaseEntity;
+import com.sparta.deliverit.global.entity.BaseEntity;
+import com.sparta.deliverit.user.presentation.dto.UserEditRequestDto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -47,4 +45,17 @@ public class User extends BaseEntity {
         this.role = role;
     }
 
+    public void updateProfile(UserEditRequestDto dto) {
+        if (dto.getName() != null && !dto.getName().isBlank() && !dto.getName().equals(this.name)) {
+            this.name = dto.getName();
+        }
+
+        if (dto.getPhone() != null && !dto.getPhone().isBlank() && !dto.getPhone().equals(this.phone)) {
+            this.phone = dto.getPhone();
+        }
+    }
+
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
 }
