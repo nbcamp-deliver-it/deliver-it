@@ -1,4 +1,4 @@
-package com.sparta.deliverit.anything.entity;
+package com.sparta.deliverit.global.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

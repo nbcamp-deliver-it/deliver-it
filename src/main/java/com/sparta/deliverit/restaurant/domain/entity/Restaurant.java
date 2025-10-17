@@ -1,6 +1,6 @@
 package com.sparta.deliverit.restaurant.domain.entity;
 
-import com.sparta.deliverit.anything.entity.BaseEntity;
+import com.sparta.deliverit.global.entity.BaseEntity;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantCategory;
 import com.sparta.deliverit.restaurant.domain.model.RestaurantStatus;
 import com.sparta.deliverit.restaurant.domain.vo.RestaurantRating;

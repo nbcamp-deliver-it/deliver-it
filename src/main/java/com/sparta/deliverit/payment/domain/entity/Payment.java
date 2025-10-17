@@ -1,6 +1,6 @@
 package com.sparta.deliverit.payment.domain.entity;
 
-import com.sparta.deliverit.anything.entity.BaseEntity;
+import com.sparta.deliverit.global.entity.BaseEntity;
 import com.sparta.deliverit.payment.enums.Company;
 import com.sparta.deliverit.payment.enums.PayState;
 import com.sparta.deliverit.payment.enums.PayType;

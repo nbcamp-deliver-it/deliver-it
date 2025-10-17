@@ -1,6 +1,6 @@
 package com.sparta.deliverit.user.domain.entity;
 
-import com.sparta.deliverit.anything.entity.BaseEntity;
+import com.sparta.deliverit.global.entity.BaseEntity;
 import com.sparta.deliverit.user.presentation.dto.UserEditRequestDto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
